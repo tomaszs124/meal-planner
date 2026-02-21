@@ -654,7 +654,13 @@ export default function Meals() {
       })
 
       if (overrideRecords.length > 0) {
-        await supabase.from('meal_item_overrides').insert(overrideRecords)
+        const { error: overrideInsertError } = await supabase
+          .from('meal_item_overrides')
+          .insert(overrideRecords)
+
+        if (overrideInsertError) {
+          alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+        }
       }
 
       // Refresh meals list
@@ -836,7 +842,13 @@ export default function Meals() {
     })
 
     if (overrideRecords.length > 0) {
-      await supabase.from('meal_item_overrides').insert(overrideRecords)
+      const { error: overrideInsertError } = await supabase
+        .from('meal_item_overrides')
+        .insert(overrideRecords)
+
+      if (overrideInsertError) {
+        alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+      }
     }
 
     // Optimistic update
@@ -1993,165 +2005,190 @@ export default function Meals() {
                 </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Warianty dla członków gospodarstwa</label>
+              <div className="space-y-4 border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-900">Wersje dla domowników — zmienne tylko dla tej osoby</h3>
+                <p className="text-xs text-gray-600">Możesz dostosować składniki dla każdego członka gospodarstwa indywidualnie. Zmiany tutaj nie wpłyną na bazowy przepis ani na wersje innych osób.</p>
                 
-                {householdMembers.length === 0 ? (
-                  <p className="text-sm text-gray-500">Brak innych członków w gospodarstwie</p>
+                {householdMembers.filter((member) => member.user_id !== user?.id).length === 0 ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                    <p className="font-medium">Brak innych członków gospodarstwa</p>
+                    <p className="text-xs mt-1">Aby użyć tej funkcji, dodaj innych użytkowników do gospodarstwa.</p>
+                  </div>
+                ) : editProducts.length === 0 ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                    <p className="font-medium">Dodaj najpierw produkty</p>
+                    <p className="text-xs mt-1">Nadpisania składników będą dostępne po dodaniu produktów do posiłku.</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {householdMembers.map((member) => (
-                      <div key={member.user_id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">{member.display_name || 'Bez nazwy'}</h4>
+                    {householdMembers.map((member) => {
+                      const hasOverride = !!editMemberOverrides[member.user_id]
+                      const memberProducts = editMemberOverrides[member.user_id] || []
+                      
+                      return (
+                        <div key={member.user_id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={hasOverride}
+                                onChange={() => toggleMemberOverride(
+                                  member.user_id,
+                                  editProducts,
+                                  editMemberOverrides,
+                                  setEditMemberOverrides
+                                )}
+                                disabled={isAdding}
+                                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                              />
+                              <span className="text-sm font-medium text-gray-900">
+                                {member.display_name} {member.user_id === user?.id ? '(Ty)' : ''}
+                              </span>
+                            </label>
+                          </div>
 
-                        {editMemberOverrides[member.user_id] && editMemberOverrides[member.user_id].length > 0 ? (
-                          <div className="space-y-3 mb-3">
-                            {editMemberOverrides[member.user_id].map((sp, idx) => {
-                              const product = products.find((p) => p.id === sp.product_id)
-                              const kcal = product ? Math.round(calculateNutrition(sp.amount, product.unit_weight_grams, product.kcal_per_unit)) : 0
-                              const protein = product && product.protein ? calculateNutrition(sp.amount, product.unit_weight_grams, product.protein).toFixed(1) : null
-                              const fat = product && product.fat ? calculateNutrition(sp.amount, product.unit_weight_grams, product.fat).toFixed(1) : null
-                              const carbs = product && product.carbs ? calculateNutrition(sp.amount, product.unit_weight_grams, product.carbs).toFixed(1) : null
-                              const totalWeight = product ? Math.round(sp.amount * (product.unit_weight_grams || 1)) : 0
-
-                              return (
-                                <div key={idx} className="border border-gray-200 rounded-lg p-2 bg-white">
-                                  <div className="flex gap-2 items-end">
-                                    <div className="flex-1">
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">Produkt</label>
-                                      <select
-                                        value={sp.product_id}
-                                        onChange={(e) => {
-                                          const newOverrides = { ...editMemberOverrides }
-                                          newOverrides[member.user_id][idx].product_id = e.target.value
-                                          setEditMemberOverrides(newOverrides)
-                                        }}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                      >
-                                        {products.map((p) => (
-                                          <option key={p.id} value={p.id}>
-                                            {p.name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">Ilość</label>
-                                      <input
-                                        type="number"
-                                        step="0.5"
-                                        value={sp.amount}
-                                        onChange={(e) => {
-                                          const newOverrides = { ...editMemberOverrides }
-                                          newOverrides[member.user_id][idx].amount = parseFloat(e.target.value) || 0
-                                          setEditMemberOverrides(newOverrides)
-                                        }}
-                                        className="w-24 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                      />
-                                    </div>
-                                    <span className="flex items-center text-sm text-gray-600 w-32 pb-2">
-                                      {product?.unit_type === '100g' 
-                                        ? `${totalWeight}g`
-                                        : `${formatAmount(sp.amount)} ${translateUnit(product?.unit_type || '')} (${totalWeight}g)`
-                                      }
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const newOverrides = { ...editMemberOverrides }
-                                        newOverrides[member.user_id] = newOverrides[member.user_id].filter((_, i) => i !== idx)
-                                        if (newOverrides[member.user_id].length === 0) {
-                                          delete newOverrides[member.user_id]
+                          {hasOverride && (
+                            <div className="space-y-2 pl-0 bg-indigo-50 border-l-4 border-indigo-500 rounded p-3 ml-0">
+                              <div className="text-xs font-semibold text-indigo-700 mb-2">Wariant — tylko dla {member.display_name}</div>
+                              {memberProducts.map((sp, index) => {
+                                const product = products.find((p) => p.id === sp.product_id)
+                                const kcal = product ? Math.round(calculateNutrition(sp.amount, product.unit_weight_grams, product.kcal_per_unit)) : 0
+                                const totalWeight = product ? Math.round(sp.amount * (product.unit_weight_grams || 1)) : 0
+                                
+                                return (
+                                  <div key={index} className="border border-indigo-300 rounded-lg p-2 bg-white">
+                                    <div className="flex gap-2 items-end">
+                                      <div className="flex-1">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Produkt</label>
+                                        <select
+                                          value={sp.product_id}
+                                          onChange={(e) =>
+                                            updateMemberOverrideProduct(
+                                              member.user_id,
+                                              index,
+                                              'product_id',
+                                              e.target.value,
+                                              editMemberOverrides,
+                                              setEditMemberOverrides
+                                            )
+                                          }
+                                          disabled={isAdding}
+                                          className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        >
+                                          {products.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                              {p.name}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Ilość</label>
+                                        <input
+                                          type="number"
+                                          step="0.5"
+                                          value={sp.amount}
+                                          onChange={(e) =>
+                                            updateMemberOverrideProduct(
+                                              member.user_id,
+                                              index,
+                                              'amount',
+                                              e.target.value,
+                                              editMemberOverrides,
+                                              setEditMemberOverrides
+                                            )
+                                          }
+                                          disabled={isAdding}
+                                          className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        />
+                                      </div>
+                                      <span className="flex items-center text-sm text-gray-600 w-28 pb-1.5">
+                                        {product?.unit_type === '100g'
+                                          ? `${totalWeight}g`
+                                          : `${formatAmount(sp.amount)} ${translateUnit(product?.unit_type || '')} (${totalWeight}g)`
                                         }
-                                        setEditMemberOverrides(newOverrides)
-                                      }}
-                                      className="text-red-600 hover:text-red-700 px-2 pb-2"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                  {product && (
-                                    <div className="flex gap-2 mt-2 text-xs">
-                                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                      </span>
+                                      <span className="flex items-center text-sm text-gray-600 min-w-[60px] pb-1.5">
                                         {kcal} kcal
                                       </span>
-                                      {protein && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          removeProductFromMemberOverride(
+                                            member.user_id,
+                                            index,
+                                            editMemberOverrides,
+                                            setEditMemberOverrides
+                                          )
+                                        }
+                                        disabled={isAdding}
+                                        className="text-red-600 hover:text-red-700 px-2 pb-1.5"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+
+                              {memberProducts.length > 0 && (() => {
+                                const totals = memberProducts.reduce((acc, sp) => {
+                                  const product = products.find(p => p.id === sp.product_id)
+                                  if (product) {
+                                    acc.kcal += calculateNutrition(sp.amount, product.unit_weight_grams, product.kcal_per_unit)
+                                    acc.protein += calculateNutrition(sp.amount, product.unit_weight_grams, product.protein || 0)
+                                    acc.fat += calculateNutrition(sp.amount, product.unit_weight_grams, product.fat || 0)
+                                    acc.carbs += calculateNutrition(sp.amount, product.unit_weight_grams, product.carbs || 0)
+                                  }
+                                  return acc
+                                }, { kcal: 0, protein: 0, fat: 0, carbs: 0 })
+
+                                return (
+                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-2">
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-semibold">
+                                        {Math.round(totals.kcal)} kcal
+                                      </span>
+                                      {totals.protein > 0 && (
                                         <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                                          B: {protein}g
+                                          B: {totals.protein.toFixed(1)}g
                                         </span>
                                       )}
-                                      {fat && (
+                                      {totals.fat > 0 && (
                                         <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
-                                          T: {fat}g
+                                          T: {totals.fat.toFixed(1)}g
                                         </span>
                                       )}
-                                      {carbs && (
+                                      {totals.carbs > 0 && (
                                         <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
-                                          W: {carbs}g
+                                          W: {totals.carbs.toFixed(1)}g
                                         </span>
                                       )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
-                        ) : null}
+                                  </div>
+                                )
+                              })()}
 
-                        {editMemberOverrides[member.user_id] && editMemberOverrides[member.user_id].length > 0 && (() => {
-                          const totals = editMemberOverrides[member.user_id].reduce((acc, sp) => {
-                            const product = products.find(p => p.id === sp.product_id)
-                            if (product) {
-                              acc.kcal += calculateNutrition(sp.amount, product.unit_weight_grams, product.kcal_per_unit)
-                              acc.protein += calculateNutrition(sp.amount, product.unit_weight_grams, product.protein || 0)
-                              acc.fat += calculateNutrition(sp.amount, product.unit_weight_grams, product.fat || 0)
-                              acc.carbs += calculateNutrition(sp.amount, product.unit_weight_grams, product.carbs || 0)
-                            }
-                            return acc
-                          }, { kcal: 0, protein: 0, fat: 0, carbs: 0 })
-
-                          return (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
-                              <div className="text-xs font-semibold text-gray-700 mb-2">Suma dla wariantu:</div>
-                              <div className="flex flex-wrap gap-2 text-xs">
-                                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-semibold">
-                                  {Math.round(totals.kcal)} kcal
-                                </span>
-                                {totals.protein > 0 && (
-                                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                                    B: {totals.protein.toFixed(1)}g
-                                  </span>
-                                )}
-                                {totals.fat > 0 && (
-                                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
-                                    T: {totals.fat.toFixed(1)}g
-                                  </span>
-                                )}
-                                {totals.carbs > 0 && (
-                                  <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
-                                    W: {totals.carbs.toFixed(1)}g
-                                  </span>
-                                )}
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addProductToMemberOverride(
+                                    member.user_id,
+                                    editMemberOverrides,
+                                    setEditMemberOverrides
+                                  )
+                                }
+                                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                              >
+                                + Dodaj produkt
+                              </button>
                             </div>
-                          )
-                        })()}
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            addProductToMemberOverride(
-                              member.user_id,
-                              editMemberOverrides,
-                              setEditMemberOverrides
-                            )
-                          }
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          + Dodaj produkt
-                        </button>
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

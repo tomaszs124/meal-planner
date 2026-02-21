@@ -65,7 +65,7 @@ export type MealCategory = 'breakfast' | 'second_breakfast' | 'lunch' | 'dinner'
 export type Meal = {
   id: string
   name: string
-  user_id: string
+  user_id: string | null
   household_id: string
   is_shared: boolean
   description: string | null

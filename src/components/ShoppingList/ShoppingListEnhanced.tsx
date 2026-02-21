@@ -22,6 +22,48 @@ function translateUnit(unitType: string): string {
   }
   return units[unitType] || unitType
 }
+
+function getGroupedItemAmountLabel(groupedItem: GroupedItem): string | null {
+  if (groupedItem.custom_amount_text) {
+    return groupedItem.custom_amount_text
+  }
+
+  if (groupedItem.product) {
+    if (groupedItem.unit_type === '100g') {
+      return `${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g`
+    }
+
+    return `${formatAmount(groupedItem.totalAmount)} ${translateUnit(groupedItem.unit_type || '')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
+  }
+
+  if (groupedItem.totalAmount > 0) {
+    return formatAmount(groupedItem.totalAmount)
+  }
+
+  return null
+}
+
+function getSingleItemAmountLabel(item: ShoppingListItemWithProduct): string | null {
+  if (item.custom_amount_text) {
+    return item.custom_amount_text
+  }
+
+  if (item.product) {
+    const totalWeight = Math.round(item.amount * (item.product.unit_weight_grams || 1))
+    if (item.unit_type === '100g') {
+      return `${totalWeight}g`
+    }
+
+    return `${formatAmount(item.amount)} ${translateUnit(item.unit_type || '')} (${totalWeight}g)`
+  }
+
+  if (item.amount > 0) {
+    return formatAmount(item.amount)
+  }
+
+  return null
+}
+
 type HouseholdMember = {
   user_id: string
   profile?: Profile
@@ -47,6 +89,10 @@ type GroupedItem = {
   itemIds: string[]
   allChecked: boolean
   anyChecked: boolean
+}
+
+function getMealGroupKey(mealId: string, sourceUserId: string | null): string {
+  return `${mealId}:${sourceUserId || 'unknown'}`
 }
 
 // Date Range Picker Component
@@ -215,6 +261,7 @@ export default function ShoppingListEnhanced() {
   const [newItemAmount, setNewItemAmount] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showGenerateSuccess, setShowGenerateSuccess] = useState(false)
   const [mealServingsById, setMealServingsById] = useState<Record<string, number>>({})
   const [generatedRange, setGeneratedRange] = useState<{ startDate: string; endDate: string } | null>(null)
 
@@ -378,6 +425,7 @@ export default function ShoppingListEnhanced() {
       }
 
       // Fetch meal items with products - need to check overrides per user
+      const generatedServingsByGroupKey: Record<string, number> = {}
       const allItemsData: Array<{
         meal_id: string
         source_user_id: string
@@ -388,6 +436,9 @@ export default function ShoppingListEnhanced() {
       }> = []
       
       for (const mealPlan of mealPlansData) {
+        const groupKey = getMealGroupKey(mealPlan.meal_id, mealPlan.user_id)
+        let addedItemsForMealPlan = 0
+
         // Check if this user has overrides for this meal
         const { data: overridesData } = await supabase
           .from('meal_item_overrides')
@@ -398,11 +449,14 @@ export default function ShoppingListEnhanced() {
         if (overridesData && overridesData.length > 0) {
           // User has overrides - use them
           overridesData.forEach(item => {
+            if (!item.product) return
+
             allItemsData.push({
               ...item,
               meal_id: mealPlan.meal_id,
               source_user_id: mealPlan.user_id,
             })
+            addedItemsForMealPlan += 1
           })
         } else {
           // No overrides - use default meal_items
@@ -413,13 +467,20 @@ export default function ShoppingListEnhanced() {
           
           if (defaultItems) {
             defaultItems.forEach(item => {
+              if (!item.product) return
+
               allItemsData.push({
                 ...item,
                 meal_id: mealPlan.meal_id,
                 source_user_id: mealPlan.user_id,
               })
+              addedItemsForMealPlan += 1
             })
           }
+        }
+
+        if (addedItemsForMealPlan > 0) {
+          generatedServingsByGroupKey[groupKey] = (generatedServingsByGroupKey[groupKey] || 0) + 1
         }
       }
 
@@ -498,13 +559,13 @@ export default function ShoppingListEnhanced() {
             household_id: householdId,
             generated_start_date: nextGeneratedRange.startDate,
             generated_end_date: nextGeneratedRange.endDate,
-            meal_servings: {},
+            meal_servings: generatedServingsByGroupKey,
             updated_by: userId || null,
           })
 
         if (!stateError) {
           setGeneratedRange(nextGeneratedRange)
-          setMealServingsById({})
+          setMealServingsById(generatedServingsByGroupKey)
         }
 
         const { data: refreshedItems, error: refreshError } = await supabase
@@ -517,7 +578,11 @@ export default function ShoppingListEnhanced() {
         if (!refreshError && refreshedItems) {
           setItems(refreshedItems as unknown as ShoppingListItemWithProduct[])
         }
-        alert('Lista zakupów została wygenerowana!')
+
+        setShowGenerateSuccess(true)
+        setTimeout(() => {
+          setShowGenerateSuccess(false)
+        }, 2000)
       }
     } catch (error) {
       console.error('Error generating shopping list:', error)
@@ -670,15 +735,14 @@ export default function ShoppingListEnhanced() {
     setIsAdding(true)
 
     const amountValue = newItemAmount.trim()
-    const parsedAmount = parseFloat(amountValue)
-    
-    // If it's a valid number, use it as amount; otherwise save as custom text
-    const isNumeric = !isNaN(parsedAmount) && amountValue !== ''
+    const numericPattern = /^\d+(?:[.,]\d+)?$/
+    const isNumeric = numericPattern.test(amountValue)
+    const parsedAmount = isNumeric ? Number(amountValue.replace(',', '.')) : NaN
 
     const { error } = await supabase.from('shopping_list_items').insert({
       household_id: householdId,
       name: newItemName.trim(),
-      amount: isNumeric ? parsedAmount : 1, // Use 1 as dummy value if text
+      amount: isNumeric ? parsedAmount : 1,
       custom_amount_text: isNumeric ? null : (amountValue || null),
       is_checked: false,
       added_by: userId || null,
@@ -739,6 +803,7 @@ export default function ShoppingListEnhanced() {
   // Group items by meal_id for dish view
   function groupItemsByMeal(items: ShoppingListItemWithProduct[]) {
     const mealGroups = new Map<string, {
+      group_key: string
       meal_id: string
       source_user_id: string | null
       meal: (Meal & { images?: MealImage[]; tags?: { tag_id: string; tags: Tag }[] }) | undefined
@@ -753,7 +818,7 @@ export default function ShoppingListEnhanced() {
         // Items without meal (custom items)
         customItems.push(item)
       } else {
-        const groupKey = `${item.meal_id}:${item.source_user_id || 'unknown'}`
+        const groupKey = getMealGroupKey(item.meal_id, item.source_user_id)
         // Items from meals
         if (mealGroups.has(groupKey)) {
           const existing = mealGroups.get(groupKey)!
@@ -761,6 +826,7 @@ export default function ShoppingListEnhanced() {
           existing.allChecked = existing.allChecked && item.is_checked
         } else {
           mealGroups.set(groupKey, {
+            group_key: groupKey,
             meal_id: item.meal_id,
             source_user_id: item.source_user_id,
             meal: item.meal,
@@ -789,7 +855,7 @@ export default function ShoppingListEnhanced() {
   }
 
   // Delete entire meal group
-  async function deleteMealGroup(mealGroup: { meal_id: string; items: ShoppingListItemWithProduct[] }) {
+  async function deleteMealGroup(mealGroup: { group_key: string; meal_id: string; items: ShoppingListItemWithProduct[] }) {
     const itemIds = mealGroup.items.map(i => i.id)
     
     const { error } = await supabase
@@ -804,7 +870,7 @@ export default function ShoppingListEnhanced() {
 
     if (household?.id) {
       const nextMap = { ...mealServingsById }
-      delete nextMap[mealGroup.meal_id]
+      delete nextMap[mealGroup.group_key]
       setMealServingsById(nextMap)
 
       await supabase
@@ -817,19 +883,24 @@ export default function ShoppingListEnhanced() {
     }
   }
 
-  async function updateMealServings(mealId: string, nextServings: number) {
+  async function updateMealServings(mealGroup: { group_key: string; meal_id: string; source_user_id: string | null }, nextServings: number) {
     const householdId = household?.id
     const userId = user?.id
     if (!householdId) return
     if (!Number.isFinite(nextServings) || nextServings <= 0) return
 
-    const currentServings = mealServingsById[mealId] || 1
+    const currentServings = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
     if (Math.abs(currentServings - nextServings) < 0.0001) return
 
     const scale = nextServings / currentServings
-    const mealItems = items.filter((item) => item.meal_id === mealId && !item.custom_amount_text)
+    const mealItems = items.filter(
+      (item) =>
+        item.meal_id === mealGroup.meal_id &&
+        (item.source_user_id || null) === (mealGroup.source_user_id || null) &&
+        !item.custom_amount_text
+    )
     if (mealItems.length === 0) {
-      setMealServingsById((current) => ({ ...current, [mealId]: nextServings }))
+      setMealServingsById((current) => ({ ...current, [mealGroup.group_key]: nextServings }))
       return
     }
 
@@ -861,7 +932,7 @@ export default function ShoppingListEnhanced() {
       )
     )
 
-    const nextMap = { ...mealServingsById, [mealId]: nextServings }
+    const nextMap = { ...mealServingsById, [mealGroup.group_key]: nextServings }
     setMealServingsById(nextMap)
 
     await supabase
@@ -952,6 +1023,12 @@ export default function ShoppingListEnhanced() {
         >
           {isGenerating ? 'Generowanie...' : 'Generuj listę zakupów'}
         </button>
+
+        {showGenerateSuccess && (
+          <div className="rounded-lg border border-green-100 bg-green-50 px-3 py-2 text-xs text-green-800">
+            Lista zakupów została wygenerowana.
+          </div>
+        )}
       </div>
 
       {/* View options */}
@@ -988,13 +1065,6 @@ export default function ShoppingListEnhanced() {
             Wszystkie produkty
           </button>
         </div>
-        <button
-          onClick={clearCheckedItems}
-          disabled={items.filter(i => i.is_checked).length === 0}
-          className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:text-gray-400 disabled:hover:bg-transparent"
-        >
-          Usuń zaznaczone
-        </button>
       </div>
 
       {/* Shopping list items */}
@@ -1068,15 +1138,9 @@ export default function ShoppingListEnhanced() {
                           >
                             {groupedItem.name}
                           </p>
-                          {(groupedItem.product || groupedItem.custom_amount_text) && (
+                          {getGroupedItemAmountLabel(groupedItem) && (
                             <p className="text-xs text-gray-500 mt-0.5">
-                              {groupedItem.custom_amount_text ? (
-                                groupedItem.custom_amount_text
-                              ) : groupedItem.product ? (
-                                groupedItem.unit_type === '100g'
-                                  ? `${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g`
-                                  : `${formatAmount(groupedItem.totalAmount)} ${translateUnit(groupedItem.unit_type || '')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
-                              ) : null}
+                              {getGroupedItemAmountLabel(groupedItem)}
                             </p>
                           )}
                         </div>
@@ -1125,15 +1189,9 @@ export default function ShoppingListEnhanced() {
                       >
                         {groupedItem.name}
                       </p>
-                      {(groupedItem.product || groupedItem.custom_amount_text) && (
+                      {getGroupedItemAmountLabel(groupedItem) && (
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {groupedItem.custom_amount_text ? (
-                            groupedItem.custom_amount_text
-                          ) : groupedItem.product ? (
-                            groupedItem.unit_type === '100g'
-                              ? `${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g`
-                              : `${formatAmount(groupedItem.totalAmount)} ${translateUnit(groupedItem.unit_type || '')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
-                          ) : null}
+                          {getGroupedItemAmountLabel(groupedItem)}
                         </p>
                       )}
                     </div>
@@ -1220,9 +1278,9 @@ export default function ShoppingListEnhanced() {
                               <div className="mt-3 flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  const current = mealServingsById[mealGroup.meal_id] || 1
+                                  const current = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
                                   const next = Math.max(0.5, Number((current - 0.5).toFixed(1)))
-                                  void updateMealServings(mealGroup.meal_id, next)
+                                  void updateMealServings(mealGroup, next)
                                 }}
                                 className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
                               >
@@ -1232,20 +1290,20 @@ export default function ShoppingListEnhanced() {
                                 type="number"
                                 min="0.5"
                                 step="0.5"
-                                value={mealServingsById[mealGroup.meal_id] || 1}
+                                value={mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1}
                                 onChange={(e) => {
                                   const value = parseFloat(e.target.value)
                                   if (!isNaN(value) && value > 0) {
-                                    void updateMealServings(mealGroup.meal_id, value)
+                                    void updateMealServings(mealGroup, value)
                                   }
                                 }}
                                 className="w-16 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               />
                               <button
                                 onClick={() => {
-                                  const current = mealServingsById[mealGroup.meal_id] || 1
+                                  const current = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
                                   const next = Number((current + 0.5).toFixed(1))
-                                  void updateMealServings(mealGroup.meal_id, next)
+                                  void updateMealServings(mealGroup, next)
                                 }}
                                 className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
                               >
@@ -1259,7 +1317,6 @@ export default function ShoppingListEnhanced() {
                         {/* Ingredients list */}
                         <div className="p-4 space-y-2">
                           {mealGroup.items.map((item) => {
-                            const totalWeight = item.product ? Math.round(item.amount * (item.product.unit_weight_grams || 1)) : 0
                             return (
                               <div
                                 key={item.id}
@@ -1288,13 +1345,7 @@ export default function ShoppingListEnhanced() {
                                     {item.name}
                                   </p>
                                   <p className="text-xs text-gray-500 mt-0.5">
-                                    {item.custom_amount_text ? (
-                                      item.custom_amount_text
-                                    ) : item.product && item.unit_type === '100g' ? (
-                                      `${totalWeight}g`
-                                    ) : item.product ? (
-                                      `${formatAmount(item.amount)} ${translateUnit(item.unit_type || '')} (${totalWeight}g)`
-                                    ) : null}
+                                    {getSingleItemAmountLabel(item)}
                                   </p>
                                 </div>
                               </div>
@@ -1340,15 +1391,9 @@ export default function ShoppingListEnhanced() {
                               >
                                 {groupedItem.name}
                               </p>
-                              {(groupedItem.product || groupedItem.custom_amount_text) && (
+                              {getGroupedItemAmountLabel(groupedItem) && (
                                 <p className="text-xs text-gray-500 mt-0.5">
-                                  {groupedItem.custom_amount_text ? (
-                                    groupedItem.custom_amount_text
-                                  ) : groupedItem.product ? (
-                                    groupedItem.unit_type === '100g'
-                                      ? `${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g`
-                                      : `${formatAmount(groupedItem.totalAmount)} ${translateUnit(groupedItem.unit_type || '')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
-                                  ) : null}
+                                  {getGroupedItemAmountLabel(groupedItem)}
                                 </p>
                               )}
                             </div>
@@ -1371,6 +1416,16 @@ export default function ShoppingListEnhanced() {
             )}
           </>
         )}
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={clearCheckedItems}
+          disabled={items.filter(i => i.is_checked).length === 0}
+          className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:text-gray-400 disabled:hover:bg-transparent"
+        >
+          Usuń zaznaczone
+        </button>
       </div>
 
       {/* Stats */}

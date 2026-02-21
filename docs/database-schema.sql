@@ -75,7 +75,7 @@ CREATE INDEX idx_products_household_name ON public.products(household_id, name);
 CREATE TABLE IF NOT EXISTS public.meals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(200) NOT NULL,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
     is_shared BOOLEAN NOT NULL DEFAULT true,
     description TEXT,

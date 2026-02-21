@@ -38,6 +38,11 @@ type HouseholdMember = {
   display_name: string | null
 }
 
+type MealPlanRow = {
+  meal_id: string
+  meal_type: MealCategory
+}
+
 const CATEGORY_LABELS: Record<MealCategory, string> = {
   breakfast: 'Śniadanie',
   second_breakfast: 'Drugie śniadanie',
@@ -58,6 +63,14 @@ export default function MealPlanner() {
   const [copyFromUserId, setCopyFromUserId] = useState('')
   const [sendToUserId, setSendToUserId] = useState('')
   const sliderRef = useRef<HTMLDivElement>(null)
+
+  function getUniquePlansByMealType<T extends MealPlanRow>(plans: T[]): T[] {
+    const latestByType = new Map<MealCategory, T>()
+    plans.forEach((plan) => {
+      latestByType.set(plan.meal_type, plan)
+    })
+    return Array.from(latestByType.values())
+  }
 
   // Fetch user settings with realtime updates
   useEffect(() => {
@@ -254,6 +267,7 @@ export default function MealPlanner() {
       const { data } = await supabase
         .from('meal_plan')
         .select('*')
+        .eq('household_id', householdId)
         .eq('user_id', userId)
         .eq('date', dateStr)
 
@@ -284,7 +298,8 @@ export default function MealPlanner() {
   // Fetch week progress
   useEffect(() => {
     const userId = user?.id
-    if (!userId || allMeals.length === 0) return
+    const householdId = household?.id
+    if (!userId || !householdId || allMeals.length === 0) return
 
     async function fetchWeekProgress() {
       const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
@@ -297,6 +312,7 @@ export default function MealPlanner() {
           const { data } = await supabase
             .from('meal_plan')
             .select('*')
+            .eq('household_id', householdId)
             .eq('user_id', userId)
             .eq('date', dateStr)
 
@@ -326,7 +342,7 @@ export default function MealPlanner() {
     }
 
     fetchWeekProgress()
-  }, [user?.id, selectedDate, allMeals, plannedMeals])
+  }, [user?.id, household?.id, selectedDate, allMeals, plannedMeals])
 
   async function handleDuplicateFromPreviousDay() {
     const userId = user?.id
@@ -342,6 +358,7 @@ export default function MealPlanner() {
     const { data: previousMeals } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', userId)
       .eq('date', previousDateStr)
 
@@ -350,8 +367,10 @@ export default function MealPlanner() {
       return
     }
 
+    const uniquePreviousMeals = getUniquePlansByMealType(previousMeals as MealPlanRow[])
+
     // Create new meal plans for current day (without consumed/skipped status)
-    const newMealPlans = previousMeals.map((plan) => ({
+    const newMealPlans = uniquePreviousMeals.map((plan) => ({
       user_id: userId,
       household_id: householdId,
       date: currentDateStr,
@@ -396,6 +415,7 @@ export default function MealPlanner() {
     const { data } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', userId)
       .eq('date', dateStr)
 
@@ -420,6 +440,7 @@ export default function MealPlanner() {
     const { data: sourceMeals } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', copyFromUserId)
       .eq('date', dateStr)
 
@@ -428,7 +449,9 @@ export default function MealPlanner() {
       return
     }
 
-    const newMealPlans = sourceMeals.map((plan) => ({
+    const uniqueSourceMeals = getUniquePlansByMealType(sourceMeals as MealPlanRow[])
+
+    const newMealPlans = uniqueSourceMeals.map((plan) => ({
       user_id: userId,
       household_id: householdId,
       date: dateStr,
@@ -466,6 +489,7 @@ export default function MealPlanner() {
     const { data } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', userId)
       .eq('date', dateStr)
 
@@ -490,6 +514,7 @@ export default function MealPlanner() {
     const { data: sourceMeals } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', userId)
       .eq('date', dateStr)
 
@@ -498,7 +523,9 @@ export default function MealPlanner() {
       return
     }
 
-    const newMealPlans = sourceMeals.map((plan) => ({
+    const uniqueSourceMeals = getUniquePlansByMealType(sourceMeals as MealPlanRow[])
+
+    const newMealPlans = uniqueSourceMeals.map((plan) => ({
       user_id: sendToUserId,
       household_id: householdId,
       date: dateStr,
@@ -511,6 +538,7 @@ export default function MealPlanner() {
     const { data: existingPlans } = await supabase
       .from('meal_plan')
       .select('*')
+      .eq('household_id', householdId)
       .eq('user_id', sendToUserId)
       .eq('date', dateStr)
 
