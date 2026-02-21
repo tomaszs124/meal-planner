@@ -11,13 +11,14 @@ export default function DashboardPage() {
 
   // Fetch user settings to get name
   useEffect(() => {
-    if (!user?.id) return
+    const userId = user?.id
+    if (!userId) return
 
     async function fetchSettings() {
       const { data } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single()
 
       if (data) {
