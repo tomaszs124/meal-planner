@@ -159,7 +159,7 @@ export default function MealDetailsModal({
       return
     }
 
-    const safeVariantUserId: string = variantUserId
+    const safeVariantUserId = String(variantUserId)
 
     if (variantItemsByUser[safeVariantUserId]) {
       return
