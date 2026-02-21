@@ -13,13 +13,14 @@ export default function ShoppingList() {
 
   // Fetch shopping list items
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchItems() {
       const { data, error } = await supabase
         .from('shopping_list_items')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
 
       if (!error && data) {
@@ -38,7 +39,7 @@ export default function ShoppingList() {
           event: '*',
           schema: 'public',
           table: 'shopping_list_items',
-          filter: `household_id=eq.${household.id}`,
+          filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
@@ -87,12 +88,13 @@ export default function ShoppingList() {
   // Add new item
   async function addItem(e: React.FormEvent) {
     e.preventDefault()
-    if (!household?.id || !newItemName.trim()) return
+    const householdId = household?.id
+    if (!householdId || !newItemName.trim()) return
 
     setIsAdding(true)
 
     const { error } = await supabase.from('shopping_list_items').insert({
-      household_id: household.id,
+      household_id: householdId,
       name: newItemName.trim(),
       amount: parseFloat(newItemAmount) || 1,
       is_checked: false,
@@ -118,10 +120,12 @@ export default function ShoppingList() {
 
     if (error) {
       // Refetch on error
+      const householdId = household?.id
+      if (!householdId) return
       const { data } = await supabase
         .from('shopping_list_items')
         .select('*')
-        .eq('household_id', household!.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
 
       if (data) {

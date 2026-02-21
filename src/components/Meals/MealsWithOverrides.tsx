@@ -63,13 +63,14 @@ export default function MealsWithOverrides() {
 
   // Fetch products
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchProducts() {
       const { data } = await supabase
         .from('products')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('name')
 
       if (data) {
@@ -82,7 +83,8 @@ export default function MealsWithOverrides() {
 
   // Fetch meals
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchMeals() {
       setIsLoading(true)
@@ -90,7 +92,7 @@ export default function MealsWithOverrides() {
       const { data: mealsData } = await supabase
         .from('meals')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
 
       if (mealsData) {

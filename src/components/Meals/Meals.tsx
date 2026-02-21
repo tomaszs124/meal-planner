@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import Image from 'next/image'
 import { supabase, Product, Meal, MealCategory, Tag, MealImage } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import TagManagement from './TagManagement'
@@ -75,6 +76,14 @@ type MemberOverrides = {
   [userId: string]: ProductSelection[]
 }
 
+type MealItemOverrideRecord = {
+  meal_id: string
+  user_id: string
+  product_id: string
+  amount: number
+  unit_type: string
+}
+
 export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
   const [meals, setMeals] = useState<MealWithItems[]>([])
@@ -118,13 +127,14 @@ export default function Meals() {
 
   // Fetch tags
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchTags() {
       const { data } = await supabase
         .from('tags')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('name')
 
       if (data) {
@@ -136,14 +146,14 @@ export default function Meals() {
 
     // Realtime subscription for tags
     const channel = supabase
-      .channel(`meals-tags-${household.id}`)
+      .channel(`meals-tags-${householdId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'tags',
-          filter: `household_id=eq.${household.id}`,
+          filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
           console.log('Tags realtime event in Meals:', payload.eventType, payload)
@@ -167,13 +177,14 @@ export default function Meals() {
 
   // Fetch products
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchProducts() {
       const { data } = await supabase
         .from('products')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('name')
 
       if (data) {
@@ -186,13 +197,14 @@ export default function Meals() {
 
   // Fetch household members
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchHouseholdMembers() {
       const { data: householdUsersData } = await supabase
         .from('household_users')
         .select('user_id')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
 
       if (householdUsersData) {
         const userIds = householdUsersData.map((householdUser) => householdUser.user_id)
@@ -228,7 +240,9 @@ export default function Meals() {
 
   // Fetch meals
   useEffect(() => {
-    if (!household?.id || !user?.id) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId || !userId) return
 
     async function fetchMeals() {
       setIsLoading(true)
@@ -236,7 +250,7 @@ export default function Meals() {
       const { data: mealsData } = await supabase
         .from('meals')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
 
       if (mealsData) {
@@ -248,7 +262,7 @@ export default function Meals() {
               .from('meal_item_overrides')
               .select('*')
               .eq('meal_id', meal.id)
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
 
             let itemsData
             if (overridesData && overridesData.length > 0) {
@@ -463,8 +477,9 @@ export default function Meals() {
   ) {
     if (overrides[userId]) {
       // Disable override - remove it
-      const { [userId]: removed, ...rest } = overrides
-      setOverrides(rest)
+      const updated = { ...overrides }
+      delete updated[userId]
+      setOverrides(updated)
     } else {
       // Enable override - copy from base
       setOverrides({
@@ -624,7 +639,7 @@ export default function Meals() {
 
     if (!itemsError) {
       // Save member overrides
-      const overrideRecords: any[] = []
+      const overrideRecords: MealItemOverrideRecord[] = []
       Object.entries(newMemberOverrides).forEach(([userId, userProducts]) => {
         userProducts.forEach((productSel) => {
           const product = products.find((p) => p.id === productSel.product_id)
@@ -806,7 +821,7 @@ export default function Meals() {
     // Update member overrides - delete all existing and insert new ones
     await supabase.from('meal_item_overrides').delete().eq('meal_id', mealId)
 
-    const overrideRecords: any[] = []
+    const overrideRecords: MealItemOverrideRecord[] = []
     Object.entries(editMemberOverrides).forEach(([userId, userProducts]) => {
       userProducts.forEach((productSel) => {
         const product = products.find((p) => p.id === productSel.product_id)
@@ -1064,9 +1079,11 @@ export default function Meals() {
             <p className="text-xs text-gray-500 mt-1">Maksymalny rozmiar: 5MB. Formaty: JPG, PNG, WebP, GIF</p>
             {newImagePreview && (
               <div className="mt-2 relative">
-                <img 
-                  src={newImagePreview} 
+                <Image
+                  src={newImagePreview}
                   alt="Podgląd"
+                  width={800}
+                  height={320}
                   className="w-full h-48 object-cover rounded-lg border border-gray-200"
                 />
                 <button
@@ -1549,13 +1566,12 @@ export default function Meals() {
               >
                 {/* Image */}
                 {meal.images && meal.images.length > 0 ? (
-                  <img 
-                    src={meal.images[0].image_url} 
+                  <Image
+                    src={meal.images[0].image_url}
                     alt={meal.name}
+                    width={512}
+                    height={128}
                     className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
                   />
                 ) : (
                   <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
@@ -1739,9 +1755,11 @@ export default function Meals() {
                 <p className="text-xs text-gray-500 mt-1">Jeśli nie wybierzesz nowego zdjęcia, pozostanie obecne.</p>
                 {editImagePreview && (
                   <div className="mt-2 relative">
-                    <img
+                    <Image
                       src={editImagePreview}
                       alt="Podgląd"
+                      width={800}
+                      height={320}
                       className="w-full h-48 object-cover rounded-lg border border-gray-200"
                     />
                     {editImageFile && (

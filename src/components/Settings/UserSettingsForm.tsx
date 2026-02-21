@@ -27,7 +27,8 @@ export default function UserSettingsForm() {
 
   // Wczytaj ustawienia użytkownika
   useEffect(() => {
-    if (!user?.id) return
+    const userId = user?.id
+    if (!userId) return
 
     async function fetchSettings() {
       setIsLoading(true)
@@ -35,7 +36,7 @@ export default function UserSettingsForm() {
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single()
 
       if (error && error.code !== 'PGRST116') {
@@ -52,7 +53,7 @@ export default function UserSettingsForm() {
       } else {
         // User has no settings yet - create default ones
         const defaultSettings = {
-          user_id: user.id,
+          user_id: userId,
           name: null,
           second_breakfast_enabled: true,
           lunch_enabled: true,
@@ -84,12 +85,13 @@ export default function UserSettingsForm() {
   // Zapisz ustawienia
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault()
-    if (!user?.id) return
+    const userId = user?.id
+    if (!userId) return
 
     setIsSaving(true)
 
     const settingsData = {
-      user_id: user.id,
+      user_id: userId,
       name: name.trim() || null,
       second_breakfast_enabled: secondBreakfastEnabled,
       lunch_enabled: lunchEnabled,
@@ -104,7 +106,7 @@ export default function UserSettingsForm() {
       result = await supabase
         .from('user_settings')
         .update(settingsData)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .select()
         .single()
     } else {

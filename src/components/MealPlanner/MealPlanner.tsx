@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { format, startOfWeek, addDays } from 'date-fns'
-import { supabase, MealCategory, UserSettings, Product, MealImage, Tag } from '@/lib/supabase/client'
+import { supabase, Meal, MealCategory, UserSettings, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
@@ -13,11 +13,7 @@ function calculateNutrition(amount: number, unitWeightGrams: number | null, valu
   return (weightGrams / 100) * valuePer100g
 }
 
-type MealWithDetails = {
-  id: string
-  name: string
-  primary_category: MealCategory | null
-  alternative_categories: MealCategory[]
+type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]
   tags?: Tag[]
@@ -65,13 +61,14 @@ export default function MealPlanner() {
 
   // Fetch user settings with realtime updates
   useEffect(() => {
-    if (!user?.id) return
+    const userId = user?.id
+    if (!userId) return
 
     async function fetchSettings() {
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single()
 
       if (!error && data) {
@@ -79,7 +76,7 @@ export default function MealPlanner() {
       } else if (error && error.code === 'PGRST116') {
         // Settings don't exist - create default ones
         const defaultSettings = {
-          user_id: user.id,
+          user_id: userId,
           second_breakfast_enabled: true,
           lunch_enabled: true,
           dinner_enabled: true,
@@ -102,14 +99,14 @@ export default function MealPlanner() {
 
     // Subscribe to realtime updates
     const channel = supabase
-      .channel(`user_settings_${user.id}`)
+      .channel(`user_settings_${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'user_settings',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           if (payload.new) {
@@ -126,13 +123,15 @@ export default function MealPlanner() {
 
   // Fetch all meals for household
   useEffect(() => {
-    if (!household?.id || !user?.id) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId || !userId) return
 
     async function fetchMeals() {
       const { data: mealsData } = await supabase
         .from('meals')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
 
       if (mealsData) {
         const mealsWithDetails = await Promise.all(
@@ -142,7 +141,7 @@ export default function MealPlanner() {
               .from('meal_item_overrides')
               .select('*, product:products(*)')
               .eq('meal_id', meal.id)
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
 
             let itemsData
             if (overridesData && overridesData.length > 0) {
@@ -199,8 +198,8 @@ export default function MealPlanner() {
 
   // Fetch household members for copy from member
   useEffect(() => {
-    if (!household?.id) {
-      setHouseholdMembers([])
+    const householdId = household?.id
+    if (!householdId) {
       return
     }
 
@@ -208,7 +207,7 @@ export default function MealPlanner() {
       const { data: membersData } = await supabase
         .from('household_users')
         .select('user_id')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
 
       if (!membersData || membersData.length === 0) {
         setHouseholdMembers([])
@@ -243,7 +242,9 @@ export default function MealPlanner() {
 
   // Fetch planned meals for selected date
   useEffect(() => {
-    if (!user?.id || !household?.id) return
+    const userId = user?.id
+    const householdId = household?.id
+    if (!userId || !householdId) return
 
     async function fetchPlannedMeals() {
       setIsLoading(true)
@@ -253,7 +254,7 @@ export default function MealPlanner() {
       const { data } = await supabase
         .from('meal_plan')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('date', dateStr)
 
       if (data) {
@@ -282,7 +283,8 @@ export default function MealPlanner() {
 
   // Fetch week progress
   useEffect(() => {
-    if (!user?.id || allMeals.length === 0) return
+    const userId = user?.id
+    if (!userId || allMeals.length === 0) return
 
     async function fetchWeekProgress() {
       const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
@@ -295,7 +297,7 @@ export default function MealPlanner() {
           const { data } = await supabase
             .from('meal_plan')
             .select('*')
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .eq('date', dateStr)
 
           if (!data || data.length === 0) {
@@ -327,7 +329,9 @@ export default function MealPlanner() {
   }, [user?.id, selectedDate, allMeals, plannedMeals])
 
   async function handleDuplicateFromPreviousDay() {
-    if (!user?.id || !household?.id) return
+    const userId = user?.id
+    const householdId = household?.id
+    if (!userId || !householdId) return
 
     const previousDate = new Date(selectedDate)
     previousDate.setDate(previousDate.getDate() - 1)
@@ -338,7 +342,7 @@ export default function MealPlanner() {
     const { data: previousMeals } = await supabase
       .from('meal_plan')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('date', previousDateStr)
 
     if (!previousMeals || previousMeals.length === 0) {
@@ -348,8 +352,8 @@ export default function MealPlanner() {
 
     // Create new meal plans for current day (without consumed/skipped status)
     const newMealPlans = previousMeals.map((plan) => ({
-      user_id: user.id,
-      household_id: household.id,
+      user_id: userId,
+      household_id: householdId,
       date: currentDateStr,
       meal_id: plan.meal_id,
       meal_type: plan.meal_type,
@@ -392,7 +396,7 @@ export default function MealPlanner() {
     const { data } = await supabase
       .from('meal_plan')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('date', dateStr)
 
     if (data) {
@@ -407,7 +411,9 @@ export default function MealPlanner() {
   }
 
   async function handleCopyFromMember() {
-    if (!user?.id || !household?.id || !copyFromUserId) return
+    const userId = user?.id
+    const householdId = household?.id
+    if (!userId || !householdId || !copyFromUserId) return
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
@@ -423,8 +429,8 @@ export default function MealPlanner() {
     }
 
     const newMealPlans = sourceMeals.map((plan) => ({
-      user_id: user.id,
-      household_id: household.id,
+      user_id: userId,
+      household_id: householdId,
       date: dateStr,
       meal_id: plan.meal_id,
       meal_type: plan.meal_type,
@@ -460,7 +466,7 @@ export default function MealPlanner() {
     const { data } = await supabase
       .from('meal_plan')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('date', dateStr)
 
     if (data) {
@@ -475,14 +481,16 @@ export default function MealPlanner() {
   }
 
   async function handleSendDayToMember() {
-    if (!user?.id || !household?.id || !sendToUserId) return
+    const userId = user?.id
+    const householdId = household?.id
+    if (!userId || !householdId || !sendToUserId) return
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
     const { data: sourceMeals } = await supabase
       .from('meal_plan')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('date', dateStr)
 
     if (!sourceMeals || sourceMeals.length === 0) {
@@ -492,7 +500,7 @@ export default function MealPlanner() {
 
     const newMealPlans = sourceMeals.map((plan) => ({
       user_id: sendToUserId,
-      household_id: household.id,
+      household_id: householdId,
       date: dateStr,
       meal_id: plan.meal_id,
       meal_type: plan.meal_type,
@@ -588,6 +596,9 @@ export default function MealPlanner() {
   }
 
   function handleRandomMeal(category: MealCategory) {
+    if (allMeals.length === 0) return
+
+    const dateSeed = format(selectedDate, 'yyyy-MM-dd')
     // Filter meals by category
     const primaryMeals = allMeals.filter((m) => m.primary_category === category)
     const alternativeMeals = allMeals.filter(
@@ -596,12 +607,21 @@ export default function MealPlanner() {
 
     let selectedMeal: MealWithDetails | null = null
 
+    const hashSeed = `${dateSeed}-${category}`
+    const pickIndex = (length: number) => {
+      let hash = 5381
+      for (let i = 0; i < hashSeed.length; i += 1) {
+        hash = (hash * 33) ^ hashSeed.charCodeAt(i)
+      }
+      return Math.abs(hash) % length
+    }
+
     if (primaryMeals.length > 0) {
-      selectedMeal = primaryMeals[Math.floor(Math.random() * primaryMeals.length)]
+      selectedMeal = primaryMeals[pickIndex(primaryMeals.length)]
     } else if (alternativeMeals.length > 0) {
-      selectedMeal = alternativeMeals[Math.floor(Math.random() * alternativeMeals.length)]
+      selectedMeal = alternativeMeals[pickIndex(alternativeMeals.length)]
     } else if (allMeals.length > 0) {
-      selectedMeal = allMeals[Math.floor(Math.random() * allMeals.length)]
+      selectedMeal = allMeals[pickIndex(allMeals.length)]
     }
 
     if (selectedMeal) {

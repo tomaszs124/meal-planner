@@ -35,14 +35,15 @@ export default function TagManagement() {
 
   // Fetch tags
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchTags() {
       setIsLoading(true)
       const { data, error } = await supabase
         .from('tags')
         .select('*')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .order('name')
 
       if (!error && data) {
@@ -55,14 +56,14 @@ export default function TagManagement() {
 
     // Realtime subscription
     const channel = supabase
-      .channel(`tag-management-${household.id}`)
+      .channel(`tag-management-${householdId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'tags',
-          filter: `household_id=eq.${household.id}`,
+          filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
           console.log('Tags realtime event in TagManagement:', payload.eventType, payload)
@@ -87,12 +88,13 @@ export default function TagManagement() {
   // Add tag
   async function addTag(e: React.FormEvent) {
     e.preventDefault()
-    if (!household?.id || !newTagName.trim()) return
+    const householdId = household?.id
+    if (!householdId || !newTagName.trim()) return
 
     setIsAdding(true)
 
     const { error } = await supabase.from('tags').insert({
-      household_id: household.id,
+      household_id: householdId,
       name: newTagName.trim(),
       color: newTagColor,
       text_color: newTagTextColor,

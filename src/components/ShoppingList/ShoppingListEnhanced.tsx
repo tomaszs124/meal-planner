@@ -220,13 +220,15 @@ export default function ShoppingListEnhanced() {
 
   // Fetch household members
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId) return
 
     async function fetchMembers() {
       const { data: householdUsersData } = await supabase
         .from('household_users')
         .select('user_id')
-        .eq('household_id', household!.id)
+        .eq('household_id', householdId)
 
       if (householdUsersData) {
         const userIds = householdUsersData.map((hu) => hu.user_id)
@@ -252,8 +254,8 @@ export default function ShoppingListEnhanced() {
 
         setHouseholdMembers(membersWithProfiles)
         // Auto-select current user
-        if (user?.id) {
-          setSelectedMembers([user.id])
+        if (userId) {
+          setSelectedMembers([userId])
         }
       }
     }
@@ -263,13 +265,14 @@ export default function ShoppingListEnhanced() {
 
   // Fetch shopping list items
   useEffect(() => {
-    if (!household?.id) return
+    const householdId = household?.id
+    if (!householdId) return
 
     async function fetchItems() {
       const { data: stateData } = await supabase
         .from('shopping_list_state')
         .select('generated_start_date, generated_end_date, meal_servings')
-        .eq('household_id', household!.id)
+        .eq('household_id', householdId)
         .maybeSingle()
 
       if (stateData?.generated_start_date && stateData?.generated_end_date) {
@@ -287,7 +290,7 @@ export default function ShoppingListEnhanced() {
       const { data, error } = await supabase
         .from('shopping_list_items')
         .select('*, product:products(*), meal:meals(id, name, description, images:meal_images(*), tags:meal_tags(tag_id, tags(*)))')
-        .eq('household_id', household!.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
         .order('id', { ascending: true })
 
@@ -311,7 +314,7 @@ export default function ShoppingListEnhanced() {
           event: '*',
           schema: 'public',
           table: 'shopping_list_items',
-          filter: `household_id=eq.${household!.id}`,
+          filter: `household_id=eq.${householdId}`,
         },
         async () => {
           await fetchItems()
@@ -323,7 +326,7 @@ export default function ShoppingListEnhanced() {
           event: '*',
           schema: 'public',
           table: 'shopping_list_state',
-          filter: `household_id=eq.${household!.id}`,
+          filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
           if (payload.eventType === 'DELETE') {
@@ -352,7 +355,9 @@ export default function ShoppingListEnhanced() {
 
   // Generate shopping list from meal plans
   async function generateFromMealPlans() {
-    if (!household?.id || selectedMembers.length === 0) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId || selectedMembers.length === 0) return
 
     setIsGenerating(true)
 
@@ -361,7 +366,7 @@ export default function ShoppingListEnhanced() {
       const { data: mealPlansData } = await supabase
         .from('meal_plan')
         .select('*, meals!inner(*)')
-        .eq('household_id', household.id)
+        .eq('household_id', householdId)
         .in('user_id', selectedMembers)
         .gte('date', startDate)
         .lte('date', endDate)
@@ -461,13 +466,13 @@ export default function ShoppingListEnhanced() {
           await supabase
             .from('shopping_list_items')
             .delete()
-            .eq('household_id', household.id)
+            .eq('household_id', householdId)
         }
       }
 
       // Insert items into shopping list
       const itemsToInsert = Array.from(mealProductMap.values()).map(({ meal_id, source_user_id, product, totalAmount, unit_type }) => ({
-        household_id: household.id,
+        household_id: householdId,
         meal_id: meal_id,
         source_user_id: source_user_id,
         product_id: product.id,
@@ -476,7 +481,7 @@ export default function ShoppingListEnhanced() {
         unit_type: unit_type,
         custom_amount_text: null, // Products from database don't use custom text
         is_checked: false,
-        added_by: user?.id || null,
+        added_by: userId || null,
       }))
 
       const { error } = await supabase
@@ -490,11 +495,11 @@ export default function ShoppingListEnhanced() {
         const { error: stateError } = await supabase
           .from('shopping_list_state')
           .upsert({
-            household_id: household.id,
+            household_id: householdId,
             generated_start_date: nextGeneratedRange.startDate,
             generated_end_date: nextGeneratedRange.endDate,
             meal_servings: {},
-            updated_by: user?.id || null,
+            updated_by: userId || null,
           })
 
         if (!stateError) {
@@ -505,7 +510,7 @@ export default function ShoppingListEnhanced() {
         const { data: refreshedItems, error: refreshError } = await supabase
           .from('shopping_list_items')
           .select('*, product:products(*), meal:meals(id, name, description, images:meal_images(*), tags:meal_tags(tag_id, tags(*)))')
-          .eq('household_id', household.id)
+          .eq('household_id', householdId)
           .order('created_at', { ascending: false })
           .order('id', { ascending: true })
 
@@ -658,7 +663,9 @@ export default function ShoppingListEnhanced() {
   // Add custom item
   async function addItem(e: React.FormEvent) {
     e.preventDefault()
-    if (!household?.id || !newItemName.trim()) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId || !newItemName.trim()) return
 
     setIsAdding(true)
 
@@ -669,12 +676,12 @@ export default function ShoppingListEnhanced() {
     const isNumeric = !isNaN(parsedAmount) && amountValue !== ''
 
     const { error } = await supabase.from('shopping_list_items').insert({
-      household_id: household.id,
+      household_id: householdId,
       name: newItemName.trim(),
       amount: isNumeric ? parsedAmount : 1, // Use 1 as dummy value if text
       custom_amount_text: isNumeric ? null : (amountValue || null),
       is_checked: false,
-      added_by: user?.id || null,
+      added_by: userId || null,
     })
 
     if (!error) {
@@ -695,10 +702,12 @@ export default function ShoppingListEnhanced() {
       .in('id', groupedItem.itemIds)
 
     if (error) {
+      const householdId = household?.id
+      if (!householdId) return
       const { data } = await supabase
         .from('shopping_list_items')
         .select('*, product:products(*), meal:meals(id, name, description, images:meal_images(*), tags:meal_tags(tag_id, tags(*)))')
-        .eq('household_id', household!.id)
+        .eq('household_id', householdId)
         .order('created_at', { ascending: false })
         .order('id', { ascending: true })
 
@@ -809,7 +818,9 @@ export default function ShoppingListEnhanced() {
   }
 
   async function updateMealServings(mealId: string, nextServings: number) {
-    if (!household?.id) return
+    const householdId = household?.id
+    const userId = user?.id
+    if (!householdId) return
     if (!Number.isFinite(nextServings) || nextServings <= 0) return
 
     const currentServings = mealServingsById[mealId] || 1
@@ -856,9 +867,9 @@ export default function ShoppingListEnhanced() {
     await supabase
       .from('shopping_list_state')
       .upsert({
-        household_id: household.id,
+        household_id: householdId,
         meal_servings: nextMap,
-        updated_by: user?.id || null,
+        updated_by: userId || null,
       })
   }
 

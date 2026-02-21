@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MealImage, Product, Tag } from '@/lib/supabase/client'
+import Image from 'next/image'
+import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
 
 function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
@@ -26,10 +27,7 @@ type VariantItem = {
   product_id: string
 }
 
-type MealWithDetails = {
-  id: string
-  name: string
-  description?: string | null
+type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]
   tags?: Tag[]
@@ -156,11 +154,14 @@ export default function MealDetailsModal({
   }, [isOpen, householdId, meal?.id, userId, showVariantSelector])
 
   useEffect(() => {
-    if (!selectedVariantUserId || !meal?.id) {
+    const variantUserId = selectedVariantUserId
+    if (!variantUserId || !meal?.id) {
       return
     }
 
-    if (variantItemsByUser[selectedVariantUserId]) {
+    const safeVariantUserId: string = variantUserId
+
+    if (variantItemsByUser[safeVariantUserId]) {
       return
     }
 
@@ -171,32 +172,35 @@ export default function MealDetailsModal({
         .from('meal_item_overrides')
         .select('*, product:products(*)')
         .eq('meal_id', meal.id)
-        .eq('user_id', selectedVariantUserId)
+        .eq('user_id', safeVariantUserId)
 
       setVariantItemsByUser((current) => ({
         ...current,
-        [selectedVariantUserId]: (data as VariantItem[]) || [],
+        [safeVariantUserId]: (data as VariantItem[]) || [],
       }))
     }
 
     loadVariantItems()
   }, [selectedVariantUserId, meal?.id, variantItemsByUser])
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSelectedVariantUserId(null)
     setVariantItemsByUser({})
     setVariantUserIds([])
     setBaseItems(null)
   }, [meal?.id])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    if (!meal?.id) return
+    const mealId = meal?.id
+    if (!mealId) return
 
     async function loadBaseItems() {
       const { data } = await supabase
         .from('meal_items')
         .select('*, product:products(*)')
-        .eq('meal_id', meal.id)
+        .eq('meal_id', mealId)
 
       if (data) {
         setBaseItems(data as MealItem[])
@@ -270,13 +274,12 @@ export default function MealDetailsModal({
         <div className="p-6 space-y-6">
           {meal.images && meal.images.length > 0 && (
             <div className="w-full">
-              <img
+              <Image
                 src={meal.images[0].image_url}
                 alt={meal.name}
+                width={800}
+                height={256}
                 className="w-full h-64 rounded-lg border border-gray-200 object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
               />
             </div>
           )}

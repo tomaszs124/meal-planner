@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
+import { Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPickerModal from './MealPickerModal'
 import MealDetailsModal from './MealDetailsModal'
@@ -12,11 +12,7 @@ function calculateNutrition(amount: number, unitWeightGrams: number | null, valu
   return (weightGrams / 100) * valuePer100g
 }
 
-type MealWithDetails = {
-  id: string
-  name: string
-  primary_category: MealCategory | null
-  alternative_categories: MealCategory[]
+type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]
   tags?: Tag[]

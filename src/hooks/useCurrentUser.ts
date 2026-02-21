@@ -64,7 +64,11 @@ export function useCurrentUser(): UseCurrentUserReturn {
         }
 
         if (mounted) {
-          setHousehold(householdData?.households as Household || null)
+          const householdsValue = householdData?.households
+          const nextHousehold = Array.isArray(householdsValue)
+            ? householdsValue[0] || null
+            : householdsValue || null
+          setHousehold(nextHousehold as Household | null)
           setIsLoading(false)
         }
 

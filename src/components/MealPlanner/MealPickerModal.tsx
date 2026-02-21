@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { supabase, Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from './MealDetailsModal'
@@ -58,7 +59,8 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
   }, [isOpen, householdId])
 
   useEffect(() => {
-    if (!isOpen || !householdId || !user?.id) return
+    const userId = user?.id
+    if (!isOpen || !householdId || !userId) return
 
     async function fetchMeals() {
       setIsLoading(true)
@@ -79,7 +81,7 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
               .from('meal_item_overrides')
               .select('*, product:products(*)')
               .eq('meal_id', meal.id)
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
 
             let itemsData
             if (overridesData && overridesData.length > 0) {
@@ -102,6 +104,8 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
               .order('uploaded_at', { ascending: false })
 
             // Fetch meal tags
+            type MealTagRow = { tags: Tag | null }
+
             const { data: mealTagsData } = await supabase
               .from('meal_tags')
               .select('tag_id, tags(*)')
@@ -109,7 +113,9 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
 
             const items = itemsData || []
             const images = imagesData || []
-            const mealTags = mealTagsData?.map(mt => mt.tags).filter(Boolean) as Tag[] || []
+            const mealTags = ((mealTagsData as MealTagRow[] | null) || [])
+              .map((mt) => mt.tags)
+              .filter((tag): tag is Tag => Boolean(tag))
             const totalKcal = items.reduce((sum, item) => {
               const product = item.product as unknown as Product
               if (!product) return sum
@@ -144,7 +150,7 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
     const query = searchQuery.toLowerCase()
     const nameMatch = meal.name.toLowerCase().includes(query)
     const ingredientMatch = meal.items?.some((item) =>
-      (item.product as any)?.name?.toLowerCase().includes(query)
+      item.product?.name?.toLowerCase().includes(query)
     )
     const textMatch = nameMatch || ingredientMatch
 
@@ -163,13 +169,6 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
   const otherMeals = filteredMeals.filter(
     (m) => m.primary_category !== category && !m.alternative_categories?.includes(category)
   )
-
-  function handleSelectMeal(meal: MealWithDetails) {
-    onSelectMeal(meal)
-    onClose()
-    setSearchQuery('')
-    setSelectedTags([])
-  }
 
   function toggleTag(tagId: string) {
     setSelectedTags(prev => 
@@ -309,13 +308,12 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
         {/* Meal image thumbnail */}
         {meal.images && meal.images.length > 0 ? (
           <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-            <img
+            <Image
               src={meal.images[0].image_url}
               alt={meal.name}
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
             />
           </div>
         ) : (
@@ -330,7 +328,7 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
           <h4 className="font-semibold text-gray-900">{meal.name}</h4>
           {meal.items && meal.items.length > 0 && (
             <p className="text-xs text-gray-500 mt-1 truncate">
-              {meal.items.slice(0, 3).map((item) => (item.product as any)?.name).filter(Boolean).join(', ')}
+              {meal.items.slice(0, 3).map((item) => item.product?.name).filter(Boolean).join(', ')}
               {meal.items.length > 3 && '...'}
             </p>
           )}
