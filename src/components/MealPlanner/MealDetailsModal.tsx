@@ -49,6 +49,7 @@ type MealDetailsModalProps = {
   userId?: string
   householdId?: string
   showVariantSelector?: boolean
+  initialVariantUserId?: string | null
 }
 
 function translateUnit(unitType: string): string {
@@ -69,10 +70,11 @@ export default function MealDetailsModal({
   userId,
   householdId,
   showVariantSelector,
+  initialVariantUserId,
 }: MealDetailsModalProps) {
   const [servings, setServings] = useState(1)
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
-  const [selectedVariantUserId, setSelectedVariantUserId] = useState<string | null>(null)
+  const [selectedVariantUserId, setSelectedVariantUserId] = useState<string | null>(initialVariantUserId ?? null)
   const [variantItemsByUser, setVariantItemsByUser] = useState<Record<string, VariantItem[]>>({})
   const [variantUserIds, setVariantUserIds] = useState<string[]>([])
   const [baseItems, setBaseItems] = useState<MealItem[] | null>(null)
@@ -185,11 +187,11 @@ export default function MealDetailsModal({
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    setSelectedVariantUserId(null)
+    setSelectedVariantUserId(initialVariantUserId ?? null)
     setVariantItemsByUser({})
     setVariantUserIds([])
     setBaseItems(null)
-  }, [meal?.id])
+  }, [meal?.id, initialVariantUserId])
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
@@ -212,15 +214,22 @@ export default function MealDetailsModal({
 
   const selectedVariantItems = selectedVariantUserId ? variantItemsByUser[selectedVariantUserId] : undefined
   const selectedHasOverride = selectedVariantUserId
-    ? variantUserIds.includes(selectedVariantUserId)
+    ? (initialVariantUserId != null && selectedVariantUserId === initialVariantUserId) || variantUserIds.includes(selectedVariantUserId)
     : true
-  const displayItems = selectedVariantUserId
-    ? selectedHasOverride
-      ? selectedVariantItems && selectedVariantItems.length > 0
-        ? selectedVariantItems
-        : meal?.items
-      : baseItems || meal?.items
-    : meal?.items
+
+  let displayItems: MealItem[] | undefined
+  if (selectedVariantUserId) {
+    if (selectedHasOverride && selectedVariantItems && selectedVariantItems.length > 0) {
+      // User has an override — show it
+      displayItems = selectedVariantItems
+    } else if (selectedVariantItems !== undefined) {
+      // Override was fetched but is empty — user has no override, show base
+      displayItems = baseItems || meal?.items
+    }
+    // else: still loading override — displayItems stays undefined (loading state)
+  } else {
+    displayItems = baseItems || meal?.items
+  }
 
   if (!isOpen || !meal) return null
 

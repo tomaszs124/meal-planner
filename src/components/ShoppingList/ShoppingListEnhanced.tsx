@@ -5,6 +5,7 @@ import { format, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSa
 import { pl } from 'date-fns/locale'
 import { supabase, ShoppingListItem, Product, Profile, UserSettings, Meal, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
 
 const UNCATEGORIZED_LABEL = 'Pozostałe'
 // Helper function to format amount without trailing zeros
@@ -255,7 +256,9 @@ export default function ShoppingListEnhanced() {
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [groupBy, setGroupBy] = useState<'category' | 'product' | 'dish'>('category')
-  
+  const [modalMeal, setModalMeal] = useState<(Meal & { images?: MealImage[]; tags?: Tag[] }) | null>(null)
+  const [modalVariantUserId, setModalVariantUserId] = useState<string | null>(null)
+
   // Add custom item form
   const [newItemName, setNewItemName] = useState('')
   const [newItemAmount, setNewItemAmount] = useState('')
@@ -505,16 +508,17 @@ export default function ShoppingListEnhanced() {
         if (!product) return
 
         const key = `${item.meal_id}:${item.source_user_id}:${product.id}`
+        const itemAmount = parseFloat(String(item.amount))
         
         if (mealProductMap.has(key)) {
           const existing = mealProductMap.get(key)!
-          existing.totalAmount += item.amount
+          existing.totalAmount = Math.round((existing.totalAmount + itemAmount) * 10000) / 10000
         } else {
           mealProductMap.set(key, {
             meal_id: item.meal_id,
             source_user_id: item.source_user_id,
             product,
-            totalAmount: item.amount,
+            totalAmount: itemAmount,
             unit_type: item.unit_type,
           })
         }
@@ -538,7 +542,7 @@ export default function ShoppingListEnhanced() {
         source_user_id: source_user_id,
         product_id: product.id,
         name: product.name,
-        amount: totalAmount,
+        amount: Math.round(totalAmount * 100) / 100,
         unit_type: unit_type,
         custom_amount_text: null, // Products from database don't use custom text
         is_checked: false,
@@ -604,7 +608,7 @@ export default function ShoppingListEnhanced() {
       
       if (groups.has(key)) {
         const existing = groups.get(key)!
-        existing.totalAmount += item.amount
+        existing.totalAmount = Math.round((existing.totalAmount + parseFloat(String(item.amount))) * 10000) / 10000
         existing.itemIds.push(item.id)
         existing.allChecked = existing.allChecked && item.is_checked
         existing.anyChecked = existing.anyChecked || item.is_checked
@@ -906,7 +910,7 @@ export default function ShoppingListEnhanced() {
 
     const updatedAmounts = mealItems.map((item) => ({
       id: item.id,
-      amount: Math.max(0.01, Number((item.amount * scale).toFixed(2))),
+      amount: Math.max(0.01, Math.round(parseFloat(String(item.amount)) * scale * 100) / 100),
     }))
 
     const results = await Promise.all(
@@ -1221,27 +1225,62 @@ export default function ShoppingListEnhanced() {
                         {/* Meal header */}
                         <div className="p-4 bg-gray-50 border-b border-gray-200">
                           <div className="flex items-start gap-3">
-                            {/* Meal image thumbnail */}
+                            {/* Meal image thumbnail — clickable */}
                             {mealGroup.meal?.images && mealGroup.meal.images.length > 0 ? (
-                              <div
-                                className="w-16 h-16 flex-shrink-0 rounded-lg bg-gray-100 bg-cover bg-center"
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (mealGroup.meal) {
+                                    setModalMeal({
+                                      ...mealGroup.meal,
+                                      tags: mealGroup.meal.tags?.map(t => t.tags).filter(Boolean) as Tag[] | undefined,
+                                    })
+                                    setModalVariantUserId(mealGroup.source_user_id)
+                                  }
+                                }}
+                                className="w-16 h-16 flex-shrink-0 rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity"
                                 style={{ backgroundImage: `url(${mealGroup.meal.images[0].image_url})` }}
-                                aria-label={mealGroup.meal.name}
+                                aria-label={`Otwórz przepis: ${mealGroup.meal.name}`}
                               />
                             ) : (
-                              <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (mealGroup.meal) {
+                                    setModalMeal({
+                                      ...mealGroup.meal,
+                                      tags: mealGroup.meal.tags?.map(t => t.tags).filter(Boolean) as Tag[] | undefined,
+                                    })
+                                    setModalVariantUserId(mealGroup.source_user_id)
+                                  }
+                                }}
+                                className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center cursor-pointer hover:from-gray-200 hover:to-gray-300 transition-colors"
+                                aria-label={`Otwórz przepis: ${mealGroup.meal?.name}`}
+                              >
                                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                              </div>
+                              </button>
                             )}
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                  <h4 className="font-semibold text-gray-900">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (mealGroup.meal) {
+                                        setModalMeal({
+                                          ...mealGroup.meal,
+                                          tags: mealGroup.meal.tags?.map(t => t.tags).filter(Boolean) as Tag[] | undefined,
+                                        })
+                                        setModalVariantUserId(mealGroup.source_user_id)
+                                      }
+                                    }}
+                                    className="text-left font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                                  >
                                     {mealGroup.meal?.name || 'Nieznane danie'} ({getMemberDisplayNameByUserId(mealGroup.source_user_id)})
-                                  </h4>
+                                  </button>
                                   {mealGroup.meal?.tags && mealGroup.meal.tags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-2">
                                       {mealGroup.meal.tags.map((tagRelation) => {
@@ -1438,7 +1477,7 @@ export default function ShoppingListEnhanced() {
             Kupionych: <span className="font-semibold text-gray-900">{groupItems(items).filter((i) => i.allChecked).length}</span>
           </span>
           <span className="text-gray-600">
-            Pozostało: <span className="font-semibold text-gray-900">{items.filter((i) => !i.is_checked).length}</span>
+            Pozostało: <span className="font-semibold text-gray-900">{groupItems(items).filter((i) => !i.allChecked).length}</span>
           </span>
         </div>
       )}
@@ -1472,6 +1511,17 @@ export default function ShoppingListEnhanced() {
           </button>
         </div>
       </form>
+
+      {/* Meal details modal */}
+      <MealDetailsModal
+        isOpen={modalMeal !== null}
+        onClose={() => { setModalMeal(null); setModalVariantUserId(null) }}
+        meal={modalMeal}
+        userId={user?.id}
+        householdId={household?.id}
+        showVariantSelector={false}
+        initialVariantUserId={modalVariantUserId}
+      />
     </div>
   )
 }

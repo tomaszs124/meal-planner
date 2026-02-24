@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase, Household } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 
@@ -14,34 +14,15 @@ export function useCurrentUser(): UseCurrentUserReturn {
   const [household, setHousehold] = useState<Household | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Track whether we've received the first definitive auth event
+  const initializedRef = useRef(false)
 
   useEffect(() => {
     let mounted = true
 
-    async function fetchUserAndHousehold() {
+    async function fetchHousehold(currentUser: User) {
       try {
-        setIsLoading(true)
         setError(null)
-
-        // Get current user from Supabase Auth
-        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
-
-        if (userError) {
-          throw userError
-        }
-
-        if (!currentUser) {
-          if (mounted) {
-            setUser(null)
-            setHousehold(null)
-            setIsLoading(false)
-          }
-          return
-        }
-
-        if (mounted) {
-          setUser(currentUser)
-        }
 
         // Get user's household
         const { data: householdData, error: householdError } = await supabase
@@ -80,16 +61,36 @@ export function useCurrentUser(): UseCurrentUserReturn {
       }
     }
 
-    fetchUserAndHousehold()
+    // Use onAuthStateChange as the sole initializer.
+    // It fires INITIAL_SESSION immediately on subscribe, so no separate fetch needed.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return
 
-    // Listen to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        fetchUserAndHousehold()
-      } else {
+      if (event === 'SIGNED_OUT') {
+        // Only clear state on an explicit sign-out, never on a transient null session
+        initializedRef.current = true
         setUser(null)
         setHousehold(null)
         setIsLoading(false)
+        return
+      }
+
+      if (session?.user) {
+        initializedRef.current = true
+        setUser(session.user)
+        void fetchHousehold(session.user)
+      } else if (event === 'INITIAL_SESSION') {
+        // INITIAL_SESSION with no session means the access token may be expired and
+        // Supabase is about to attempt a silent refresh (TOKEN_REFRESHED will follow),
+        // or the user is truly not logged in (SIGNED_OUT will follow).
+        // Keep isLoading=true and wait — do NOT prematurely clear the user state.
+        // Safety fallback: if no event follows within 5 s, stop the loading spinner.
+        setTimeout(() => {
+          if (mounted && !initializedRef.current) {
+            initializedRef.current = true
+            setIsLoading(false)
+          }
+        }, 5000)
       }
     })
 

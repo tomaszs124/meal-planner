@@ -874,7 +874,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.protein || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.protein || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
@@ -886,7 +886,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.protein || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.protein || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
@@ -902,7 +902,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.fat || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.fat || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
@@ -914,7 +914,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.fat || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.fat || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
@@ -930,7 +930,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.carbs || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.carbs || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
@@ -942,7 +942,7 @@ export default function MealPlanner() {
                       .reduce((sum, p) => {
                         return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
                           const product = item.product
-                          return itemSum + (product?.carbs || 0) * item.amount
+                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.carbs || 0) : 0)
                         }, 0))
                       }, 0)
                   )}g
