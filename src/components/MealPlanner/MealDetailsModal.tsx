@@ -221,7 +221,7 @@ export default function MealDetailsModal({
   if (selectedVariantUserId) {
     if (selectedHasOverride && selectedVariantItems && selectedVariantItems.length > 0) {
       // User has an override — show it
-      displayItems = selectedVariantItems
+      displayItems = selectedVariantItems.map(item => ({ ...item, product: item.product ?? undefined }))
     } else if (selectedVariantItems !== undefined) {
       // Override was fetched but is empty — user has no override, show base
       displayItems = baseItems || meal?.items
