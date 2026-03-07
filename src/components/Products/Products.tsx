@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react'
 import { supabase, Product, ProductCategory, ProductCategoryRecord } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
-type UnitType = '100g' | 'piece' | 'tablespoon' | 'teaspoon'
+type UnitType = '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'
 
 const UNITS: { value: UnitType; label: string }[] = [
   { value: '100g', label: 'g' },
   { value: 'piece', label: 'Sztuka' },
   { value: 'tablespoon', label: 'Łyżka' },
   { value: 'teaspoon', label: 'Łyżeczka' },
+  { value: 'leaf', label: 'Liść' },
+  { value: 'cube', label: 'Kostka' },
+  { value: 'slice', label: 'Plaster' },
 ]
 
 const DEFAULT_CATEGORY_NAME = 'Pozostałe'
@@ -310,6 +313,9 @@ export default function Products() {
     const defaultWeight = product.unit_type === '100g' ? '1' 
       : product.unit_type === 'tablespoon' ? '15'
       : product.unit_type === 'teaspoon' ? '5'
+      : product.unit_type === 'leaf' ? '2'
+      : product.unit_type === 'cube' ? '10'
+      : product.unit_type === 'slice' ? '30'
       : '100'
     setEditUnitWeight(product.unit_weight_grams?.toString() || defaultWeight)
     setEditCategory(product.category)
@@ -590,6 +596,9 @@ export default function Products() {
                 if (unit === '100g') setNewUnitWeight('1')
                 else if (unit === 'tablespoon') setNewUnitWeight('15')
                 else if (unit === 'teaspoon') setNewUnitWeight('5')
+                else if (unit === 'leaf') setNewUnitWeight('2')
+                else if (unit === 'cube') setNewUnitWeight('10')
+                else if (unit === 'slice') setNewUnitWeight('30')
                 else if (unit === 'piece') setNewUnitWeight('100')
               }}
               disabled={isAdding}
@@ -612,7 +621,7 @@ export default function Products() {
               step="0.01"
               value={newUnitWeight}
               onChange={(e) => setNewUnitWeight(e.target.value)}
-              placeholder={newUnit === '100g' ? '1 (dla gramów)' : newUnit === 'piece' ? 'np. 300 dla sztuki' : newUnit === 'tablespoon' ? '15' : '5'}
+              placeholder={newUnit === '100g' ? '1 (dla gramów)' : newUnit === 'piece' ? 'np. 300 dla sztuki' : newUnit === 'tablespoon' ? '15' : newUnit === 'teaspoon' ? '5' : newUnit === 'leaf' ? '2' : newUnit === 'cube' ? '10' : newUnit === 'slice' ? '30' : ''}
               disabled={isAdding}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               required
@@ -732,6 +741,9 @@ export default function Products() {
                           if (unit === '100g') setEditUnitWeight('1')
                           else if (unit === 'tablespoon') setEditUnitWeight('15')
                           else if (unit === 'teaspoon') setEditUnitWeight('5')
+                          else if (unit === 'leaf') setEditUnitWeight('2')
+                          else if (unit === 'cube') setEditUnitWeight('10')
+                          else if (unit === 'slice') setEditUnitWeight('30')
                           else if (unit === 'piece') setEditUnitWeight('100')
                         }}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -750,7 +762,7 @@ export default function Products() {
                         step="0.01"
                         value={editUnitWeight}
                         onChange={(e) => setEditUnitWeight(e.target.value)}
-                        placeholder={editUnit === '100g' ? '1 (dla gramów)' : editUnit === 'piece' ? 'np. 300 dla sztuki' : editUnit === 'tablespoon' ? '15' : '5'}
+                        placeholder={editUnit === '100g' ? '1 (dla gramów)' : editUnit === 'piece' ? 'np. 300 dla sztuki' : editUnit === 'tablespoon' ? '15' : editUnit === 'teaspoon' ? '5' : editUnit === 'leaf' ? '2' : editUnit === 'cube' ? '10' : editUnit === 'slice' ? '30' : ''}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>

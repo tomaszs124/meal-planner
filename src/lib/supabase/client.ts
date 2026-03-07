@@ -48,7 +48,7 @@ export type Product = {
   household_id: string
   name: string
   kcal_per_unit: number  // Calories per 100g
-  unit_type: '100g' | 'piece' | 'tablespoon' | 'teaspoon'  // Preferred unit
+  unit_type: '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'  // Preferred unit
   unit_weight_grams: number | null  // Weight of one preferred unit in grams (e.g., 1 piece = 300g)
   category: ProductCategory
   image_url: string | null

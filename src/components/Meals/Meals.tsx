@@ -14,6 +14,9 @@ function translateUnit(unitType: string): string {
     'piece': 'szt',
     'tablespoon': 'łyżka',
     'teaspoon': 'łyżeczka',
+    'leaf': 'liść',
+    'cube': 'kostka',
+    'slice': 'plaster',
   }
   return units[unitType] || unitType
 }
