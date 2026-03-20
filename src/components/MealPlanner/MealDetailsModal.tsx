@@ -216,13 +216,10 @@ export default function MealDetailsModal({
   }, [meal?.id])
 
   const selectedVariantItems = selectedVariantUserId ? variantItemsByUser[selectedVariantUserId] : undefined
-  const selectedHasOverride = selectedVariantUserId
-    ? (initialVariantUserId != null && selectedVariantUserId === initialVariantUserId) || variantUserIds.includes(selectedVariantUserId)
-    : true
 
   let displayItems: MealItem[] | undefined
   if (selectedVariantUserId) {
-    if (selectedHasOverride && selectedVariantItems && selectedVariantItems.length > 0) {
+    if (selectedVariantItems && selectedVariantItems.length > 0) {
       // User has an override — show it
       displayItems = selectedVariantItems.map(item => ({ ...item, product: item.product ?? undefined }))
     } else if (selectedVariantItems !== undefined) {
@@ -322,9 +319,9 @@ export default function MealDetailsModal({
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">Warianty dla domowników</h3>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => setSelectedVariantUserId(null)}
+                    onClick={() => setSelectedVariantUserId(userId ?? null)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      selectedVariantUserId === null
+                      selectedVariantUserId === (userId ?? null)
                         ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-500'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
