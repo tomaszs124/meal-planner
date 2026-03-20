@@ -216,6 +216,7 @@ export default function MealSlot({
         userId={user?.id}
         householdId={householdId}
         showVariantSelector={true}
+        initialVariantUserId={user?.id}
       />
     </>
   )
