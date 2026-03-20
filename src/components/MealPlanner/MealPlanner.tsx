@@ -62,6 +62,8 @@ export default function MealPlanner() {
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
   const [copyFromUserId, setCopyFromUserId] = useState('')
   const [sendToUserId, setSendToUserId] = useState('')
+  const [copySuccessMsg, setCopySuccessMsg] = useState('')
+  const [sendSuccessMsg, setSendSuccessMsg] = useState('')
   const sliderRef = useRef<HTMLDivElement>(null)
 
   function getUniquePlansByMealType<T extends MealPlanRow>(plans: T[]): T[] {
@@ -502,6 +504,9 @@ export default function MealPlanner() {
       )
       setPlannedMeals(plansWithMeals)
     }
+
+    setCopySuccessMsg('Dzień domownika skopiowany pomyślnie!')
+    setTimeout(() => setCopySuccessMsg(''), 4000)
   }
 
   async function handleSendDayToMember() {
@@ -554,7 +559,11 @@ export default function MealPlanner() {
     if (error) {
       alert('Błąd podczas wysyłania dnia do domownika')
       console.error(error)
+      return
     }
+
+    setSendSuccessMsg('Dzień wysłany do domownika pomyślnie!')
+    setTimeout(() => setSendSuccessMsg(''), 4000)
   }
 
   function handleWeekChange(direction: 'prev' | 'next') {
@@ -985,6 +994,9 @@ export default function MealPlanner() {
         >
           Kopiuj dzień od domownika
         </button>
+        {copySuccessMsg && (
+          <p className="text-sm text-green-700 font-medium text-center">{copySuccessMsg}</p>
+        )}
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-3">
@@ -1008,6 +1020,9 @@ export default function MealPlanner() {
         >
           Wyślij dzień do domownika
         </button>
+        {sendSuccessMsg && (
+          <p className="text-sm text-green-700 font-medium text-center">{sendSuccessMsg}</p>
+        )}
       </div>
     </div>
   )

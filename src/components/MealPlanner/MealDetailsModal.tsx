@@ -78,6 +78,7 @@ export default function MealDetailsModal({
   const [servings, setServings] = useState(1)
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
   const [selectedVariantUserId, setSelectedVariantUserId] = useState<string | null>(initialVariantUserId ?? null)
+  const [activeIngredientTooltip, setActiveIngredientTooltip] = useState<number | null>(null)
   const [variantItemsByUser, setVariantItemsByUser] = useState<Record<string, VariantItem[]>>({})
   const [variantUserIds, setVariantUserIds] = useState<string[]>([])
   const [baseItems, setBaseItems] = useState<MealItem[] | null>(null)
@@ -399,10 +400,31 @@ export default function MealDetailsModal({
                 {displayItems.map((item, index) => {
                   const totalWeight = item.product ? Math.round(item.amount * servings * (item.product.unit_weight_grams || 1)) : 0
                   const unitType = item.unit_type || item.product?.unit_type || '100g'
+                  const productNotes = item.product?.notes
                   return (
-                    <li key={index} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-900 font-medium">{item.product?.name || 'Nieznany produkt'}</span>
-                      <span className="text-gray-600">
+                    <li key={index} className="flex items-center justify-between text-sm gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-gray-900 font-medium truncate">{item.product?.name || 'Nieznany produkt'}</span>
+                        {productNotes && (
+                          <div className="relative flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setActiveIngredientTooltip(activeIngredientTooltip === index ? null : index)}
+                              className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold leading-none"
+                              aria-label="Pokaż notatkę"
+                            >
+                              i
+                            </button>
+                            {activeIngredientTooltip === index && (
+                              <div className="absolute left-0 bottom-full mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
+                                {productNotes}
+                                <div className="absolute left-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-gray-600 flex-shrink-0">
                         {unitType === '100g'
                           ? `${totalWeight}g`
                           : `${formatAmount(item.amount * servings)} ${translateUnit(unitType)} (${totalWeight}g)`}

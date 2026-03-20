@@ -6,6 +6,7 @@ import { pl } from 'date-fns/locale'
 import { supabase, ShoppingListItem, Product, Profile, UserSettings, Meal, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
+import CustomLists from '@/components/ShoppingList/CustomLists'
 
 const UNCATEGORIZED_LABEL = 'Pozostałe'
 // Helper function to format amount without trailing zeros
@@ -262,14 +263,12 @@ export default function ShoppingListEnhanced() {
   const [modalMeal, setModalMeal] = useState<(Meal & { images?: MealImage[]; tags?: Tag[] }) | null>(null)
   const [modalVariantUserId, setModalVariantUserId] = useState<string | null>(null)
 
-  // Add custom item form
-  const [newItemName, setNewItemName] = useState('')
-  const [newItemAmount, setNewItemAmount] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showGenerateSuccess, setShowGenerateSuccess] = useState(false)
   const [mealServingsById, setMealServingsById] = useState<Record<string, number>>({})
   const [generatedRange, setGeneratedRange] = useState<{ startDate: string; endDate: string } | null>(null)
+  const [activeProductTooltip, setActiveProductTooltip] = useState<string | null>(null)
+  const [expandedCategoryGroupKey, setExpandedCategoryGroupKey] = useState<string | null>(null)
 
   // Fetch household members
   useEffect(() => {
@@ -732,37 +731,6 @@ export default function ShoppingListEnhanced() {
     }
   }
 
-  // Add custom item
-  async function addItem(e: React.FormEvent) {
-    e.preventDefault()
-    const householdId = household?.id
-    const userId = user?.id
-    if (!householdId || !newItemName.trim()) return
-
-    setIsAdding(true)
-
-    const amountValue = newItemAmount.trim()
-    const numericPattern = /^\d+(?:[.,]\d+)?$/
-    const isNumeric = numericPattern.test(amountValue)
-    const parsedAmount = isNumeric ? Number(amountValue.replace(',', '.')) : NaN
-
-    const { error } = await supabase.from('shopping_list_items').insert({
-      household_id: householdId,
-      name: newItemName.trim(),
-      amount: isNumeric ? parsedAmount : 1,
-      custom_amount_text: isNumeric ? null : (amountValue || null),
-      is_checked: false,
-      added_by: userId || null,
-    })
-
-    if (!error) {
-      setNewItemName('')
-      setNewItemAmount('')
-    }
-
-    setIsAdding(false)
-  }
-
   // Delete grouped item (deletes all items in the group)
   async function deleteGroupedItem(groupedItem: GroupedItem) {
     setItems((current) => current.filter((i) => !groupedItem.itemIds.includes(i.id)))
@@ -1118,51 +1086,165 @@ export default function ShoppingListEnhanced() {
                         ({groupedCategoryItems.length})
                       </span>
                     </h3>
-                    {groupedCategoryItems.map((groupedItem) => (
-                      <div
-                        key={groupedItem.key}
-                        onClick={() => {
-                          void toggleGroupedItem(groupedItem)
-                        }}
-                        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity ${
-                          groupedItem.allChecked ? 'opacity-60' : 'opacity-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={groupedItem.allChecked}
-                          onChange={(e) => {
-                            e.stopPropagation()
-                            void toggleGroupedItem(groupedItem)
-                          }}
-                          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`text-sm font-medium ${
-                              groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
-                            }`}
+                    {groupedCategoryItems.map((groupedItem) => {
+                      const relatedMeals: Array<{ meal: NonNullable<typeof items[number]['meal']>; source_user_id: string | null }> = []
+                      const seenMealKeys = new Set<string>()
+                      items
+                        .filter((item) => groupedItem.itemIds.includes(item.id) && item.meal)
+                        .forEach((item) => {
+                          const mk = `${item.meal!.id}:${item.source_user_id || ''}`
+                          if (!seenMealKeys.has(mk)) {
+                            seenMealKeys.add(mk)
+                            relatedMeals.push({ meal: item.meal!, source_user_id: item.source_user_id })
+                          }
+                        })
+                      const hasMeals = relatedMeals.length > 0
+                      const isExpanded = expandedCategoryGroupKey === groupedItem.key
+                      return (
+                        <div key={groupedItem.key}>
+                          <div
+                            onClick={() => {
+                              void toggleGroupedItem(groupedItem)
+                            }}
+                            className={`bg-white shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity ${
+                              groupedItem.allChecked ? 'opacity-60' : 'opacity-100'
+                            } ${isExpanded && hasMeals ? 'rounded-t-lg border-b-0' : 'rounded-lg'}`}
                           >
-                            {groupedItem.name}
-                          </p>
-                          {getGroupedItemAmountLabel(groupedItem) && (
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {getGroupedItemAmountLabel(groupedItem)}
-                            </p>
+                            <input
+                              type="checkbox"
+                              checked={groupedItem.allChecked}
+                              onChange={(e) => {
+                                e.stopPropagation()
+                                void toggleGroupedItem(groupedItem)
+                              }}
+                              className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            />
+                            <div className="flex-1 min-w-0 flex items-start gap-2">
+                              <div className="min-w-0">
+                                <p
+                                  className={`text-sm font-medium ${
+                                    groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
+                                  }`}
+                                >
+                                  {groupedItem.name}
+                                </p>
+                                {getGroupedItemAmountLabel(groupedItem) && (
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {getGroupedItemAmountLabel(groupedItem)}
+                                  </p>
+                                )}
+                              </div>
+                              {groupedItem.product?.notes && (
+                                <div className="relative flex-shrink-0 mt-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setActiveProductTooltip(activeProductTooltip === groupedItem.key ? null : groupedItem.key)
+                                    }}
+                                    className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
+                                    aria-label="Pokaż notatkę"
+                                  >
+                                    i
+                                  </button>
+                                  {activeProductTooltip === groupedItem.key && (
+                                    <div className="absolute left-0 bottom-full mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
+                                      {groupedItem.product.notes}
+                                      <div className="absolute left-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                void deleteGroupedItem(groupedItem)
+                              }}
+                              className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
+                              aria-label="Usuń produkt"
+                            >
+                              Usuń
+                            </button>
+                            {hasMeals && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setExpandedCategoryGroupKey(isExpanded ? null : groupedItem.key)
+                                }}
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+                                aria-label={isExpanded ? 'Ukryj przepisy' : 'Pokaż przepisy'}
+                              >
+                                <svg
+                                  className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                          {isExpanded && hasMeals && (
+                            <div className="border border-t-0 border-gray-200 rounded-b-lg bg-gray-50 px-3 pb-3 pt-2 space-y-2">
+                              <p className="text-xs text-gray-500 font-medium">Z przepisów:</p>
+                              {relatedMeals.map(({ meal, source_user_id }) => (
+                                <button
+                                  key={`${meal.id}:${source_user_id || ''}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setModalMeal({
+                                      ...meal,
+                                      tags: meal.tags?.map((t) => t.tags).filter(Boolean) as Tag[] | undefined,
+                                    })
+                                    setModalVariantUserId(source_user_id)
+                                  }}
+                                  className="w-full flex items-center gap-3 bg-white rounded-lg border border-gray-200 p-3 hover:border-blue-300 hover:bg-blue-50 transition-colors text-left cursor-pointer"
+                                >
+                                  {meal.images && meal.images.length > 0 ? (
+                                    <div
+                                      className="w-12 h-12 flex-shrink-0 rounded-lg bg-cover bg-center"
+                                      style={{ backgroundImage: `url(${meal.images[0].image_url})` }}
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                      {meal.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">{getMemberDisplayNameByUserId(source_user_id)}</p>
+                                    {meal.tags && meal.tags.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {meal.tags.map((tagRelation) => {
+                                          const tag = tagRelation.tags
+                                          if (!tag) return null
+                                          return (
+                                            <span
+                                              key={tag.id}
+                                              className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                              style={{ backgroundColor: tag.color, color: tag.text_color }}
+                                            >
+                                              {tag.name}
+                                            </span>
+                                          )
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                              ))}
+                            </div>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            void deleteGroupedItem(groupedItem)
-                          }}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                          aria-label="Usuń produkt"
-                        >
-                          Usuń
-                        </button>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )
               })
@@ -1188,18 +1270,41 @@ export default function ShoppingListEnhanced() {
                       }}
                       className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-sm font-medium ${
-                          groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
-                        }`}
-                      >
-                        {groupedItem.name}
-                      </p>
-                      {getGroupedItemAmountLabel(groupedItem) && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {getGroupedItemAmountLabel(groupedItem)}
+                    <div className="flex-1 min-w-0 flex items-start gap-2">
+                      <div className="min-w-0">
+                        <p
+                          className={`text-sm font-medium ${
+                            groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
+                          }`}
+                        >
+                          {groupedItem.name}
                         </p>
+                        {getGroupedItemAmountLabel(groupedItem) && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {getGroupedItemAmountLabel(groupedItem)}
+                          </p>
+                        )}
+                      </div>
+                      {groupedItem.product?.notes && (
+                        <div className="relative flex-shrink-0 mt-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveProductTooltip(activeProductTooltip === groupedItem.key ? null : groupedItem.key)
+                            }}
+                            className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
+                            aria-label="Pokaż notatkę"
+                          >
+                            i
+                          </button>
+                          {activeProductTooltip === groupedItem.key && (
+                            <div className="absolute left-0 bottom-full mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
+                              {groupedItem.product.notes}
+                              <div className="absolute left-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                     <button
@@ -1207,7 +1312,7 @@ export default function ShoppingListEnhanced() {
                         e.stopPropagation()
                         void deleteGroupedItem(groupedItem)
                       }}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
                       aria-label="Usuń produkt"
                     >
                       Usuń
@@ -1485,35 +1590,10 @@ export default function ShoppingListEnhanced() {
         </div>
       )}
 
-      {/* Add custom item */}
-      <form onSubmit={addItem} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Dodaj własny produkt</h3>
-        <div className="flex gap-2 flex-col sm:flex-row">
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="Nazwa produktu"
-            disabled={isAdding}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-          />
-          <input
-            type="text"
-            value={newItemAmount}
-            onChange={(e) => setNewItemAmount(e.target.value)}
-            placeholder="Ilość (np. 2, garść, opakowanie)"
-            disabled={isAdding}
-            className="w-40 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-          />
-          <button
-            type="submit"
-            disabled={isAdding || !newItemName.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {isAdding ? 'Dodawanie...' : 'Dodaj'}
-          </button>
-        </div>
-      </form>
+      {/* Custom Lists */}
+      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+        <CustomLists />
+      </div>
 
       {/* Meal details modal */}
       <MealDetailsModal

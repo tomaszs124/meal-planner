@@ -55,6 +55,7 @@ export type Product = {
   protein: number | null  // Protein per 100g
   fat: number | null  // Fat per 100g
   carbs: number | null  // Carbs per 100g
+  notes: string | null  // Optional notes about the product
   created_by: string | null
   created_at: string
   updated_at: string

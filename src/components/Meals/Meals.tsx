@@ -730,8 +730,16 @@ export default function Meals() {
     setEditTags(meal.tags?.map(t => t.id) || [])
     setEditPrimaryCategory(meal.primary_category || '')
     setEditAlternativeCategories(meal.alternative_categories || [])
+
+    // Always fetch base meal_items from DB so editProducts always reflects the base recipe,
+    // regardless of whether the current user has an override (meal.items may contain overrides).
+    const { data: baseMealItems } = await supabase
+      .from('meal_items')
+      .select('*')
+      .eq('meal_id', meal.id)
+
     setEditProducts(
-      meal.items.map((item) => ({
+      (baseMealItems || meal.items).map((item) => ({
         product_id: item.product_id,
         amount: item.amount,
       }))
@@ -811,10 +819,9 @@ export default function Meals() {
       }
     }
 
-    // Delete old meal items
+    // Delete old meal items and insert new base items
     await supabase.from('meal_items').delete().eq('meal_id', mealId)
 
-    // Add new meal items
     const mealItems = editProducts.map((sp) => {
       const product = products.find((p) => p.id === sp.product_id)
       return {

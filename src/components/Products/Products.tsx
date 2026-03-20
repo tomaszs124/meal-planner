@@ -32,6 +32,7 @@ export default function Products() {
   const [newProtein, setNewProtein] = useState('')
   const [newFat, setNewFat] = useState('')
   const [newCarbs, setNewCarbs] = useState('')
+  const [newNotes, setNewNotes] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
   // Categories state
@@ -51,6 +52,14 @@ export default function Products() {
   const [editProtein, setEditProtein] = useState('')
   const [editFat, setEditFat] = useState('')
   const [editCarbs, setEditCarbs] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+
+  // Tooltip state
+  const [activeTooltipId, setActiveTooltipId] = useState<string | null>(null)
+
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterCategory, setFilterCategory] = useState<string>('')
 
   // Fetch products and categories
   useEffect(() => {
@@ -140,6 +149,7 @@ export default function Products() {
       protein: newProtein ? parseFloat(newProtein) : null,
       fat: newFat ? parseFloat(newFat) : null,
       carbs: newCarbs ? parseFloat(newCarbs) : null,
+      notes: newNotes.trim() || null,
       created_by: user.id,
     }).select().single()
 
@@ -155,6 +165,7 @@ export default function Products() {
       setNewProtein('')
       setNewFat('')
       setNewCarbs('')
+      setNewNotes('')
     }
 
     setIsAdding(false)
@@ -322,6 +333,7 @@ export default function Products() {
     setEditProtein(product.protein?.toString() || '')
     setEditFat(product.fat?.toString() || '')
     setEditCarbs(product.carbs?.toString() || '')
+    setEditNotes(product.notes || '')
   }
 
   // Cancel editing
@@ -335,6 +347,7 @@ export default function Products() {
     setEditProtein('')
     setEditFat('')
     setEditCarbs('')
+    setEditNotes('')
   }
 
   // Save edit
@@ -351,6 +364,7 @@ export default function Products() {
       protein: editProtein ? parseFloat(editProtein) : null,
       fat: editFat ? parseFloat(editFat) : null,
       carbs: editCarbs ? parseFloat(editCarbs) : null,
+      notes: editNotes.trim() || null,
     }
 
     setProducts((current) =>
@@ -655,17 +669,77 @@ export default function Products() {
             </button>
           </div>
         </div>
+        <div className="mt-3">
+          <label htmlFor="product-notes" className="block text-sm font-medium text-gray-700 mb-1">
+            Notatka (opcjonalnie)
+          </label>
+          <textarea
+            id="product-notes"
+            value={newNotes}
+            onChange={(e) => setNewNotes(e.target.value)}
+            placeholder="Np. kupować tylko eko, marki X, sprawdzić datę ważności..."
+            disabled={isAdding}
+            rows={2}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-none"
+          />
+        </div>
       </form>
 
       {/* Products list */}
       <div className="space-y-3">
-        {products.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Brak produktów</p>
-            <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy produkt powyżej</p>
+        {/* Search and filter */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Szukaj po nazwie</label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Np. jajka, mleko..."
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="sm:w-56">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kategoria</label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Wszystkie kategorie</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>{category.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
-        ) : (
-          products.map((product) => (
+        </div>
+
+        {(() => {
+          const filtered = products
+            .filter((p) => {
+              const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
+              const matchesCategory = !filterCategory || p.category === filterCategory
+              return matchesSearch && matchesCategory
+            })
+            .sort((a, b) => a.name.localeCompare(b.name, 'pl'))
+
+          if (products.length === 0) return (
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
+              <p className="text-gray-500 text-sm">Brak produktów</p>
+              <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy produkt powyżej</p>
+            </div>
+          )
+
+          if (filtered.length === 0) return (
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
+              <p className="text-gray-500 text-sm">Brak wyników</p>
+              <p className="text-gray-400 text-xs mt-1">Spróbuj zmienić kryteria wyszukiwania</p>
+            </div>
+          )
+
+          return filtered.map((product) => (
             <div
               key={product.id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
@@ -794,6 +868,16 @@ export default function Products() {
                       Anuluj
                     </button>
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Notatka (opcjonalnie)</label>
+                    <textarea
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                      placeholder="Np. kupować tylko eko, marki X..."
+                      rows={2}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                  </div>
                 </div>
               ) : (
                 // View mode
@@ -816,7 +900,25 @@ export default function Products() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0 items-center">
+                    {product.notes && (
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTooltipId(activeTooltipId === product.id ? null : product.id)}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-xs font-bold"
+                          aria-label="Pokaż notatkę"
+                        >
+                          i
+                        </button>
+                        {activeTooltipId === product.id && (
+                          <div className="absolute right-0 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
+                            {product.notes}
+                            <div className="absolute right-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <button
                       onClick={() => startEdit(product)}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
@@ -834,7 +936,7 @@ export default function Products() {
               )}
             </div>
           ))
-        )}
+        })()}
       </div>
 
       {/* Stats */}
