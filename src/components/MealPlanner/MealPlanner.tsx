@@ -567,8 +567,19 @@ export default function MealPlanner() {
   }
 
   function handleWeekChange(direction: 'prev' | 'next') {
-    const days = direction === 'prev' ? -7 : 7
-    setSelectedDate(new Date(selectedDate.getTime() + days * 24 * 60 * 60 * 1000))
+    const today = new Date()
+    const currentWeekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
+    const targetWeekStart = addDays(currentWeekStart, direction === 'next' ? 7 : -7)
+    const todayWeekStart = startOfWeek(today, { weekStartsOn: 1 })
+    const isTodaysWeek = targetWeekStart.getTime() === todayWeekStart.getTime()
+
+    if (isTodaysWeek) {
+      setSelectedDate(today)
+    } else if (direction === 'next') {
+      setSelectedDate(targetWeekStart) // poniedziałek
+    } else {
+      setSelectedDate(addDays(targetWeekStart, 6)) // niedziela
+    }
   }
 
   async function handleSelectMeal(category: MealCategory, meal: MealWithDetails) {

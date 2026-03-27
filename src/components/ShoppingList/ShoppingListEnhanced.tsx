@@ -269,6 +269,17 @@ export default function ShoppingListEnhanced() {
   const [generatedRange, setGeneratedRange] = useState<{ startDate: string; endDate: string } | null>(null)
   const [activeProductTooltip, setActiveProductTooltip] = useState<string | null>(null)
   const [expandedCategoryGroupKey, setExpandedCategoryGroupKey] = useState<string | null>(null)
+  const [editingServings, setEditingServings] = useState<Record<string, string>>({})
+  const [updatingServingsKey, setUpdatingServingsKey] = useState<string | null>(null)
+  // Ref used as the actual mutex — updated synchronously unlike state.
+  // State (updatingServingsKey) is only for disabling the UI buttons.
+  const updatingServingsRef = useRef(false)
+  // Blocks realtime-triggered fetchItems() while updateMealServings is in progress
+  const updateInFlightRef = useRef(0)
+  // Incremented whenever updateMealServings starts. fetchItems() captures this at
+  // the start and discards results if the token changed while it was awaiting —
+  // prevents a slow in-flight fetch from overwriting freshly-written update data.
+  const fetchVersionRef = useRef(0)
 
   // Fetch household members
   useEffect(() => {
@@ -321,11 +332,21 @@ export default function ShoppingListEnhanced() {
     if (!householdId) return
 
     async function fetchItems() {
+      // Skip if our own update is in progress.
+      if (updateInFlightRef.current > 0) return
+
+      // Capture version token before any await. If updateMealServings starts
+      // while this fetch is in flight, the token will change and we discard
+      // the (now stale) results instead of overwriting the fresh update data.
+      const versionAtStart = fetchVersionRef.current
+
       const { data: stateData } = await supabase
         .from('shopping_list_state')
         .select('generated_start_date, generated_end_date, meal_servings')
         .eq('household_id', householdId)
         .maybeSingle()
+
+      if (fetchVersionRef.current !== versionAtStart) return
 
       if (stateData?.generated_start_date && stateData?.generated_end_date) {
         setGeneratedRange({
@@ -346,6 +367,8 @@ export default function ShoppingListEnhanced() {
         .order('created_at', { ascending: false })
         .order('id', { ascending: true })
 
+      if (fetchVersionRef.current !== versionAtStart) return
+
       if (!error && data) {
         setItems(data as unknown as ShoppingListItemWithProduct[])
       }
@@ -355,7 +378,7 @@ export default function ShoppingListEnhanced() {
 
     const refreshInterval = setInterval(() => {
       void fetchItems()
-    }, 3000)
+    }, 30000)
 
     // Subscribe to realtime changes
     const channel = supabase
@@ -380,21 +403,8 @@ export default function ShoppingListEnhanced() {
           table: 'shopping_list_state',
           filter: `household_id=eq.${householdId}`,
         },
-        (payload) => {
-          if (payload.eventType === 'DELETE') {
-            setGeneratedRange(null)
-            return
-          }
-
-          const next = payload.new as { generated_start_date?: string | null; generated_end_date?: string | null; meal_servings?: Record<string, number> | null }
-          if (next.generated_start_date && next.generated_end_date) {
-            setGeneratedRange({
-              startDate: next.generated_start_date,
-              endDate: next.generated_end_date,
-            })
-          }
-
-          setMealServingsById((next.meal_servings || {}) as Record<string, number>)
+        async () => {
+          await fetchItems()
         }
       )
       .subscribe()
@@ -832,7 +842,7 @@ export default function ShoppingListEnhanced() {
   // Delete entire meal group
   async function deleteMealGroup(mealGroup: { group_key: string; meal_id: string; items: ShoppingListItemWithProduct[] }) {
     const itemIds = mealGroup.items.map(i => i.id)
-    
+
     const { error } = await supabase
       .from('shopping_list_items')
       .delete()
@@ -842,6 +852,9 @@ export default function ShoppingListEnhanced() {
       alert('Błąd podczas usuwania dania')
       return
     }
+
+    // Remove items from local state immediately — don't wait for realtime/polling.
+    setItems((current) => current.filter((i) => !itemIds.includes(i.id)))
 
     if (household?.id) {
       const nextMap = { ...mealServingsById }
@@ -864,8 +877,19 @@ export default function ShoppingListEnhanced() {
     if (!householdId) return
     if (!Number.isFinite(nextServings) || nextServings <= 0) return
 
-    const currentServings = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
-    if (Math.abs(currentServings - nextServings) < 0.0001) return
+    // updatingServingsRef is a ref (not state) so this check is synchronous.
+    // Two rapid clicks both see the updated value immediately — unlike state which
+    // is batched and would let both clicks pass the guard before re-rendering.
+    if (updatingServingsRef.current) return
+    updatingServingsRef.current = true
+    // Invalidate any in-flight fetchItems() so it discards stale results.
+    fetchVersionRef.current += 1
+
+    const currentServings = mealServingsById[mealGroup.group_key] ?? 1
+    if (Math.abs(currentServings - nextServings) < 0.0001) {
+      updatingServingsRef.current = false
+      return
+    }
 
     const scale = nextServings / currentServings
     const mealItems = items.filter(
@@ -874,49 +898,69 @@ export default function ShoppingListEnhanced() {
         (item.source_user_id || null) === (mealGroup.source_user_id || null) &&
         !item.custom_amount_text
     )
-    if (mealItems.length === 0) {
-      setMealServingsById((current) => ({ ...current, [mealGroup.group_key]: nextServings }))
-      return
-    }
 
-    const updatedAmounts = mealItems.map((item) => ({
-      id: item.id,
-      amount: Math.max(0.01, Math.round(parseFloat(String(item.amount)) * scale * 100) / 100),
-    }))
+    setUpdatingServingsKey(mealGroup.group_key)
+    updateInFlightRef.current += 1
+    try {
+      const nextMap = { ...mealServingsById, [mealGroup.group_key]: nextServings }
 
-    const results = await Promise.all(
-      updatedAmounts.map((updated) =>
-        supabase
-          .from('shopping_list_items')
-          .update({ amount: updated.amount })
-          .eq('id', updated.id)
+      if (mealItems.length === 0) {
+        setMealServingsById(nextMap)
+        await supabase.from('shopping_list_state').upsert({
+          household_id: householdId,
+          meal_servings: nextMap,
+          updated_by: userId || null,
+        })
+        return
+      }
+
+      const updatedAmounts = mealItems.map((item) => ({
+        id: item.id,
+        amount: Math.max(0.01, Math.round(parseFloat(String(item.amount)) * scale * 100) / 100),
+      }))
+
+      // 1. Persist serving count first so DB is consistent when items are written.
+      const { error: stateError } = await supabase
+        .from('shopping_list_state')
+        .upsert({
+          household_id: householdId,
+          meal_servings: nextMap,
+          updated_by: userId || null,
+        })
+
+      if (stateError) {
+        alert('Błąd podczas zmiany ilości dania')
+        return
+      }
+
+      // 2. Persist new item amounts.
+      const results = await Promise.all(
+        updatedAmounts.map((updated) =>
+          supabase
+            .from('shopping_list_items')
+            .update({ amount: updated.amount })
+            .eq('id', updated.id)
+        )
       )
-    )
 
-    if (results.some((result) => result.error)) {
-      alert('Błąd podczas zmiany ilości dania')
-      return
-    }
+      if (results.some((result) => result.error)) {
+        alert('Błąd podczas zmiany ilości dania')
+        return
+      }
 
-    const amountById = new Map(updatedAmounts.map((updated) => [updated.id, updated.amount]))
-    setItems((current) =>
-      current.map((item) =>
-        amountById.has(item.id)
-          ? { ...item, amount: amountById.get(item.id)! }
-          : item
+      // 3. Update local state after confirmed DB write.
+      setMealServingsById(nextMap)
+      const amountById = new Map(updatedAmounts.map((u) => [u.id, u.amount]))
+      setItems((current) =>
+        current.map((item) =>
+          amountById.has(item.id) ? { ...item, amount: amountById.get(item.id)! } : item
+        )
       )
-    )
-
-    const nextMap = { ...mealServingsById, [mealGroup.group_key]: nextServings }
-    setMealServingsById(nextMap)
-
-    await supabase
-      .from('shopping_list_state')
-      .upsert({
-        household_id: householdId,
-        meal_servings: nextMap,
-        updated_by: userId || null,
-      })
+    } finally {
+      updatingServingsRef.current = false
+      updateInFlightRef.current -= 1
+      setUpdatingServingsKey(null)
+    }
   }
 
   if (userLoading) {
@@ -1425,11 +1469,12 @@ export default function ShoppingListEnhanced() {
                               <div className="mt-3 flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  const current = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
+                                  const current = mealServingsById[mealGroup.group_key] ?? 1
                                   const next = Math.max(0.5, Number((current - 0.5).toFixed(1)))
                                   void updateMealServings(mealGroup, next)
                                 }}
-                                className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                                disabled={updatingServingsKey !== null}
+                                className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed"
                               >
                                 −
                               </button>
@@ -1437,22 +1482,35 @@ export default function ShoppingListEnhanced() {
                                 type="number"
                                 min="0.5"
                                 step="0.5"
-                                value={mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1}
+                                disabled={updatingServingsKey !== null}
+                                value={editingServings[mealGroup.group_key] ?? (mealServingsById[mealGroup.group_key] ?? 1)}
                                 onChange={(e) => {
+                                  setEditingServings((prev) => ({ ...prev, [mealGroup.group_key]: e.target.value }))
+                                }}
+                                onBlur={(e) => {
                                   const value = parseFloat(e.target.value)
+                                  setEditingServings((prev) => {
+                                    const next = { ...prev }
+                                    delete next[mealGroup.group_key]
+                                    return next
+                                  })
                                   if (!isNaN(value) && value > 0) {
                                     void updateMealServings(mealGroup, value)
                                   }
                                 }}
-                                className="w-16 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') e.currentTarget.blur()
+                                }}
+                                className="w-16 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed"
                               />
                               <button
                                 onClick={() => {
-                                  const current = mealServingsById[mealGroup.group_key] || mealServingsById[mealGroup.meal_id] || 1
+                                  const current = mealServingsById[mealGroup.group_key] ?? 1
                                   const next = Number((current + 0.5).toFixed(1))
                                   void updateMealServings(mealGroup, next)
                                 }}
-                                className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                                disabled={updatingServingsKey !== null}
+                                className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed"
                               >
                                 +
                               </button>
