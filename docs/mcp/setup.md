@@ -266,3 +266,16 @@ wywołanie niesie `Authorization: Bearer <JWT użytkownika>`, weryfikowany podpi
 Tryb z tokenem w adresie (sekcje 5 i 10) nadal działa równolegle; można go wyłączyć, usuwając
 `MCP_ACCESS_TOKENS` i `SUPABASE_SERVICE_ROLE_KEY` ze środowiska (ten drugi jest wtedy potrzebny
 już tylko skryptowi `scripts/analyze-recipes.mjs`).
+
+## 13. Zdjęcia posiłków i "mam już..." na liście zakupów
+
+- **Zdjęcia**: `set_meal_image` dodaje obrazek do posiłku tak samo, jak upload w aplikacji
+  (bucket `meal-images`, wiersz w `meal_images`). Źródło: publiczny URL podany w parametrze
+  `image_url` albo, bez parametru, darmowy generator Pollinations (bez klucza i opłat) z opisu
+  potrawy zbudowanego z nazwy i składników. Zasady każą asystentowi wywołać to od razu po
+  `create_meal`. ChatGPT nie potrafi przekazać własnych wygenerowanych obrazków do narzędzi,
+  więc konkretne zdjęcie wgrywa się ręcznie w aplikacji. `get_meal_images` listuje zdjęcia.
+- **Lista zakupów z pominięciem tego, co już jest**: `check_shopping_items_by_name` odhacza
+  pozycje po nazwach z dopasowaniem rozmytym ("masło" trafi "Masło klarowane"). Instrukcja
+  serwera prowadzi scenariusz "wygeneruj listę na X dni, mam już A, B, C":
+  `generate_shopping_list` → `check_shopping_items_by_name` → podsumowanie i lista niedopasowanych nazw.

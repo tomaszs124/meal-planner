@@ -51,6 +51,7 @@ export const RECIPE_RULES = `# Zasady tworzenia i edycji przepisów (wersja ${RE
 - \`primary_category\` to główny slot (najczęściej \`lunch\`); do \`alternative_categories\` dodaj inne sloty, w których danie ma sens (np. obiad pasuje też na kolację).
 - Używaj istniejących tagów (\`list_tags\`). Nowy tag twórz tylko na wyraźne życzenie.
 - W \`description\` zapisz krótki sposób przygotowania (3-6 kroków) oraz informację "na 1 dzień" / "na 2 dni", jeśli opakowania wymuszają gotowanie na dwa dni.
+- Zdjęcie: po \`create_meal\` od razu wywołaj \`set_meal_image\` (bez parametrów poza \`meal_id\`, obrazek generuje się za darmo z nazwy i składników), chyba że użytkownik powiedział, że zdjęcia nie chce, albo podał adres URL obrazka. Własny obrazek użytkownik wgrywa ręcznie w aplikacji.
 
 ## 5. Edycja istniejących przepisów
 - \`update_meal\` z polem \`items\` lub \`member_variants\` ZASTĘPUJE całą listę składników (tak samo działa aplikacja). Zawsze najpierw pobierz \`get_meal\`, zmodyfikuj i odeślij pełną listę.

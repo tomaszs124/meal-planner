@@ -4,6 +4,7 @@ import type { MealCategory, MealPlan } from '@/lib/supabase/client'
 import { loadContext, memberLabel, resolveMembers } from '../context'
 import { addDaysIso, assertDate, loadMealsDetailed, MEAL_CATEGORIES, MEAL_CATEGORY_LABELS_PL, todayIso } from '../data'
 import { ok, READ_ONLY, run } from '../respond'
+import { stems } from '../text'
 
 const CATEGORY_ENUM = z.enum(MEAL_CATEGORIES as [MealCategory, ...MealCategory[]])
 
@@ -12,18 +13,6 @@ const CATEGORY_ENUM = z.enum(MEAL_CATEGORIES as [MealCategory, ...MealCategory[]
  * matching description keeps the assistant from inventing a new recipe when the
  * user means the meal that is already planned.
  */
-/** Lowercased, accent-insensitive stems (first 5 chars of words >= 3 chars) for fuzzy matching Polish inflections. */
-function stems(text: string): string[] {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/ł/g, 'l')
-    .split(/[^a-z0-9]+/)
-    .filter((w) => w.length >= 3)
-    .map((w) => w.slice(0, 5))
-}
-
 export function registerTodayTools(server: McpServer) {
   server.registerTool(
     'find_recipe',
