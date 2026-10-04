@@ -61,7 +61,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 safe-area-bottom">
+    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 safe-area-bottom">
       <div className="max-w-screen-xl mx-auto px-2">
         <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
@@ -71,6 +71,7 @@ export default function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-colors ${
                   isActive
                     ? 'text-blue-600'

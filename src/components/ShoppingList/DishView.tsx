@@ -78,7 +78,9 @@ export default function DishView({
             >
               <input
                 type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                 checked={groupedItem.allChecked}
+                aria-label={groupedItem.name}
                 onChange={(e) => {
                   e.stopPropagation()
                   void toggleGroupedItem(groupedItem)
@@ -104,6 +106,7 @@ export default function DishView({
                   e.stopPropagation()
                   void deleteGroupedItem(groupedItem)
                 }}
+                aria-label={`Usuń ${groupedItem.name}`}
                 className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
               >
                 Usuń

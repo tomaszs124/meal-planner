@@ -97,6 +97,7 @@ export default function ShoppingListEnhanced() {
         <div className="flex gap-2">
           <button
             onClick={() => setGroupBy('category')}
+            aria-pressed={groupBy === 'category'}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               groupBy === 'category'
                 ? 'bg-blue-600 text-white'
@@ -107,6 +108,7 @@ export default function ShoppingListEnhanced() {
           </button>
           <button
             onClick={() => setGroupBy('dish')}
+            aria-pressed={groupBy === 'dish'}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               groupBy === 'dish'
                 ? 'bg-blue-600 text-white'
@@ -117,6 +119,7 @@ export default function ShoppingListEnhanced() {
           </button>
           <button
             onClick={() => setGroupBy('product')}
+            aria-pressed={groupBy === 'product'}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               groupBy === 'product'
                 ? 'bg-blue-600 text-white'

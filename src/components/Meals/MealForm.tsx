@@ -99,7 +99,7 @@ export default function MealForm({
           <div className="mt-2 relative">
             <Image
               src={form.imagePreview}
-              alt="Podgląd"
+              alt="Podgląd zdjęcia posiłku"
               width={800}
               height={320}
               className="w-full h-48 object-cover rounded-lg border border-gray-200"
@@ -112,6 +112,7 @@ export default function MealForm({
                   form.setImagePreview(null)
                 }}
                 disabled={isAdding}
+                aria-label="Usuń zdjęcie"
                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,6 +126,7 @@ export default function MealForm({
                   form.setImageFile(null)
                   form.setImagePreview(form.imageOriginalUrl)
                 }}
+                aria-label="Cofnij wybór nowego zdjęcia"
                 className="absolute top-2 right-2 bg-gray-800/80 text-white rounded-full p-1 hover:bg-gray-900 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,8 +142,9 @@ export default function MealForm({
       {!isAdd && (
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kategoria główna</label>
+            <label htmlFor="edit-primary-category" className="block text-sm font-medium text-gray-700 mb-2">Kategoria główna</label>
             <select
+              id="edit-primary-category"
               value={form.primaryCategory}
               onChange={(e) => form.setPrimaryCategory((e.target.value as MealCategory) || '')}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -157,7 +160,7 @@ export default function MealForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Kategorie alternatywne</label>
-            <div className="space-y-2">
+            <div role="group" aria-label="Kategorie alternatywne" className="space-y-2">
               {MEAL_CATEGORIES.map((cat) => (
                 <label key={cat.value} className="flex items-center">
                   <input
@@ -187,7 +190,7 @@ export default function MealForm({
             {isAdd ? 'Brak dostępnych tagów. Dodaj nowe w sekcji zarządzania tagami poniżej.' : 'Brak dostępnych tagów.'}
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div role="group" aria-label="Tagi" className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <label
                 key={tag.id}
@@ -257,7 +260,7 @@ export default function MealForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Kategorie alternatywne
             </label>
-            <div className="space-y-2">
+            <div role="group" aria-label="Kategorie alternatywne" className="space-y-2">
               {MEAL_CATEGORIES.map((cat) => (
                 <label key={cat.value} className="flex items-center gap-2">
                   <input

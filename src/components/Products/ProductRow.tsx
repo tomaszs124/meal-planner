@@ -78,6 +78,7 @@ export default function ProductRow({
                   onClick={onToggleNotes}
                   className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-xs font-bold"
                   aria-label="Pokaż notatkę"
+                  aria-expanded={isNotesOpen}
                 >
                   i
                 </button>

@@ -101,6 +101,12 @@ Kolejność: gazetka + zrzuty ekranu najpierw, klient Lidl Plus jako eksperyment
 
 ---
 
+## Branche (stan 2026-10-04)
+
+- `feature/mcp-connector`: konektor MCP + pole opakowania produktu (lista zadań: `docs/mcp/TODO.md`).
+- `chore/optimizations`: wszystko z tego dokumentu oznaczone `[x]`.
+- `integration/mcp-and-optimizations`: scalenie obu z rozwiązanymi konfliktami (`proxy.ts` zamiast middleware, pole opakowania przeniesione do podzielonych modułów produktów, lock npm odtworzony). Typy, lint, testy i build przechodzą. Jeśli ma wejść całość, najprościej scalić ten branch do `main`; jeśli osobno, najpierw MCP, potem optymalizacje i rozwiązać te same trzy konflikty.
+
 ## Plan realizacji na branchu `chore/optimizations`
 
 Kolejność dobrana tak, żeby każdy krok był osobnym, odwracalnym commitem i żeby testy

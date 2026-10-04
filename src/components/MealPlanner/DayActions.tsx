@@ -44,6 +44,7 @@ export default function DayActions({
         <div className="text-sm font-semibold text-gray-900">Kopiuj dzień od domownika</div>
         <select
           value={copyFromUserId}
+          aria-label="Domownik, od którego skopiować dzień"
           onChange={(e) => onCopyFromUserIdChange(e.target.value)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >
@@ -70,6 +71,7 @@ export default function DayActions({
         <div className="text-sm font-semibold text-gray-900">Wyślij dzień do domownika</div>
         <select
           value={sendToUserId}
+          aria-label="Domownik, do którego wysłać dzień"
           onChange={(e) => onSendToUserIdChange(e.target.value)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >

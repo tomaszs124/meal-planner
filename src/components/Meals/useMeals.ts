@@ -482,7 +482,8 @@ export function useMeals(householdId: string | undefined, userId: string | undef
     meals,
     tags,
     householdMembers,
-    isLoading,
+    // Without a household nothing loads; report "not loading" so the page shows its empty state
+    isLoading: householdId ? isLoading : false,
     isAdding,
     isUploadingImage,
     addMeal,

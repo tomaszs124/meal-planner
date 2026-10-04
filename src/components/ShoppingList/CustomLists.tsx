@@ -238,8 +238,9 @@ export default function CustomLists() {
       {showNewListForm && (
         <form onSubmit={createList} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nazwa listy</label>
+            <label htmlFor="new-custom-list-name" className="block text-xs font-medium text-gray-700 mb-1">Nazwa listy</label>
             <input
+              id="new-custom-list-name"
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
@@ -251,11 +252,12 @@ export default function CustomLists() {
           {members.length > 1 && (
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">Widoczna dla</label>
-              <div className="flex flex-wrap gap-3">
+              <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                 {members.map((m) => (
                   <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                       checked={newListVisibleTo.includes(m.user_id)}
                       onChange={(e) => {
                         setNewListVisibleTo((prev) =>
@@ -298,6 +300,7 @@ export default function CustomLists() {
             <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
               <button
                 onClick={() => setExpandedListId(isExpanded ? null : list.id)}
+                aria-expanded={isExpanded}
                 className="flex-1 flex items-center gap-2 text-left min-w-0"
               >
                 <svg
@@ -311,6 +314,7 @@ export default function CustomLists() {
                     type="text"
                     value={editListName}
                     onChange={(e) => setEditListName(e.target.value)}
+                    aria-label="Nazwa listy"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); saveListName(list) }
                       if (e.key === 'Escape') setEditingListId(null)
@@ -340,6 +344,7 @@ export default function CustomLists() {
                 )}
                 <button
                   onClick={() => deleteList(list.id)}
+                  aria-label={`Usuń listę ${list.name}`}
                   className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
                 >
                   Usuń
@@ -353,11 +358,12 @@ export default function CustomLists() {
                 {members.length > 1 && (
                   <div>
                     <p className="text-xs font-medium text-gray-600 mb-2">Widoczna dla</p>
-                    <div className="flex flex-wrap gap-3">
+                    <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                       {members.map((m) => (
                         <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                           <input
                             type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                             checked={list.visible_to.includes(m.user_id)}
                             onChange={(e) => updateVisibility(list, m.user_id, e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -382,7 +388,9 @@ export default function CustomLists() {
                       >
                         <input
                           type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                           checked={item.is_checked}
+                          aria-label={item.name}
                           onChange={(e) => { e.stopPropagation(); toggleItem(list.id, item) }}
                           className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         />
@@ -397,7 +405,7 @@ export default function CustomLists() {
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteItem(list.id, item.id) }}
                           className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
-                          aria-label="Usuń pozycję"
+                          aria-label={`Usuń ${item.name}`}
                         >
                           Usuń
                         </button>
@@ -422,6 +430,7 @@ export default function CustomLists() {
                     value={newItemName[list.id] || ''}
                     onChange={(e) => setNewItemName((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Nazwa produktu"
+                    aria-label="Nazwa produktu"
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
@@ -429,6 +438,7 @@ export default function CustomLists() {
                     value={newItemQty[list.id] || ''}
                     onChange={(e) => setNewItemQty((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Ilość"
+                    aria-label="Ilość"
                     className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button

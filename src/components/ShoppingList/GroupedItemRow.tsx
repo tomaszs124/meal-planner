@@ -36,7 +36,9 @@ export default function GroupedItemRow({
     >
       <input
         type="checkbox"
+        onClick={(e) => e.stopPropagation()}
         checked={groupedItem.allChecked}
+        aria-label={groupedItem.name}
         onChange={(e) => {
           e.stopPropagation()
           void onToggle(groupedItem)
@@ -68,6 +70,7 @@ export default function GroupedItemRow({
               }}
               className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
               aria-label="Pokaż notatkę"
+              aria-expanded={activeProductTooltip === groupedItem.key}
             >
               i
             </button>
@@ -86,7 +89,7 @@ export default function GroupedItemRow({
           void onDelete(groupedItem)
         }}
         className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
-        aria-label="Usuń produkt"
+        aria-label={`Usuń ${groupedItem.name}`}
       >
         Usuń
       </button>

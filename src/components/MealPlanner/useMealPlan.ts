@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { format, startOfWeek, addDays } from 'date-fns'
-import { supabase, Meal, MealCategory, UserSettings } from '@/lib/supabase/client'
+import { supabase, Meal, MealCategory } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useUserSettings } from '@/hooks/useUserSettings'
 import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
 import { useFeedback } from '@/components/ui/Feedback'
 import {
@@ -49,7 +50,8 @@ export function useMealPlan() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
   const { toast, confirm } = useFeedback()
   const [selectedDate, setSelectedDate] = useState(new Date())
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
+  // Shared cache with realtime updates; creates default settings on first use
+  const { settings: userSettings } = useUserSettings(user?.id)
   const [plannedMeals, setPlannedMeals] = useState<PlannedMeal[]>([])
   const [allMeals, setAllMeals] = useState<MealWithDetails[]>([])
   // true once the meals query finished (even with zero meals), so the day plan can stop loading
@@ -61,68 +63,6 @@ export function useMealPlan() {
   const [sendToUserId, setSendToUserId] = useState('')
   const [copySuccessMsg, setCopySuccessMsg] = useState('')
   const [sendSuccessMsg, setSendSuccessMsg] = useState('')
-
-  // Fetch user settings with realtime updates
-  useEffect(() => {
-    const userId = user?.id
-    if (!userId) return
-
-    async function fetchSettings() {
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (!error && data) {
-        setUserSettings(data)
-      } else if (error && error.code === 'PGRST116') {
-        // Settings don't exist - create default ones
-        const defaultSettings = {
-          user_id: userId,
-          second_breakfast_enabled: true,
-          lunch_enabled: true,
-          dinner_enabled: true,
-          snack_enabled: false,
-        }
-
-        const { data: newSettings, error: insertError } = await supabase
-          .from('user_settings')
-          .insert([defaultSettings])
-          .select()
-          .single()
-
-        if (!insertError && newSettings) {
-          setUserSettings(newSettings)
-        }
-      }
-    }
-
-    fetchSettings()
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`user_settings_${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_settings',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.new) {
-            setUserSettings(payload.new as UserSettings)
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      channel.unsubscribe()
-    }
-  }, [user?.id])
 
   // Fetch all meals for household
   useEffect(() => {

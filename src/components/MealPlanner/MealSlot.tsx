@@ -197,6 +197,7 @@ export default function MealSlot({
             </button>
             <button
               onClick={onRandomMeal}
+              aria-label="Losuj posiłek"
               className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
             >
               🎲 Losuj

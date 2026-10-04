@@ -161,7 +161,8 @@ export default function TagManagement() {
     }
   }
 
-  if (isLoading) {
+  // Without a household there is nothing to load; do not show the skeleton forever
+  if (isLoading && household?.id) {
     return (
       <div role="status" aria-live="polite">
         <span className="sr-only">Ładowanie tagów...</span>
@@ -218,6 +219,7 @@ export default function TagManagement() {
                   type="text"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
+                  aria-label="Kolor tła (kod hex)"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   placeholder="#3B82F6"
                 />
@@ -239,6 +241,7 @@ export default function TagManagement() {
                   type="text"
                   value={newTagTextColor}
                   onChange={(e) => setNewTagTextColor(e.target.value)}
+                  aria-label="Kolor tekstu (kod hex)"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   placeholder="#FFFFFF"
                 />
@@ -305,6 +308,7 @@ export default function TagManagement() {
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
+                    aria-label="Nazwa tagu"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   />
                   <div className="grid grid-cols-2 gap-3">
@@ -313,12 +317,14 @@ export default function TagManagement() {
                         type="color"
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
+                        aria-label="Kolor tła"
                         className="h-10 w-16 rounded border border-gray-300"
                       />
                       <input
                         type="text"
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
+                        aria-label="Kolor tła (kod hex)"
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                       />
                     </div>
@@ -327,12 +333,14 @@ export default function TagManagement() {
                         type="color"
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
+                        aria-label="Kolor tekstu"
                         className="h-10 w-16 rounded border border-gray-300"
                       />
                       <input
                         type="text"
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
+                        aria-label="Kolor tekstu (kod hex)"
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                       />
                     </div>

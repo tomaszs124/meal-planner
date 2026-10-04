@@ -245,12 +245,13 @@ describe('groupByCategory', () => {
     expect(groupByCategory([])).toEqual([])
   })
 
-  it('drops product items whose product has no category (current behaviour)', () => {
+  it('puts products without a category, or in the default "Pozostałe" category, into one uncategorized bucket', () => {
     const groups = groupByCategory([
       item({ name: 'Sól', product_id: 'p-sol', product: product({ id: 'p-sol', category: '' }) }),
+      item({ name: 'Ocet', product_id: 'p-ocet', product: product({ id: 'p-ocet', category: UNCATEGORIZED_LABEL }) }),
       item({ name: 'Chleb' }),
     ])
     expect(groups.map((g) => g.key)).toEqual(['__uncategorized__'])
-    expect(groups[0].groupedItems.map((g) => g.name)).toEqual(['Chleb'])
+    expect(groups[0].groupedItems.map((g) => g.name).sort()).toEqual(['Chleb', 'Ocet', 'Sól'])
   })
 })

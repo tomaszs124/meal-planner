@@ -1,10 +1,12 @@
 'use client'
 
+import { useId } from 'react'
 import type { ProductCategoryRecord } from '@/lib/supabase/client'
 import {
   PACKAGE_UNIT_LABEL,
   UNITS,
   defaultUnitWeight,
+  isProductFormValid,
   packageSizePlaceholder,
   unitWeightPlaceholder,
   type ProductFormValues,
@@ -44,8 +46,10 @@ export default function ProductForm(props: ProductFormProps) {
 
   const labelClass = isAdd ? 'block text-sm font-medium text-gray-700 mb-1' : 'block text-xs font-medium text-gray-600 mb-1'
   const inputClass = isAdd ? `${INPUT_CLASS} disabled:bg-gray-100` : INPUT_CLASS
-  // Only the add form has ids, required fields and a disabled state while saving.
-  const id = (name: string) => (isAdd ? `product-${name}` : undefined)
+  // Only the add form has required fields and a disabled state while saving.
+  // The add form keeps its fixed ids; the inline edit form gets unique ids so its labels are associated too.
+  const editIdPrefix = useId()
+  const id = (name: string) => (isAdd ? `product-${name}` : `${editIdPrefix}product-${name}`)
   const disabled = isAdd ? isSubmitting : undefined
   const cellClass = isAdd ? undefined : 'flex-1'
 
@@ -57,6 +61,7 @@ export default function ProductForm(props: ProductFormProps) {
       <input
         id={id(idSuffix)}
         type="number"
+        inputMode="decimal"
         step="0.01"
         value={values[name]}
         onChange={(e) => onChange({ [name]: e.target.value })}
@@ -121,6 +126,7 @@ export default function ProductForm(props: ProductFormProps) {
           <input
             id={id('unit-weight')}
             type="number"
+            inputMode="decimal"
             step="0.01"
             value={values.unitWeight}
             onChange={(e) => onChange({ unitWeight: e.target.value })}
@@ -168,7 +174,7 @@ export default function ProductForm(props: ProductFormProps) {
           <div className="flex items-end">
             <button
               type="submit"
-              disabled={isSubmitting || !values.name.trim() || !values.kcal || categories.length === 0 || !values.category}
+              disabled={isSubmitting || categories.length === 0 || !isProductFormValid(values)}
               className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? 'Dodawanie...' : 'Dodaj produkt'}
@@ -177,12 +183,14 @@ export default function ProductForm(props: ProductFormProps) {
         ) : (
           <>
             <button
+              type="button"
               onClick={props.onSave}
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
             >
               Zapisz
             </button>
             <button
+              type="button"
               onClick={props.onCancel}
               className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
             >

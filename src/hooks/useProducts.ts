@@ -151,8 +151,9 @@ function scheduleChannelTeardown(entry: Entry) {
     const channel = entry.channel
     entry.channel = null
     // Realtime events are no longer applied while nobody listens, so the cache may go
-    // stale silently: force a revalidation on the next mount.
-    entry.fetchedAt = 0
+    // stale silently. Mark it stale (not empty): the next mount shows the cached list
+    // immediately and revalidates in the background instead of flashing a skeleton.
+    if (entry.fetchedAt > 0) entry.fetchedAt = 1
     void supabase.removeChannel(channel)
   }, CHANNEL_TEARDOWN_DELAY_MS)
 }
