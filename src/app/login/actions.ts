@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { publicEnv } from '@/lib/env'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -12,8 +13,8 @@ export async function login(formData: FormData) {
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    publicEnv.supabaseUrl,
+    publicEnv.supabasePublishableKey,
     {
       cookies: {
         get(name: string) {

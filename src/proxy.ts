@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { publicEnv } from '@/lib/env'
 
 /**
  * Auth gate (Next.js 16 "proxy", formerly middleware): refreshes the Supabase
@@ -13,8 +14,8 @@ export async function proxy(request: NextRequest) {
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    publicEnv.supabaseUrl,
+    publicEnv.supabasePublishableKey,
     {
       cookies: {
         get(name: string) {

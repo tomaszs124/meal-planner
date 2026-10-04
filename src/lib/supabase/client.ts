@@ -1,11 +1,8 @@
 import { createBrowserClient } from '@supabase/ssr'
-
-// Supabase configuration from environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+import { publicEnv } from '@/lib/env'
 
 // Create Supabase client for browser (uses cookies instead of localStorage)
-export const supabase = createBrowserClient(supabaseUrl, supabaseKey)
+export const supabase = createBrowserClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey)
 
 // Export TypeScript types for database tables
 export type Profile = {

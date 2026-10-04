@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPickerModal from './MealPickerModal'
@@ -77,10 +78,12 @@ export default function MealSlot({
             {/* Meal image */}
             {selectedMeal.images && selectedMeal.images.length > 0 ? (
               <div className="relative w-full h-32 bg-gray-100">
-                <img
+                <Image
                   src={selectedMeal.images[0].image_url}
                   alt={selectedMeal.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
