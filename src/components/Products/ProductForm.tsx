@@ -1,7 +1,15 @@
 'use client'
 
 import type { ProductCategoryRecord } from '@/lib/supabase/client'
-import { UNITS, defaultUnitWeight, unitWeightPlaceholder, type ProductFormValues, type UnitType } from './productFormHelpers'
+import {
+  PACKAGE_UNIT_LABEL,
+  UNITS,
+  defaultUnitWeight,
+  packageSizePlaceholder,
+  unitWeightPlaceholder,
+  type ProductFormValues,
+  type UnitType,
+} from './productFormHelpers'
 
 const INPUT_CLASS =
   'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -83,7 +91,7 @@ export default function ProductForm(props: ProductFormProps) {
         {numberField('fat', 'fat', 'Tłuszcz (g)', 'Tłuszcz')}
         {numberField('carbs', 'carbs', 'Węglowodany (g)', 'Węglowodany')}
       </div>
-      <div className={isAdd ? 'grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3' : 'flex items-end gap-3'}>
+      <div className={isAdd ? 'grid grid-cols-1 sm:grid-cols-5 gap-3 mt-3' : 'flex items-end gap-3'}>
         <div className={cellClass}>
           <label htmlFor={id('unit')} className={labelClass}>
             Preferowana jednostka
@@ -120,6 +128,22 @@ export default function ProductForm(props: ProductFormProps) {
             disabled={disabled}
             className={inputClass}
             required={isAdd ? true : undefined}
+          />
+        </div>
+        <div className={cellClass}>
+          <label htmlFor={id('package-size')} className={labelClass}>
+            Opakowanie ({PACKAGE_UNIT_LABEL[values.unit]})
+          </label>
+          <input
+            id={id('package-size')}
+            type="number"
+            step="0.01"
+            min="0"
+            value={values.packageSize}
+            onChange={(e) => onChange({ packageSize: e.target.value })}
+            placeholder={packageSizePlaceholder(values.unit)}
+            disabled={disabled}
+            className={inputClass}
           />
         </div>
         <div className={cellClass}>

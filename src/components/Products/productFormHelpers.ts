@@ -14,12 +14,25 @@ export const UNITS: { value: UnitType; label: string }[] = [
 
 export const DEFAULT_CATEGORY_NAME = 'Pozostałe'
 
+/** Short unit label used when displaying package size (e.g. "opak. 180 g", "opak. 10 szt."). */
+export const PACKAGE_UNIT_LABEL: Record<UnitType, string> = {
+  '100g': 'g',
+  piece: 'szt.',
+  tablespoon: 'łyżek',
+  teaspoon: 'łyżeczek',
+  leaf: 'liści',
+  cube: 'kostek',
+  slice: 'plastrów',
+}
+
 /** Raw (string) values of the product form, shared by the add and inline-edit forms. */
 export type ProductFormValues = {
   name: string
   kcal: string
   unit: UnitType
   unitWeight: string
+  /** Optional amount in one retail package, in the preferred unit. */
+  packageSize: string
   category: ProductCategory
   protein: string
   fat: string
@@ -34,6 +47,7 @@ export function emptyProductForm(category: ProductCategory = ''): ProductFormVal
     kcal: '',
     unit: '100g',
     unitWeight: '1',
+    packageSize: '',
     category,
     protein: '',
     fat: '',
@@ -55,6 +69,10 @@ export function defaultUnitWeight(unit: string): string {
 
 export function unitWeightPlaceholder(unit: UnitType): string {
   return unit === '100g' ? '1 (dla gramów)' : unit === 'piece' ? 'np. 300 dla sztuki' : unit === 'tablespoon' ? '15' : unit === 'teaspoon' ? '5' : unit === 'leaf' ? '2' : unit === 'cube' ? '10' : unit === 'slice' ? '30' : ''
+}
+
+export function packageSizePlaceholder(unit: UnitType): string {
+  return unit === '100g' ? 'np. 180 (g w opakowaniu)' : unit === 'piece' ? 'np. 10 (szt. w opakowaniu)' : 'ile jednostek w opakowaniu'
 }
 
 export function unitLabel(unitType: string): string {
@@ -87,6 +105,7 @@ export function toProductPayload(values: ProductFormValues) {
     kcal_per_unit: parseFloat(values.kcal),
     unit_type: values.unit,
     unit_weight_grams: parseFloat(values.unitWeight),
+    package_size: values.packageSize ? parseFloat(values.packageSize) : null,
     category: values.category,
     protein: values.protein ? parseFloat(values.protein) : null,
     fat: values.fat ? parseFloat(values.fat) : null,
@@ -102,6 +121,7 @@ export function productToFormValues(product: Product): ProductFormValues {
     unit: product.unit_type as UnitType,
     // Fall back to the unit's default weight when the product has none
     unitWeight: product.unit_weight_grams?.toString() || defaultUnitWeight(product.unit_type),
+    packageSize: product.package_size?.toString() || '',
     category: product.category,
     protein: product.protein?.toString() || '',
     fat: product.fat?.toString() || '',

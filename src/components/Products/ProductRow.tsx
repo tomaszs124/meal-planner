@@ -2,7 +2,7 @@
 
 import type { Product, ProductCategoryRecord } from '@/lib/supabase/client'
 import ProductForm from './ProductForm'
-import { unitLabel, type ProductFormValues } from './productFormHelpers'
+import { PACKAGE_UNIT_LABEL, unitLabel, type ProductFormValues, type UnitType } from './productFormHelpers'
 
 type ProductRowProps = {
   product: Product
@@ -63,6 +63,11 @@ export default function ProductRow({
                 • {unitLabel(product.unit_type)}
                 {product.unit_weight_grams && ` (${product.unit_weight_grams}g)`}
               </span>
+              {product.package_size ? (
+                <span>
+                  • opak. {product.package_size} {PACKAGE_UNIT_LABEL[product.unit_type as UnitType] || product.unit_type}
+                </span>
+              ) : null}
             </div>
           </div>
           <div className="flex gap-2 flex-shrink-0 items-center">

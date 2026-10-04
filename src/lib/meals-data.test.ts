@@ -9,6 +9,7 @@ const product = (id: string, kcal: number, unitWeight = 1): Product => ({
   kcal_per_unit: kcal,
   unit_type: '100g',
   unit_weight_grams: unitWeight,
+  package_size: null,
   category: 'Pozostałe',
   image_url: null,
   protein: null,

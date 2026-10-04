@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import type { Product, ProductCategoryRecord } from '@/lib/supabase/client'
 import {
   DEFAULT_CATEGORY_NAME,
+  PACKAGE_UNIT_LABEL,
   defaultUnitWeight,
   emptyProductForm,
   getDefaultCategoryName,
   isProductFormValid,
+  packageSizePlaceholder,
   productToFormValues,
   toProductPayload,
   unitLabel,
@@ -29,6 +31,7 @@ const product = (overrides: Partial<Product> = {}): Product => ({
   kcal_per_unit: 356,
   unit_type: 'slice',
   unit_weight_grams: 20,
+  package_size: 150,
   category: 'Nabiał',
   image_url: null,
   protein: 25,
@@ -66,6 +69,15 @@ describe('unit helpers', () => {
     expect(unitWeightPlaceholder('slice')).toBe('30')
   })
 
+  it('labels package sizes and picks a package placeholder per unit', () => {
+    expect(PACKAGE_UNIT_LABEL['100g']).toBe('g')
+    expect(PACKAGE_UNIT_LABEL.piece).toBe('szt.')
+    expect(PACKAGE_UNIT_LABEL.slice).toBe('plastrów')
+    expect(packageSizePlaceholder('100g')).toBe('np. 180 (g w opakowaniu)')
+    expect(packageSizePlaceholder('piece')).toBe('np. 10 (szt. w opakowaniu)')
+    expect(packageSizePlaceholder('cube')).toBe('ile jednostek w opakowaniu')
+  })
+
   it('labels units and passes unknown ones through', () => {
     expect(unitLabel('piece')).toBe('Sztuka')
     expect(unitLabel('cube')).toBe('Kostka')
@@ -86,7 +98,7 @@ describe('getDefaultCategoryName', () => {
 
 describe('emptyProductForm', () => {
   it('starts with grams, unit weight 1 and the given category', () => {
-    expect(emptyProductForm('Owoce')).toMatchObject({ name: '', kcal: '', unit: '100g', unitWeight: '1', category: 'Owoce' })
+    expect(emptyProductForm('Owoce')).toMatchObject({ name: '', kcal: '', unit: '100g', unitWeight: '1', packageSize: '', category: 'Owoce' })
     expect(emptyProductForm().category).toBe('')
   })
 })
@@ -129,6 +141,7 @@ describe('toProductPayload', () => {
       kcal_per_unit: 61.5,
       unit_type: 'tablespoon',
       unit_weight_grams: 15,
+      package_size: null,
       category: 'Nabiał',
       protein: 4.3,
       fat: 3,
@@ -149,8 +162,10 @@ describe('toProductPayload', () => {
     expect(toProductPayload(form({ carbs: '0' })).carbs).toBe(0)
   })
 
-  it('does not include package size on this branch', () => {
-    expect(Object.keys(toProductPayload(form()))).not.toContain('package_size')
+  it('sends package size as a number, or null when empty', () => {
+    expect(toProductPayload(form({ packageSize: '180' })).package_size).toBe(180)
+    expect(toProductPayload(form({ packageSize: '0.5' })).package_size).toBe(0.5)
+    expect(toProductPayload(form()).package_size).toBeNull()
   })
 })
 
@@ -161,6 +176,7 @@ describe('productToFormValues', () => {
       kcal: '356',
       unit: 'slice',
       unitWeight: '20',
+      packageSize: '150',
       category: 'Nabiał',
       protein: '25',
       fat: '27.4',
@@ -174,6 +190,10 @@ describe('productToFormValues', () => {
     expect([values.protein, values.fat, values.carbs, values.notes]).toEqual(['', '', '', ''])
   })
 
+  it('maps a missing package size to an empty string', () => {
+    expect(productToFormValues(product({ package_size: null })).packageSize).toBe('')
+  })
+
   it('falls back to the default unit weight when the product has none', () => {
     expect(productToFormValues(product({ unit_type: 'tablespoon', unit_weight_grams: null })).unitWeight).toBe('15')
   })
@@ -184,6 +204,7 @@ describe('productToFormValues', () => {
       name: p.name,
       kcal_per_unit: p.kcal_per_unit,
       unit_weight_grams: p.unit_weight_grams,
+      package_size: p.package_size,
       protein: p.protein,
       fat: p.fat,
       carbs: p.carbs,

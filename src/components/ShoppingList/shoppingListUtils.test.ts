@@ -18,6 +18,7 @@ const product = (overrides: Partial<Product> = {}): Product => ({
   kcal_per_unit: 143,
   unit_type: 'piece',
   unit_weight_grams: 60,
+  package_size: null,
   category: 'Nabiał',
   image_url: null,
   protein: 12.6,
