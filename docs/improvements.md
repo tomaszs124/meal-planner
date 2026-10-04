@@ -53,8 +53,8 @@ co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 
 - [x] **P1 Natywne `alert`/`confirm`**: 49 wystąpień. Na telefonie w trybie PWA wyglądają obco, blokują wątek i nie da się ich ostylować. Docelowo: komponent toast (sukces/błąd) i modal potwierdzenia, jeden na całą aplikację.
 - [x] **P1 Brak manifestu PWA**: dokument założeń mówi o instalacji jak aplikacja, ale w `public/` nie ma `manifest.json` ani ikon, a `layout.tsx` go nie linkuje. Bez tego nie ma "Dodaj do ekranu głównego" z pełnym ekranem.
-- [ ] **P2 Stany ładowania i błędów**: większość widoków pokazuje "Ładowanie..." tekstem; brak skeletonów i brak obsługi utraty sieci (lista zakupów w sklepie bez zasięgu).
-- [x] **P2 Obrazki**: `<img>` zamienione na `next/image` (MealSlot); przy zdjęciach z telefonu (kilka MB) warto wymusić kompresję przy uploadzie.
+- [x] **P2 Stany ładowania i błędów**: szkielety dopasowane do układu w 6 ekranach (`src/components/ui/Skeleton.tsx`), granice błędów `src/app/error.tsx` i `global-error.tsx`, strona 404. Zostało: obsługa utraty sieci (lista zakupów w sklepie bez zasięgu) → patrz tryb offline poniżej.
+- [x] **P2 Obrazki**: `<img>` zamienione na `next/image` (MealSlot); zdjęcia są kompresowane w przeglądarce przed uploadem (`src/lib/image.ts`: max 1600 px, JPEG 0.82, GIF bez zmian, PNG/WebP zachowane tylko przy przezroczystości). Ścieżka przeglądarkowa do sprawdzenia na telefonie.
 - [ ] **P3 Tryb offline** dla listy zakupów (service worker + kolejka zmian), realny scenariusz w sklepie.
 
 ## E. Inżynieria
