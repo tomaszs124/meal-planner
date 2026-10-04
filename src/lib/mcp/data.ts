@@ -216,8 +216,13 @@ export function assertDate(value: string, field = 'date'): string {
   return value
 }
 
+/** Time zone used for "today"/"tomorrow" (serverless runs in UTC; the household lives in Poland). */
+export const HOUSEHOLD_TIME_ZONE = process.env.MCP_TIMEZONE || 'Europe/Warsaw'
+
+/** Today's date (YYYY-MM-DD) in the household time zone, not in UTC. */
 export function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  // 'sv-SE' formats as YYYY-MM-DD
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: HOUSEHOLD_TIME_ZONE }).format(new Date())
 }
 
 export function addDaysIso(date: string, days: number): string {
