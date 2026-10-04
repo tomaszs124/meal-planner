@@ -1,9 +1,12 @@
 'use client'
 
-import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { supabase, type Household } from '@/lib/supabase/client'
+
+// Routes that render without a session (must match src/proxy.ts)
+const PUBLIC_ROUTES = ['/login', '/signup', '/reset-password']
 
 export type CurrentUserContextValue = {
   user: User | null
@@ -151,7 +154,15 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   // storage (cookies) after each navigation while no user is known.
   const pathname = usePathname()
   const lastPathnameRef = useRef(pathname)
-  useEffect(() => {
+  // Pathname whose session re-check has completed; until it matches the current
+  // pathname (and no user is known) protected pages are treated as loading, so
+  // nothing renders "Nie zalogowano" in the frame before getSession() resolves.
+  const [sessionCheckedFor, setSessionCheckedFor] = useState(pathname)
+  const isPublicPath = PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
+  const checkingSession = !user && !isPublicPath && sessionCheckedFor !== pathname
+  // Layout effect: runs before paint, so the dashboard does not flash "Nie zalogowano"
+  // for one frame right after the server-action login redirect.
+  useLayoutEffect(() => {
     if (pathname === lastPathnameRef.current) return
     lastPathnameRef.current = pathname
 
@@ -164,10 +175,11 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
 
     let cancelled = false
     void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled || !mountedRef.current || userRef.current) return
-      if (session?.user) {
+      if (cancelled || !mountedRef.current) return
+      if (session?.user && !userRef.current) {
         applySignedIn(session.user)
       }
+      setSessionCheckedFor(pathname)
     })
     return () => {
       cancelled = true
@@ -181,8 +193,8 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   }, [fetchHousehold])
 
   const value = useMemo<CurrentUserContextValue>(
-    () => ({ user, household, isLoading, error, refreshHousehold }),
-    [user, household, isLoading, error, refreshHousehold],
+    () => ({ user, household, isLoading: isLoading || checkingSession, error, refreshHousehold }),
+    [user, household, isLoading, checkingSession, error, refreshHousehold],
   )
 
   return <CurrentUserContext.Provider value={value}>{children}</CurrentUserContext.Provider>

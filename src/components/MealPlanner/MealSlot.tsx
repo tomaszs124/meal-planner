@@ -71,9 +71,19 @@ export default function MealSlot({
         </div>
 
         {selectedMeal ? (
-          <div 
-            className="bg-white rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+          <div
+            role="button"
+            tabIndex={0}
+            className="bg-white rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setShowDetailsModal(true)}
+            onKeyDown={(e) => {
+              // Only the card itself; Enter/Space on the nested action buttons keep their own click
+              if (e.target !== e.currentTarget || e.repeat) return
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setShowDetailsModal(true)
+              }
+            }}
           >
             {/* Meal image */}
             {selectedMeal.images && selectedMeal.images.length > 0 ? (

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, type ComponentProps } from 'react'
+import { useId, useRef, type ComponentProps } from 'react'
+import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import MealForm from './MealForm'
 
 // Modal shell around the edit-mode MealForm
@@ -9,19 +10,15 @@ export default function EditMealModal({
   ...formProps
 }: Omit<ComponentProps<typeof MealForm>, 'mode' | 'onCancel'> & { onCancel: () => void }) {
   const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onCancel])
+  // Focus management + close on Escape (only when this is the top-most dialog)
+  useFocusTrap(dialogRef, { active: true, onEscape: onCancel })
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[100] pt-8 pb-6">
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

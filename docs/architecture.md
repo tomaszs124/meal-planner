@@ -29,6 +29,8 @@ obok komponentu i dostaje test.
 - **Autoryzacja**: `CurrentUserProvider` (w `layout.tsx`) subskrybuje `onAuthStateChange` raz,
   ładuje gospodarstwo (`household_users` → `households`) i udostępnia `useCurrentUser()`.
   Po logowaniu przez server action provider odczytuje sesję przy zmianie trasy.
+- **Ustawienia użytkownika**: `useUserSettings(userId)` (ten sam wzorzec cache + realtime co
+  produkty); używają go planer, dashboard i formularz ustawień, tworzy też domyślny wiersz.
 - **Produkty**: `useProducts(householdId)` to cache w pamięci modułu (`useSyncExternalStore`),
   jeden kanał realtime na gospodarstwo, rewalidacja po 60 s i po zamknięciu kanału,
   `setProducts` dla aktualizacji optymistycznych widocznych we wszystkich zakładkach.
@@ -55,6 +57,9 @@ obok komponentu i dostaje test.
   kliknięciem w tło); gdy "Anuluj" znaczy "kontynuuj bez", sprawdzaj `null` osobno.
 - Ładowanie: szkielety z `components/ui/Skeleton.tsx` zamiast tekstu.
 - Błędy stron: `src/app/error.tsx`, `global-error.tsx`, `not-found.tsx`.
+- Dostępność: każdy przycisk-ikona ma `aria-label`, przełączniki `aria-pressed`/`aria-expanded`,
+  dialogi `role="dialog"` + `aria-labelledby` + zamykanie Escape, pola liczbowe
+  `inputMode="decimal"`. Nowe elementy trzymają ten standard.
 - Teksty interfejsu po polsku, kod i commity po angielsku.
 - Pliki w `src/components/**` mają końce linii CRLF (historycznie), `src/lib/**` LF. Narzędzia
   ich nie zmieniają; nie konwertuj hurtowo.

@@ -6,6 +6,8 @@ import type { UserSettings } from '@/lib/supabase/client'
 
 /** PostgREST error code for `.single()` returning no rows. */
 export const NO_ROWS_ERROR_CODE = 'PGRST116'
+/** Postgres unique_violation (two tabs creating the default row at once) */
+export const UNIQUE_VIOLATION_CODE = '23505'
 
 /** Row inserted when the user has no settings yet. */
 export function defaultSettingsRow(userId: string) {

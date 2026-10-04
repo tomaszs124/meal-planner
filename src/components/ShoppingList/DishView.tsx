@@ -69,16 +69,26 @@ export default function DishView({
           {groupItems(customItems).map((groupedItem) => (
             <div
               key={groupedItem.key}
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 void toggleGroupedItem(groupedItem)
               }}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity ${
+              onKeyDown={(e) => {
+                // Only the row itself; keys on the nested checkbox/button keep their native behaviour
+                if (e.target !== e.currentTarget || e.repeat) return
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  void toggleGroupedItem(groupedItem)
+                }
+              }}
+              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 groupedItem.allChecked ? 'opacity-60' : 'opacity-100'
               }`}
             >
               <input
                 type="checkbox"
-        onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 checked={groupedItem.allChecked}
                 aria-label={groupedItem.name}
                 onChange={(e) => {

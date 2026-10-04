@@ -178,16 +178,26 @@ export default function MealGroupCard({
           return (
             <div
               key={item.id}
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 void toggleSingleItem(item)
               }}
-              className={`flex items-center gap-3 py-2 transition-opacity ${
+              onKeyDown={(e) => {
+                // Only the row itself; keys on the nested checkbox keep their native behaviour
+                if (e.target !== e.currentTarget || e.repeat) return
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  void toggleSingleItem(item)
+                }
+              }}
+              className={`flex items-center gap-3 py-2 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 item.is_checked ? 'opacity-60' : 'opacity-100'
               }`}
             >
               <input
                 type="checkbox"
-        onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 checked={item.is_checked}
                 aria-label={item.name ?? undefined}
                 onChange={(e) => {

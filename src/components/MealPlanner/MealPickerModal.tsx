@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useId } from 'react'
+import { useState, useEffect, useId, useRef } from 'react'
+import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import { SkeletonCard } from '@/components/ui/Skeleton'
 import Image from 'next/image'
 import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
@@ -83,16 +84,11 @@ export default function MealPickerModal({
 
   const meals = providedMeals ?? fetchedMeals
   const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape; while the nested details modal is open, it handles Escape itself
-  useEffect(() => {
-    if (!isOpen || selectedMealForDetails) return
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, selectedMealForDetails, onClose])
+  // Focus management + close on Escape. While the nested details modal is open it is
+  // the top-most trap, so it receives Escape/Tab and this one stays idle.
+  useFocusTrap(dialogRef, { active: isOpen, onEscape: onClose })
 
   if (!isOpen) return null
 
@@ -133,6 +129,7 @@ export default function MealPickerModal({
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6">
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

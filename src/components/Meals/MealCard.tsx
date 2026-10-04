@@ -12,8 +12,17 @@ export default function MealCard({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => onClick(meal)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all duration-200 flex flex-col h-full"
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget || e.repeat) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick(meal)
+        }
+      }}
+      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all duration-200 flex flex-col h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
     >
       {/* Image */}
       {meal.images && meal.images.length > 0 ? (

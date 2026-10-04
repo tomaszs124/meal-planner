@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useFocusTrap } from './useFocusTrap'
 
 /**
  * App-wide replacement for the browser's `alert()` and `confirm()`.
@@ -141,15 +142,10 @@ function Toast({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) =
 
 function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (value: ConfirmResult) => void }) {
   const confirmRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    confirmRef.current?.focus()
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose(null)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  // Focus the confirm button, keep Tab inside, Escape = dismiss, restore focus on close
+  useFocusTrap(panelRef, { active: true, onEscape: () => onClose(null), initialFocusRef: confirmRef })
 
   return (
     <div
@@ -160,6 +156,7 @@ function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (valu
       onClick={() => onClose(null)}
     >
       <div
+        ref={panelRef}
         className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

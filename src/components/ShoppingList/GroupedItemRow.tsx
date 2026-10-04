@@ -29,10 +29,20 @@ export default function GroupedItemRow({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => {
         void onToggle(groupedItem)
       }}
-      className={className}
+      onKeyDown={(e) => {
+        // Only the row itself; keys on the nested checkbox/buttons keep their native behaviour
+        if (e.target !== e.currentTarget || e.repeat) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          void onToggle(groupedItem)
+        }
+      }}
+      className={`${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
     >
       <input
         type="checkbox"
