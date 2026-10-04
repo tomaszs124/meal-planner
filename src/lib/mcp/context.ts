@@ -56,11 +56,13 @@ async function loadEmails(db: SupabaseClient): Promise<Map<string, string>> {
   const map = new Map<string, string>()
   const { data, error } = await db.auth.admin.listUsers({ perPage: 200 })
   if (error) {
-    // Almost always a wrong/missing SUPABASE_SERVICE_ROLE_KEY (the admin API rejects other keys)
-    throw new Error(
-      `MCP: cannot list users via Supabase admin API (${error.status ?? '?'} ${error.message}). ` +
-        'Check SUPABASE_SERVICE_ROLE_KEY in the server environment.'
-    )
+    // Almost always a wrong/missing/multi-line SUPABASE_SERVICE_ROLE_KEY (the admin API
+    // rejects other keys). Log the detail server-side only: the message can echo the header.
+    console.error('MCP: Supabase admin listUsers failed:', error.status, error.message)
+    const hint = /header value/i.test(error.message)
+      ? 'The key contains a newline or extra text (paste the single-line key only).'
+      : `HTTP ${error.status ?? '?'}: check that it is the service_role key.`
+    throw new Error(`MCP: cannot list users via Supabase admin API. SUPABASE_SERVICE_ROLE_KEY problem. ${hint}`)
   }
   for (const u of data?.users ?? []) {
     if (u.email) map.set(u.id, u.email)
