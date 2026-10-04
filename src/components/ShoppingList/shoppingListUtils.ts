@@ -159,3 +159,50 @@ export function groupItemsByMeal(
     customItems,
   }
 }
+
+export type CategoryGroup = {
+  key: string
+  label: string
+  category: string | null
+  groupedItems: GroupedItem[]
+}
+
+/**
+ * Category view grouping: product categories sorted alphabetically ('pl' locale),
+ * followed by the uncategorized bucket (UNCATEGORIZED_LABEL) holding custom items
+ * (no product). Items inside each category are aggregated with groupItems.
+ * Empty categories are omitted. Note: items whose product has no category
+ * match neither a named category nor the uncategorized bucket.
+ */
+export function groupByCategory(items: ShoppingListItemWithProduct[]): CategoryGroup[] {
+  const buckets = [
+    ...Array.from(
+      new Set(
+        items
+          .map((item) => item.product?.category)
+          .filter((category): category is string => Boolean(category))
+      )
+    )
+      .sort((a, b) => a.localeCompare(b, 'pl'))
+      .map((category) => ({ key: category, label: category, category })),
+    { key: '__uncategorized__', label: UNCATEGORIZED_LABEL, category: null as string | null },
+  ]
+
+  const groups: CategoryGroup[] = []
+  for (const { key, label, category } of buckets) {
+    const categoryItems = items.filter(item => {
+      // For items with product, check product.category
+      if (item.product) {
+        return category !== null && item.product.category === category
+      }
+      // For custom items (no product), show in uncategorized bucket
+      return category === null
+    })
+
+    if (categoryItems.length === 0) continue
+
+    groups.push({ key, label, category, groupedItems: groupItems(categoryItems) })
+  }
+
+  return groups
+}

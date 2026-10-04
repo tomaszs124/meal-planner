@@ -6,6 +6,7 @@ import {
   getGroupedItemAmountLabel,
   getMemberDisplayName,
   getSingleItemAmountLabel,
+  groupByCategory,
   groupItems,
   groupItemsByMeal,
   translateUnit,
@@ -197,5 +198,59 @@ describe('groupItemsByMeal', () => {
       item({ meal_id: 'm1', meal: meal('m1', 'Jajecznica'), source_user_id: null }),
     ], resolve)
     expect(mealGroups.map((g) => g.group_key)).toEqual(['m1:unknown', 'm2:u2'])
+  })
+})
+
+describe('groupByCategory', () => {
+  const warzywa = (overrides: Partial<Product> = {}) =>
+    product({ id: 'p-marchew', name: 'Marchew', category: 'Warzywa', ...overrides })
+
+  it('groups product items by category and aggregates them with groupItems', () => {
+    const groups = groupByCategory([
+      item({ name: 'Jajka', product_id: 'p-jajka', product: product(), amount: 2 }),
+      item({ name: 'Marchew', product_id: 'p-marchew', product: warzywa(), amount: 1 }),
+      item({ name: 'Jajka', product_id: 'p-jajka', product: product(), amount: 4 }),
+    ])
+    expect(groups.map((g) => [g.key, g.label, g.category])).toEqual([
+      ['Nabiał', 'Nabiał', 'Nabiał'],
+      ['Warzywa', 'Warzywa', 'Warzywa'],
+    ])
+    expect(groups[0].groupedItems).toHaveLength(1)
+    expect(groups[0].groupedItems[0].totalAmount).toBe(6)
+    expect(groups[0].groupedItems[0].itemIds).toHaveLength(2)
+  })
+
+  it('puts custom items (no product) in the uncategorized bucket', () => {
+    const groups = groupByCategory([
+      item({ name: 'Papier toaletowy' }),
+      item({ name: 'Chleb' }),
+    ])
+    expect(groups).toHaveLength(1)
+    expect(groups[0]).toMatchObject({ key: '__uncategorized__', label: UNCATEGORIZED_LABEL, category: null })
+    expect(groups[0].groupedItems.map((g) => g.name)).toEqual(['Chleb', 'Papier toaletowy'])
+  })
+
+  it('orders categories with Polish collation and keeps the uncategorized bucket last', () => {
+    const groups = groupByCategory([
+      item({ name: 'Woda' }),
+      item({ name: 'Marchew', product_id: 'p-marchew', product: warzywa() }),
+      item({ name: 'Szynka', product_id: 'p-szynka', product: product({ id: 'p-szynka', category: 'Śniadaniowe' }) }),
+      item({ name: 'Jajka', product_id: 'p-jajka', product: product() }),
+      item({ name: 'Salami', product_id: 'p-salami', product: product({ id: 'p-salami', category: 'Sery' }) }),
+    ])
+    expect(groups.map((g) => g.label)).toEqual(['Nabiał', 'Sery', 'Śniadaniowe', 'Warzywa', UNCATEGORIZED_LABEL])
+  })
+
+  it('returns no groups for empty input', () => {
+    expect(groupByCategory([])).toEqual([])
+  })
+
+  it('drops product items whose product has no category (current behaviour)', () => {
+    const groups = groupByCategory([
+      item({ name: 'Sól', product_id: 'p-sol', product: product({ id: 'p-sol', category: '' }) }),
+      item({ name: 'Chleb' }),
+    ])
+    expect(groups.map((g) => g.key)).toEqual(['__uncategorized__'])
+    expect(groups[0].groupedItems.map((g) => g.name)).toEqual(['Chleb'])
   })
 })

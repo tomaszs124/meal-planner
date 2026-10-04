@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 import { useRouter } from 'next/navigation'
 import { supabase, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -133,8 +134,11 @@ export default function UserSettingsForm() {
 
   if (userLoading || isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500">Ładowanie...</div>
+      <div role="status" aria-live="polite" className="p-4 space-y-4">
+        <span className="sr-only">Ładowanie...</span>
+        <Skeleton className="h-10 w-full" />
+        <SkeletonText lines={4} />
+        <Skeleton className="h-10 w-32" />
       </div>
     )
   }

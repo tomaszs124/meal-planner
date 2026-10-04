@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { MealCategory } from '@/lib/supabase/client'
 import type { MealWithItems } from './types'
+import { filterMeals } from './mealFilterUtils'
 
 // Search / tag / category filter state of the meals list
 export function useMealFilters(meals: MealWithItems[]) {
@@ -11,38 +12,10 @@ export function useMealFilters(meals: MealWithItems[]) {
   const [searchQuery, setSearchQuery] = useState('')
 
   // Filter meals by tags and search query
-  const filteredMeals = useMemo(() => {
-    let filtered = meals
-
-    // Filter by search query
-    const q = searchQuery.trim().toLowerCase()
-    if (q) {
-      filtered = filtered.filter(meal =>
-        meal.name.toLowerCase().includes(q) ||
-        meal.description?.toLowerCase().includes(q)
-      )
-    }
-
-    // Filter by selected tags
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(meal =>
-        selectedTags.every(tagId =>
-          meal.tags?.some(tag => tag.id === tagId)
-        )
-      )
-    }
-
-    // Filter by selected categories
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter(meal =>
-        selectedCategories.some(cat =>
-          meal.primary_category === cat || (meal.alternative_categories?.includes(cat) ?? false)
-        )
-      )
-    }
-
-    return filtered
-  }, [meals, selectedTags, selectedCategories, searchQuery])
+  const filteredMeals = useMemo(
+    () => filterMeals(meals, { searchQuery, selectedTags, selectedCategories }),
+    [meals, selectedTags, selectedCategories, searchQuery]
+  )
 
   // Toggle tag filter
   function toggleTagFilter(tagId: string) {

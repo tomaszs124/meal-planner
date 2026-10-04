@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SkeletonText } from '@/components/ui/Skeleton'
 import { supabase, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useFeedback } from '@/components/ui/Feedback'
@@ -161,7 +162,12 @@ export default function TagManagement() {
   }
 
   if (isLoading) {
-    return <div className="text-gray-500 text-sm">Ładowanie tagów...</div>
+    return (
+      <div role="status" aria-live="polite">
+        <span className="sr-only">Ładowanie tagów...</span>
+        <SkeletonText lines={2} />
+      </div>
+    )
   }
 
   return (
