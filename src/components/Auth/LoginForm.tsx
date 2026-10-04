@@ -1,11 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { login } from '@/app/login/actions'
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Where to go after login (set by the proxy or the OAuth consent screen); internal paths only
+  const searchParams = useSearchParams()
+  const rawRedirect = searchParams.get('redirectTo') || ''
+  const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : ''
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -37,6 +42,7 @@ export default function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
           <div className="space-y-4 rounded-md shadow-sm">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">

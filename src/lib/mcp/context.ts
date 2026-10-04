@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getAdminClient } from './supabase-admin'
+import { getAdminClient, getUserClient } from './supabase-admin'
 
 export type MemberSettings = {
   second_breakfast_enabled: boolean
@@ -45,13 +45,21 @@ type ProfileRow = { id: string; display_name: string | null }
  * `actingUserStorage.run(principal, ...)`; tools then call `loadContext()` without
  * arguments. Falls back to MCP_ACTING_USER_ID / MCP_ACTING_USER_EMAIL when unset.
  */
-export type ActingPrincipal = { userId?: string; email?: string }
+export type ActingPrincipal = {
+  userId?: string
+  email?: string
+  /** Supabase user access token (OAuth flow): queries run as this user under RLS */
+  accessToken?: string
+}
 export const actingUserStorage = new AsyncLocalStorage<ActingPrincipal>()
 
 const resolvedIdByEmail = new Map<string, string>()
 let emailCache: Map<string, string> | null = null
 
 async function loadEmails(db: SupabaseClient): Promise<Map<string, string>> {
+  // OAuth mode runs with the user's own token: the admin API is unavailable there and
+  // e-mails of other members are not needed (members are addressed by name or id).
+  if (actingUserStorage.getStore()?.accessToken) return new Map()
   if (emailCache) return emailCache
   const map = new Map<string, string>()
   const { data, error } = await db.auth.admin.listUsers({ perPage: 200 })
@@ -100,7 +108,9 @@ async function resolveActingUserId(db: SupabaseClient): Promise<string> {
  * Called once per tool invocation (cheap: 4 small queries).
  */
 export async function loadContext(): Promise<McpContext> {
-  const db = getAdminClient()
+  const principal = actingUserStorage.getStore()
+  // OAuth: act as the signed-in user under RLS. Static token: service role, scoped below.
+  const db = principal?.accessToken ? getUserClient(principal.accessToken) : getAdminClient()
   const actingUserId = await resolveActingUserId(db)
 
   const { data: membership, error: membershipError } = await db
@@ -130,6 +140,9 @@ export async function loadContext(): Promise<McpContext> {
     db.from('profiles').select('id, display_name').in('id', memberIds),
     loadEmails(db),
   ])
+
+  // In OAuth mode only the acting user's e-mail is known (from the token claims)
+  if (principal?.email && !emails.has(actingUserId)) emails.set(actingUserId, principal.email)
 
   const settingsMap = new Map(((settingsRows || []) as UserSettingsRow[]).map((s) => [s.user_id, s]))
   const profileMap = new Map(((profileRows || []) as ProfileRow[]).map((p) => [p.id, p.display_name]))

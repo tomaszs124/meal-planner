@@ -69,7 +69,8 @@ export async function proxy(request: NextRequest) {
   // If user is not logged in and trying to access protected route
   if (!user && !isPublicRoute) {
     const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    // Keep the query string so flows like /oauth/consent?authorization_id=... survive the login round-trip
+    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname + request.nextUrl.search)
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -93,6 +94,6 @@ export const config = {
      * - api/mcp (MCP connector endpoint, authenticated by its own token)
      * - sw.js (service worker script; must never be redirected to /login)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|\\.well-known/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

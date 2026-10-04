@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -27,7 +28,10 @@ export default async function LoginPage() {
 
   return (
     <div>
-      <LoginForm />
+      {/* LoginForm reads ?redirectTo via useSearchParams, which needs a Suspense boundary */}
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }

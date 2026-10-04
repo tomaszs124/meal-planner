@@ -48,5 +48,8 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  // Return to the page the user came from (e.g. the OAuth consent screen); internal paths only
+  const redirectTo = String(formData.get('redirectTo') || '')
+  const target = redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/dashboard'
+  redirect(target)
 }

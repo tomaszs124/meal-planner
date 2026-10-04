@@ -240,3 +240,29 @@ Konektor zwraca je w `get_household` (pole `dietary_rules`) i dokleja na końcu 
 jako sekcję "Zasady osobiste domowników". Zasady osobiste mają pierwszeństwo przed ogólnymi widełkami
 dla wariantu danej osoby. Asystent może je też zapisać na prośbę użytkownika
 ("zapamiętaj, że...") przez `set_my_dietary_rules`, ale tylko dla osoby, której token jest używany.
+
+## 12. OAuth: logowanie własnym kontem zamiast tokenu w adresie (zalecane)
+
+Dzięki serwerowi OAuth 2.1 w Supabase Auth każdy domownik dodaje w ChatGPT/Claude adres
+`https://<host>/api/mcp` (bez tokenu), a przy pierwszym użyciu loguje się swoim kontem
+z aplikacji na ekranie `/oauth/consent`. Serwer MCP dostaje token tej osoby, działa przez zwykłe
+polityki RLS i nie potrzebuje klucza service role ani `MCP_ACCESS_TOKENS`.
+
+Konfiguracja w Supabase Dashboard → Authentication:
+
+1. **OAuth Server** → włącz serwer OAuth 2.1, zaznacz **Allow dynamic client registration**
+   (ChatGPT i Claude rejestrują się same), ustaw **Authorization URL path** na `/oauth/consent`.
+2. **URL Configuration** → **Site URL** = `https://<host>` (np. `https://meal-planner-chi-nine.vercel.app`),
+   w **Redirect URLs** dodaj `https://<host>/oauth/consent`.
+3. **JWT Signing Keys**: potrzebny klucz asymetryczny (ES256/RS256). Sprawdź pod
+   `https://<ref>.supabase.co/auth/v1/.well-known/jwks.json`, czy lista `keys` nie jest pusta.
+
+Jak to działa technicznie: `GET /.well-known/oauth-protected-resource` wskazuje serwer autoryzacji
+(`<supabase>/auth/v1`), `POST /api/mcp` bez tokenu odpowiada 401 z nagłówkiem `WWW-Authenticate`,
+klient wykonuje OAuth (rejestracja dynamiczna → zgoda użytkownika → kod → token), a każde kolejne
+wywołanie niesie `Authorization: Bearer <JWT użytkownika>`, weryfikowany podpisem z JWKS
+(`src/lib/mcp/http.ts`). Ekran zgody: `src/app/oauth/consent/page.tsx`.
+
+Tryb z tokenem w adresie (sekcje 5 i 10) nadal działa równolegle; można go wyłączyć, usuwając
+`MCP_ACCESS_TOKENS` i `SUPABASE_SERVICE_ROLE_KEY` ze środowiska (ten drugi jest wtedy potrzebny
+już tylko skryptowi `scripts/analyze-recipes.mjs`).
