@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
-import { supabase, Product, Meal, MealCategory, Tag, MealImage } from '@/lib/supabase/client'
+import { supabase, Product, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import TagManagement from './TagManagement'
 import MealDetailsModal from '../MealPlanner/MealDetailsModal'
-import { calculateNutrition, formatAmount } from '@/lib/nutrition'
+import { calculateNutrition, formatAmount, sumNutrition } from '@/lib/nutrition'
+import { fetchMealsWithDetails, type MealItemWithProduct, type MealWithDetails } from '@/lib/meals-data'
 
 // Funkcja tłumacząca jednostki na polski
 function translateUnit(unitType: string): string {
@@ -38,23 +39,20 @@ function translateCategory(category: MealCategory | null): string {
 
 // Helper function to calculate nutrition values based on weight
 // Helper function to format amount without trailing zeros
-type MealItem = {
-  id: string
-  meal_id: string
-  product_id: string
-  amount: number
-  unit_type: string
-  product?: Product
-}
+type MealItem = MealItemWithProduct
 
-type MealWithItems = Meal & {
-  items: MealItem[]
-  tags?: Tag[]
-  images?: MealImage[]
-  totalKcal: number
-  totalProtein: number
-  totalFat: number
-  totalCarbs: number
+// Same shape as returned by the batched loader (fetchMealsWithDetails)
+type MealWithItems = MealWithDetails
+
+// Totals fields of MealWithItems, computed with the shared nutrition helper
+function mealTotals(items: MealItem[]) {
+  const totals = sumNutrition(items)
+  return {
+    totalKcal: totals.kcal,
+    totalProtein: totals.protein,
+    totalFat: totals.fat,
+    totalCarbs: totals.carbs,
+  }
 }
 
 type ProductSelection = {
@@ -107,23 +105,27 @@ function MealAccordionList({
     [groups]
   )
 
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(nonEmptyKeys))
+  // Default expansion: selected categories when filtering by category, otherwise every non-empty group.
+  // Recomputed whenever the filter / list changes, which also discards manual toggles.
+  const defaultExpanded = useMemo(
+    () => new Set<string>(selectedCategories.length > 0 ? selectedCategories : nonEmptyKeys),
+    [selectedCategories, nonEmptyKeys]
+  )
 
-  // When filteredMeals changes (filter applied), expand relevant categories
-  useEffect(() => {
-    if (selectedCategories.length > 0) {
-      setExpanded(new Set(selectedCategories as string[]))
-    } else {
-      setExpanded(new Set(nonEmptyKeys))
-    }
-  }, [selectedCategories, nonEmptyKeys])
+  // Keys the user toggled manually, valid only for the defaultExpanded they were made against
+  const [manualToggles, setManualToggles] = useState<{ base: Set<string>; keys: Set<string> }>(() => ({
+    base: defaultExpanded,
+    keys: new Set(),
+  }))
+  const toggledKeys = manualToggles.base === defaultExpanded ? manualToggles.keys : null
+  const isExpanded = (key: string) => defaultExpanded.has(key) !== (toggledKeys?.has(key) ?? false)
 
   const toggle = (key: string) =>
-    setExpanded(prev => {
-      const next = new Set(prev)
+    setManualToggles(prev => {
+      const next = new Set(prev.base === defaultExpanded ? prev.keys : [])
       if (next.has(key)) next.delete(key)
       else next.add(key)
-      return next
+      return { base: defaultExpanded, keys: next }
     })
 
   const groupLabel = (key: string) =>
@@ -133,7 +135,7 @@ function MealAccordionList({
     <div className="space-y-3">
       {nonEmptyKeys.map(key => {
         const meals = groups.get(key)!
-        const isOpen = expanded.has(key)
+        const isOpen = isExpanded(key)
         return (
           <div key={key} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
             <button
@@ -318,11 +320,28 @@ export default function Meals() {
           if (payload.eventType === 'INSERT') {
             setTags((current) => [...current, payload.new as Tag].sort((a, b) => a.name.localeCompare(b.name)))
           } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Tag
             setTags((current) =>
-              current.map((t) => (t.id === payload.new.id ? (payload.new as Tag) : t))
+              current.map((t) => (t.id === updated.id ? updated : t))
+            )
+            // Keep tags attached to meals in sync (meals are not refetched on tag changes)
+            setMeals((current) =>
+              current.map((m) =>
+                m.tags.some((t) => t.id === updated.id)
+                  ? { ...m, tags: m.tags.map((t) => (t.id === updated.id ? updated : t)) }
+                  : m
+              )
             )
           } else if (payload.eventType === 'DELETE') {
-            setTags((current) => current.filter((t) => t.id !== payload.old.id))
+            const deletedId = payload.old.id
+            setTags((current) => current.filter((t) => t.id !== deletedId))
+            setMeals((current) =>
+              current.map((m) =>
+                m.tags.some((t) => t.id === deletedId)
+                  ? { ...m, tags: m.tags.filter((t) => t.id !== deletedId) }
+                  : m
+              )
+            )
           }
         }
       )
@@ -396,106 +415,32 @@ export default function Meals() {
     fetchHouseholdMembers()
   }, [household?.id])
 
-  // Fetch meals
+  // Fetch meals (batched: a fixed number of queries per household, not per meal)
   useEffect(() => {
     const householdId = household?.id
     const userId = user?.id
     if (!householdId || !userId) return
 
-    async function fetchMeals() {
+    let cancelled = false
+
+    async function fetchMeals(householdId: string, userId: string) {
       setIsLoading(true)
-
-      const { data: mealsData } = await supabase
-        .from('meals')
-        .select('*')
-        .eq('household_id', householdId)
-        .order('created_at', { ascending: false })
-
-      if (mealsData) {
-        // Fetch meal items for each meal
-        const mealsWithItems = await Promise.all(
-          mealsData.map(async (meal) => {
-            // Check if user has overrides for this meal
-            const { data: overridesData } = await supabase
-              .from('meal_item_overrides')
-              .select('*')
-              .eq('meal_id', meal.id)
-              .eq('user_id', userId)
-
-            let itemsData
-            if (overridesData && overridesData.length > 0) {
-              // User has overrides - use them
-              itemsData = overridesData
-            } else {
-              // No overrides - use default meal_items
-              const { data } = await supabase
-                .from('meal_items')
-                .select('*')
-                .eq('meal_id', meal.id)
-              itemsData = data
-            }
-
-            const items = itemsData || []
-
-            // Fetch meal tags
-            const { data: mealTagsData } = await supabase
-              .from('meal_tags')
-              .select('tag_id')
-              .eq('meal_id', meal.id)
-
-            const mealTags = (mealTagsData || [])
-              .map(mt => tags.find(t => t.id === mt.tag_id))
-              .filter((t): t is Tag => t !== undefined)
-
-            // Fetch meal images
-            const { data: imagesData } = await supabase
-              .from('meal_images')
-              .select('*')
-              .eq('meal_id', meal.id)
-              .order('uploaded_at', { ascending: false })
-
-            const mealImages = imagesData || []
-
-            // Attach product data to each item
-            const itemsWithProducts = items.map((item) => ({
-              ...item,
-              product: products.find((p) => p.id === item.product_id),
-            }))
-
-            // Calculate totals
-            const totals = itemsWithProducts.reduce(
-              (acc, item) => {
-                if (item.product) {
-                  acc.totalKcal += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.kcal_per_unit)
-                  acc.totalProtein += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.protein || 0)
-                  acc.totalFat += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.fat || 0)
-                  acc.totalCarbs += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.carbs || 0)
-                }
-                return acc
-              },
-              { totalKcal: 0, totalProtein: 0, totalFat: 0, totalCarbs: 0 }
-            )
-
-            return {
-              ...meal,
-              items: itemsWithProducts,
-              tags: mealTags,
-              images: mealImages,
-              ...totals,
-            }
-          })
-        )
-
-        setMeals(mealsWithItems)
+      try {
+        const mealsWithItems = await fetchMealsWithDetails(supabase, { householdId, userId })
+        if (!cancelled) setMeals(mealsWithItems)
+      } catch (error) {
+        console.error('Failed to load meals:', error)
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
-
-      setIsLoading(false)
     }
 
-    if (products.length > 0 && tags.length >= 0) {
-      fetchMeals()
+    fetchMeals(householdId, userId)
+
+    return () => {
+      cancelled = true
     }
-  }, [household?.id, user?.id, products, tags])
+  }, [household?.id, user?.id])
 
   // Filter meals by tags and search query
   const filteredMeals = useMemo(() => {
@@ -732,6 +677,17 @@ export default function Meals() {
     }
   }
 
+  // Build MealItem rows (with joined product) for optimistic updates
+  function toOptimisticItems(
+    rows: { meal_id: string; product_id: string; amount: number; unit_type: string; user_id?: string }[]
+  ): MealItem[] {
+    return rows.map((row) => ({
+      ...row,
+      id: crypto.randomUUID(),
+      product: products.find((p) => p.id === row.product_id),
+    }))
+  }
+
   // Add new meal
   async function addMeal(e: React.FormEvent) {
     e.preventDefault()
@@ -811,6 +767,7 @@ export default function Meals() {
         })
       })
 
+      let overridesSaved = false
       if (overrideRecords.length > 0) {
         const { error: overrideInsertError } = await supabase
           .from('meal_item_overrides')
@@ -818,33 +775,23 @@ export default function Meals() {
 
         if (overrideInsertError) {
           alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+        } else {
+          overridesSaved = true
         }
       }
 
-      // Refresh meals list
-      const itemsWithProducts = mealItems.map((item) => ({
-        ...item,
-        id: crypto.randomUUID(),
-        product: products.find((p) => p.id === item.product_id),
-      }))
-
-      const totals = itemsWithProducts.reduce(
-        (acc, item) => {
-          if (item.product) {
-            acc.totalKcal += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.kcal_per_unit)
-            acc.totalProtein += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.protein || 0)
-            acc.totalFat += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.fat || 0)
-            acc.totalCarbs += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.carbs || 0)
-          }
-          return acc
-        },
-        { totalKcal: 0, totalProtein: 0, totalFat: 0, totalCarbs: 0 }
-      )
+      // Refresh meals list (same shape as fetchMealsWithDetails: own variant wins over base recipe)
+      const baseItems = toOptimisticItems(mealItems)
+      const ownItems = overridesSaved ? toOptimisticItems(overrideRecords.filter((r) => r.user_id === user.id)) : []
+      const isUserVariant = ownItems.length > 0
+      const items = isUserVariant ? ownItems : baseItems
 
       setMeals([
         {
           ...mealData,
-          items: itemsWithProducts as MealItem[],
+          items,
+          baseItems,
+          isUserVariant,
           tags: newTags.map(tagId => tags.find(t => t.id === tagId)).filter((t): t is Tag => t !== undefined),
           images: uploadedImageUrl ? [{
             id: crypto.randomUUID(),
@@ -853,7 +800,7 @@ export default function Meals() {
             uploaded_by: user.id,
             uploaded_at: new Date().toISOString(),
           }] : [],
-          ...totals,
+          ...mealTotals(items),
         },
         ...meals,
       ])
@@ -1006,6 +953,7 @@ export default function Meals() {
       })
     })
 
+    let overridesSaved = false
     if (overrideRecords.length > 0) {
       const { error: overrideInsertError } = await supabase
         .from('meal_item_overrides')
@@ -1013,28 +961,16 @@ export default function Meals() {
 
       if (overrideInsertError) {
         alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+      } else {
+        overridesSaved = true
       }
     }
 
-    // Optimistic update
-    const itemsWithProducts = mealItems.map((item) => ({
-      ...item,
-      id: crypto.randomUUID(),
-      product: products.find((p) => p.id === item.product_id),
-    }))
-
-    const totals = itemsWithProducts.reduce(
-      (acc, item) => {
-        if (item.product) {
-          acc.totalKcal += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.kcal_per_unit)
-          acc.totalProtein += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.protein || 0)
-          acc.totalFat += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.fat || 0)
-          acc.totalCarbs += calculateNutrition(item.amount, item.product.unit_weight_grams, item.product.carbs || 0)
-        }
-        return acc
-      },
-      { totalKcal: 0, totalProtein: 0, totalFat: 0, totalCarbs: 0 }
-    )
+    // Optimistic update (same shape as fetchMealsWithDetails: own variant wins over base recipe)
+    const baseItems = toOptimisticItems(mealItems)
+    const ownItems = overridesSaved ? toOptimisticItems(overrideRecords.filter((r) => r.user_id === user.id)) : []
+    const isUserVariant = ownItems.length > 0
+    const items = isUserVariant ? ownItems : baseItems
 
     setMeals((current) =>
       current.map((m) =>
@@ -1045,7 +981,9 @@ export default function Meals() {
               description: editDescription.trim() || null,
               primary_category: editPrimaryCategory || null,
               alternative_categories: editAlternativeCategories,
-              items: itemsWithProducts as MealItem[],
+              items,
+              baseItems,
+              isUserVariant,
               tags: editTags.map(tagId => tags.find(t => t.id === tagId)).filter((t): t is Tag => t !== undefined),
               images: uploadedImageUrl 
                 ? [...(m.images || []), {
@@ -1056,7 +994,7 @@ export default function Meals() {
                     uploaded_at: new Date().toISOString(),
                   }]
                 : m.images,
-              ...totals,
+              ...mealTotals(items),
             }
           : m
       )

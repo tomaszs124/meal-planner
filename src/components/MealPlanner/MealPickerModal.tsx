@@ -2,21 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { supabase, Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
+import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from './MealDetailsModal'
-import { calculateNutrition } from '@/lib/nutrition'
-
-type MealWithDetails = Meal & {
-  items?: {
-    product?: Product
-    amount: number
-  }[]
-  images?: MealImage[]
-  tags?: Tag[]
-  totalKcal?: number
-  isUserVariant?: boolean
-}
+import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
 
 type MealPickerModalProps = {
   isOpen: boolean
@@ -24,11 +13,20 @@ type MealPickerModalProps = {
   onSelectMeal: (meal: MealWithDetails) => void
   category: MealCategory
   householdId: string
+  /** Preloaded meals (e.g. the planner's allMeals). When provided, the modal does not fetch. */
+  meals?: MealWithDetails[]
 }
 
-export default function MealPickerModal({ isOpen, onClose, onSelectMeal, category, householdId }: MealPickerModalProps) {
+export default function MealPickerModal({
+  isOpen,
+  onClose,
+  onSelectMeal,
+  category,
+  householdId,
+  meals: providedMeals,
+}: MealPickerModalProps) {
   const { user } = useCurrentUser()
-  const [meals, setMeals] = useState<MealWithDetails[]>([])
+  const [fetchedMeals, setFetchedMeals] = useState<MealWithDetails[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,87 +54,33 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
 
   useEffect(() => {
     const userId = user?.id
-    if (!isOpen || !householdId || !userId) return
+    // Meals provided by the parent (e.g. the planner's allMeals) - no fetch needed
+    if (!isOpen || !householdId || !userId || providedMeals) return
+
+    let cancelled = false
 
     async function fetchMeals() {
       setIsLoading(true)
 
-      // Pobierz wszystkie posiłki dla household
-      const { data: mealsData } = await supabase
-        .from('meals')
-        .select('*')
-        .eq('household_id', householdId)
-        .order('created_at', { ascending: false })
-
-      if (mealsData) {
-        // Pobierz szczegóły dla każdego posiłku
-        const mealsWithDetails = await Promise.all(
-          mealsData.map(async (meal) => {
-            // Check if user has overrides for this meal
-            const { data: overridesData } = await supabase
-              .from('meal_item_overrides')
-              .select('*, product:products(*)')
-              .eq('meal_id', meal.id)
-              .eq('user_id', userId)
-
-            let itemsData
-            if (overridesData && overridesData.length > 0) {
-              // User has overrides - use them
-              itemsData = overridesData
-            } else {
-              // No overrides - use default meal_items
-              const { data } = await supabase
-                .from('meal_items')
-                .select('*, product:products(*)')
-                .eq('meal_id', meal.id)
-              itemsData = data
-            }
-
-            // Fetch meal images
-            const { data: imagesData } = await supabase
-              .from('meal_images')
-              .select('*')
-              .eq('meal_id', meal.id)
-              .order('uploaded_at', { ascending: false })
-
-            // Fetch meal tags
-            type MealTagRow = { tags: Tag | null }
-
-            const { data: mealTagsData } = await supabase
-              .from('meal_tags')
-              .select('tag_id, tags(*)')
-              .eq('meal_id', meal.id)
-
-            const items = itemsData || []
-            const images = imagesData || []
-            const mealTags = ((mealTagsData as MealTagRow[] | null) || [])
-              .map((mt) => mt.tags)
-              .filter((tag): tag is Tag => Boolean(tag))
-            const totalKcal = items.reduce((sum, item) => {
-              const product = item.product as unknown as Product
-              if (!product) return sum
-              return sum + calculateNutrition(item.amount, product.unit_weight_grams, product.kcal_per_unit)
-            }, 0)
-
-            return {
-              ...meal,
-              items,
-              images,
-              tags: mealTags,
-              totalKcal,
-              isUserVariant: overridesData && overridesData.length > 0,
-            }
-          })
-        )
-
-        setMeals(mealsWithDetails)
+      try {
+        // Batched loader: a fixed number of queries per household instead of 4 per meal
+        const mealsWithDetails = await fetchMealsWithDetails(supabase, { householdId, userId })
+        if (!cancelled) setFetchedMeals(mealsWithDetails)
+      } catch (error) {
+        console.error('Error fetching meals:', error)
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
-
-      setIsLoading(false)
     }
 
     fetchMeals()
-  }, [isOpen, householdId, user?.id])
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, householdId, user?.id, providedMeals])
+
+  const meals = providedMeals ?? fetchedMeals
 
   if (!isOpen) return null
 
@@ -283,7 +227,8 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
         onClose={() => setSelectedMealForDetails(null)}
         meal={selectedMealForDetails}
         onSelectMeal={(meal) => {
-          onSelectMeal(meal)
+          // MealDetailsModal echoes back the meal it was given; prefer the fully typed instance
+          onSelectMeal(selectedMealForDetails ?? (meal as MealWithDetails))
           setSelectedMealForDetails(null)
           onClose()
         }}

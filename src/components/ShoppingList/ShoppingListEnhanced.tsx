@@ -8,6 +8,16 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
 import CustomLists from '@/components/ShoppingList/CustomLists'
 import { formatAmount } from '@/lib/nutrition'
+import { inChunks } from '@/lib/meals-data'
+import {
+  collectPlanIngredients,
+  getMealGroupKey,
+  indexIngredientRows,
+  scaleAmounts,
+  toShoppingListInsertRows,
+  type IngredientRow,
+  type PlanRow,
+} from '@/lib/shopping'
 
 const UNCATEGORIZED_LABEL = 'Pozostałe'
 // Helper function to format amount without trailing zeros
@@ -91,10 +101,6 @@ type GroupedItem = {
   itemIds: string[]
   allChecked: boolean
   anyChecked: boolean
-}
-
-function getMealGroupKey(mealId: string, sourceUserId: string | null): string {
-  return `${mealId}:${sourceUserId || 'unknown'}`
 }
 
 // Date Range Picker Component
@@ -436,102 +442,38 @@ export default function ShoppingListEnhanced() {
         return
       }
 
-      // Fetch meal items with products - need to check overrides per user
-      const generatedServingsByGroupKey: Record<string, number> = {}
-      const allItemsData: Array<{
-        meal_id: string
-        source_user_id: string
-        product_id: string
-        amount: number
-        unit_type: string
-        product?: Product
-      }> = []
-      
-      for (const mealPlan of mealPlansData) {
-        const groupKey = getMealGroupKey(mealPlan.meal_id, mealPlan.user_id)
-        let addedItemsForMealPlan = 0
-
-        // Check if this user has overrides for this meal
-        const { data: overridesData } = await supabase
-          .from('meal_item_overrides')
-          .select('*, product:products(*)')
-          .eq('meal_id', mealPlan.meal_id)
-          .eq('user_id', mealPlan.user_id)
-
-        if (overridesData && overridesData.length > 0) {
-          // User has overrides - use them
-          overridesData.forEach(item => {
-            if (!item.product) return
-
-            allItemsData.push({
-              ...item,
-              meal_id: mealPlan.meal_id,
-              source_user_id: mealPlan.user_id,
-            })
-            addedItemsForMealPlan += 1
-          })
-        } else {
-          // No overrides - use default meal_items
-          const { data: defaultItems } = await supabase
-            .from('meal_items')
+      // Load ingredients for every planned meal in two batched queries
+      // (base recipes + overrides of the selected members) instead of 1-2 per plan row.
+      const planRows = mealPlansData as PlanRow[]
+      const mealIds = Array.from(new Set(planRows.map((plan) => plan.meal_id)))
+      const [baseItems, overrides] = await Promise.all([
+        inChunks(mealIds, (ids) =>
+          supabase.from('meal_items').select('*, product:products(*)').in('meal_id', ids)
+        ),
+        inChunks(mealIds, (ids) =>
+          supabase
+            .from('meal_item_overrides')
             .select('*, product:products(*)')
-            .eq('meal_id', mealPlan.meal_id)
-          
-          if (defaultItems) {
-            defaultItems.forEach(item => {
-              if (!item.product) return
+            .in('meal_id', ids)
+            .in('user_id', selectedMembers)
+        ),
+      ])
 
-              allItemsData.push({
-                ...item,
-                meal_id: mealPlan.meal_id,
-                source_user_id: mealPlan.user_id,
-              })
-              addedItemsForMealPlan += 1
-            })
-          }
-        }
+      const { baseItemsByMeal, overridesByMealAndUser } = indexIngredientRows(
+        baseItems as IngredientRow[],
+        overrides as IngredientRow[]
+      )
+      const { items: aggregatedItems, servingsByGroupKey: generatedServingsByGroupKey } = collectPlanIngredients(
+        planRows,
+        baseItemsByMeal,
+        overridesByMealAndUser
+      )
 
-        if (addedItemsForMealPlan > 0) {
-          generatedServingsByGroupKey[groupKey] = (generatedServingsByGroupKey[groupKey] || 0) + 1
-        }
-      }
-
-      if (allItemsData.length === 0) {
+      if (aggregatedItems.length === 0) {
         alert('Brak składników w zaplanowanych posiłkach')
         setIsGenerating(false)
         return
       }
-
-      // Group by (meal_id, product_id) - each meal keeps its own ingredients
-      // but sum amounts if same meal appears multiple times
-      const mealProductMap = new Map<string, {
-        meal_id: string
-        source_user_id: string
-        product: Product
-        totalAmount: number
-        unit_type: string
-      }>()
-
-      allItemsData.forEach((item) => {
-        const product = item.product as unknown as Product
-        if (!product) return
-
-        const key = `${item.meal_id}:${item.source_user_id}:${product.id}`
-        const itemAmount = parseFloat(String(item.amount))
-        
-        if (mealProductMap.has(key)) {
-          const existing = mealProductMap.get(key)!
-          existing.totalAmount = Math.round((existing.totalAmount + itemAmount) * 10000) / 10000
-        } else {
-          mealProductMap.set(key, {
-            meal_id: item.meal_id,
-            source_user_id: item.source_user_id,
-            product,
-            totalAmount: itemAmount,
-            unit_type: item.unit_type,
-          })
-        }
-      })
 
       // Clear existing items (optional - you might want to ask user)
       if (items.length > 0) {
@@ -545,18 +487,7 @@ export default function ShoppingListEnhanced() {
       }
 
       // Insert items into shopping list
-      const itemsToInsert = Array.from(mealProductMap.values()).map(({ meal_id, source_user_id, product, totalAmount, unit_type }) => ({
-        household_id: householdId,
-        meal_id: meal_id,
-        source_user_id: source_user_id,
-        product_id: product.id,
-        name: product.name,
-        amount: Math.round(totalAmount * 100) / 100,
-        unit_type: unit_type,
-        custom_amount_text: null, // Products from database don't use custom text
-        is_checked: false,
-        added_by: userId || null,
-      }))
+      const itemsToInsert = toShoppingListInsertRows(aggregatedItems, householdId, userId || null)
 
       const { error } = await supabase
         .from('shopping_list_items')
@@ -911,10 +842,7 @@ export default function ShoppingListEnhanced() {
         return
       }
 
-      const updatedAmounts = mealItems.map((item) => ({
-        id: item.id,
-        amount: Math.max(0.01, Math.round(parseFloat(String(item.amount)) * scale * 100) / 100),
-      }))
+      const updatedAmounts = scaleAmounts(mealItems, scale)
 
       // 1. Persist serving count first so DB is consistent when items are written.
       const { error: stateError } = await supabase

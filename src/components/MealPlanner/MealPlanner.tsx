@@ -2,23 +2,11 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { format, startOfWeek, addDays } from 'date-fns'
-import { supabase, Meal, MealCategory, UserSettings, Product, MealImage, Tag } from '@/lib/supabase/client'
+import { supabase, Meal, MealCategory, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
-import { calculateNutrition } from '@/lib/nutrition'
-
-// Helper function to calculate nutrition values based on weight
-type MealWithDetails = Meal & {
-  totalKcal?: number
-  images?: MealImage[]
-  tags?: Tag[]
-  items?: {
-    product?: Product
-    amount: number
-  }[]
-  isUserVariant?: boolean
-}
+import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
 
 type PlannedMeal = {
   id: string
@@ -138,73 +126,23 @@ export default function MealPlanner() {
     const userId = user?.id
     if (!householdId || !userId) return
 
-    async function fetchMeals() {
-      const { data: mealsData } = await supabase
-        .from('meals')
-        .select('*')
-        .eq('household_id', householdId)
+    let cancelled = false
 
-      if (mealsData) {
-        const mealsWithDetails = await Promise.all(
-          mealsData.map(async (meal) => {
-            // Check if user has overrides for this meal
-            const { data: overridesData } = await supabase
-              .from('meal_item_overrides')
-              .select('*, product:products(*)')
-              .eq('meal_id', meal.id)
-              .eq('user_id', userId)
-
-            let itemsData
-            if (overridesData && overridesData.length > 0) {
-              // User has overrides - use them
-              itemsData = overridesData
-            } else {
-              // No overrides - use default meal_items
-              const { data } = await supabase
-                .from('meal_items')
-                .select('*, product:products(*)')
-                .eq('meal_id', meal.id)
-              itemsData = data
-            }
-
-            // Fetch meal images
-            const { data: imagesData } = await supabase
-              .from('meal_images')
-              .select('*')
-              .eq('meal_id', meal.id)
-              .order('uploaded_at', { ascending: false })
-
-            // Fetch meal tags
-            const { data: mealTagsData } = await supabase
-              .from('meal_tags')
-              .select('tag_id, tags(*)')
-              .eq('meal_id', meal.id)
-
-            const items = itemsData || []
-            const images = imagesData || []
-            const mealTags = (mealTagsData?.map(mt => mt.tags as unknown as Tag).filter(Boolean) || []) as Tag[]
-            const totalKcal = items.reduce((sum, item) => {
-              const product = item.product as unknown as Product
-              if (!product) return sum
-              return sum + calculateNutrition(item.amount, product.unit_weight_grams, product.kcal_per_unit)
-            }, 0)
-
-            return {
-              ...meal,
-              items,
-              images,
-              tags: mealTags,
-              totalKcal,
-              isUserVariant: overridesData && overridesData.length > 0,
-            }
-          })
-        )
-
-        setAllMeals(mealsWithDetails)
+    async function fetchMeals(householdId: string, userId: string) {
+      try {
+        // Batched loader: a fixed number of queries per household instead of 4 per meal
+        const mealsWithDetails = await fetchMealsWithDetails(supabase, { householdId, userId })
+        if (!cancelled) setAllMeals(mealsWithDetails)
+      } catch (error) {
+        console.error('Error fetching meals:', error)
       }
     }
 
-    fetchMeals()
+    fetchMeals(householdId, userId)
+
+    return () => {
+      cancelled = true
+    }
   }, [household?.id, user?.id])
 
   // Fetch household members for copy from member
@@ -299,47 +237,57 @@ export default function MealPlanner() {
     const householdId = household?.id
     if (!userId || !householdId || allMeals.length === 0) return
 
+    // Re-runs on plannedMeals changes so the progress bar follows consumed toggles;
+    // `cancelled` drops responses from superseded runs.
+    let cancelled = false
+
     async function fetchWeekProgress() {
       const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
-      const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+      const weekDays = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'))
+      const weekStartStr = weekDays[0]
+      const weekEndStr = weekDays[6]
 
-      const progressData = await Promise.all(
-        weekDays.map(async (day) => {
-          const dateStr = format(day, 'yyyy-MM-dd')
+      // One query for the whole week instead of one per day
+      const { data } = await supabase
+        .from('meal_plan')
+        .select('date, meal_id, is_consumed')
+        .eq('household_id', householdId)
+        .eq('user_id', userId)
+        .gte('date', weekStartStr)
+        .lte('date', weekEndStr)
 
-          const { data } = await supabase
-            .from('meal_plan')
-            .select('*')
-            .eq('household_id', householdId)
-            .eq('user_id', userId)
-            .eq('date', dateStr)
+      if (cancelled) return
 
-          if (!data || data.length === 0) {
-            return { dateString: dateStr, consumedKcal: 0, plannedKcal: 0 }
-          }
+      const kcalByMealId = new Map(allMeals.map((m) => [m.id, m.totalKcal]))
+      const plansByDate = new Map<string, { meal_id: string; is_consumed: boolean }[]>()
+      for (const plan of (data || []) as { date: string; meal_id: string; is_consumed: boolean }[]) {
+        const list = plansByDate.get(plan.date)
+        if (list) list.push(plan)
+        else plansByDate.set(plan.date, [plan])
+      }
 
-          // Planned = suma kalorii z ZAPLANOWANYCH posiłków na ten dzień
-          const plannedKcal = data.reduce((sum, plan) => {
-            const meal = allMeals.find(m => m.id === plan.meal_id)
-            return sum + (meal?.totalKcal || 0)
-          }, 0)
+      const progressData = weekDays.map((dateStr) => {
+        const plans = plansByDate.get(dateStr) || []
 
-          // Consumed = suma kalorii z ZJEDZONYCH posiłków
-          const consumedKcal = data
-            .filter(plan => plan.is_consumed)
-            .reduce((sum, plan) => {
-              const meal = allMeals.find(m => m.id === plan.meal_id)
-              return sum + (meal?.totalKcal || 0)
-            }, 0)
+        // Planned = suma kalorii z ZAPLANOWANYCH posiłków na ten dzień
+        const plannedKcal = plans.reduce((sum, plan) => sum + (kcalByMealId.get(plan.meal_id) || 0), 0)
 
-          return { dateString: dateStr, consumedKcal, plannedKcal }
-        })
-      )
+        // Consumed = suma kalorii z ZJEDZONYCH posiłków
+        const consumedKcal = plans
+          .filter((plan) => plan.is_consumed)
+          .reduce((sum, plan) => sum + (kcalByMealId.get(plan.meal_id) || 0), 0)
+
+        return { dateString: dateStr, consumedKcal, plannedKcal }
+      })
 
       setWeekProgress(progressData)
     }
 
     fetchWeekProgress()
+
+    return () => {
+      cancelled = true
+    }
   }, [user?.id, household?.id, selectedDate, allMeals, plannedMeals])
 
   async function handleDuplicateFromPreviousDay() {
@@ -578,8 +526,11 @@ export default function MealPlanner() {
     }
   }
 
-  async function handleSelectMeal(category: MealCategory, meal: MealWithDetails) {
+  async function handleSelectMeal(category: MealCategory, pickedMeal: Meal) {
     if (!user?.id || !household?.id) return
+
+    // Child components type meals loosely; resolve the fully loaded meal from allMeals.
+    const meal = allMeals.find((m) => m.id === pickedMeal.id) ?? (pickedMeal as MealWithDetails)
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
@@ -824,6 +775,7 @@ export default function MealPlanner() {
               {categories.map((category) => (
                 <div key={category} className="flex-none w-[85vw] md:w-[calc(50%-0.5rem)] snap-center">
                   <MealSlot
+                    meals={allMeals}
                     category={category}
                     categoryLabel={CATEGORY_LABELS[category]}
                     selectedMeal={getPlannedMeal(category)}
@@ -844,6 +796,7 @@ export default function MealPlanner() {
               {categories.map((category) => (
                 <div key={category}>
                   <MealSlot
+                    meals={allMeals}
                     category={category}
                     categoryLabel={CATEGORY_LABELS[category]}
                     selectedMeal={getPlannedMeal(category)}
@@ -887,24 +840,14 @@ export default function MealPlanner() {
                   {Math.round(
                     plannedMeals
                       .filter(p => p.is_consumed && p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.protein || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalProtein || 0), 0)
                   )}g
                 </div>
                 <div className="text-xs text-gray-500">
                   / {Math.round(
                     plannedMeals
                       .filter(p => p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.protein || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalProtein || 0), 0)
                   )}g
                 </div>
               </div>
@@ -915,24 +858,14 @@ export default function MealPlanner() {
                   {Math.round(
                     plannedMeals
                       .filter(p => p.is_consumed && p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.fat || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalFat || 0), 0)
                   )}g
                 </div>
                 <div className="text-xs text-gray-500">
                   / {Math.round(
                     plannedMeals
                       .filter(p => p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.fat || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalFat || 0), 0)
                   )}g
                 </div>
               </div>
@@ -943,24 +876,14 @@ export default function MealPlanner() {
                   {Math.round(
                     plannedMeals
                       .filter(p => p.is_consumed && p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.carbs || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalCarbs || 0), 0)
                   )}g
                 </div>
                 <div className="text-xs text-gray-500">
                   / {Math.round(
                     plannedMeals
                       .filter(p => p.meal)
-                      .reduce((sum, p) => {
-                        return sum + ((p.meal?.items || []).reduce((itemSum, item) => {
-                          const product = item.product
-                          return itemSum + (product ? calculateNutrition(item.amount, product.unit_weight_grams, product.carbs || 0) : 0)
-                        }, 0))
-                      }, 0)
+                      .reduce((sum, p) => sum + (p.meal?.totalCarbs || 0), 0)
                   )}g
                 </div>
               </div>

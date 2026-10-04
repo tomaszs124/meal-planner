@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPickerModal from './MealPickerModal'
+import type { MealWithDetails as LoadedMeal } from '@/lib/meals-data'
 import MealDetailsModal from './MealDetailsModal'
 import { calculateNutrition } from '@/lib/nutrition'
 
@@ -26,6 +27,8 @@ type MealSlotProps = {
   isConsumed: boolean
   isSkipped: boolean
   householdId: string
+  /** Preloaded meals from the planner; the picker skips its own fetch when provided */
+  meals?: LoadedMeal[]
   onSelectMeal: (meal: MealWithDetails) => void
   onRandomMeal: () => void
   onToggleConsumed: () => void
@@ -47,6 +50,7 @@ export default function MealSlot({
   isConsumed,
   isSkipped,
   householdId,
+  meals,
   onSelectMeal,
   onRandomMeal,
   onToggleConsumed,
@@ -199,6 +203,7 @@ export default function MealSlot({
       </div>
 
       <MealPickerModal
+        meals={meals}
         isOpen={showPicker}
         onClose={() => setShowPicker(false)}
         onSelectMeal={onSelectMeal}
