@@ -1,138 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 import { useRouter } from 'next/navigation'
 import { supabase, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useUserSettings } from '@/hooks/useUserSettings'
+import { useFeedback } from '@/components/ui/Feedback'
 
 export default function UserSettingsForm() {
-  const router = useRouter()
   const { user, isLoading: userLoading } = useCurrentUser()
-  const [settings, setSettings] = useState<UserSettings | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-
-  const [name, setName] = useState('')
-  const [secondBreakfastEnabled, setSecondBreakfastEnabled] = useState(true)
-  const [lunchEnabled, setLunchEnabled] = useState(true)
-  const [dinnerEnabled, setDinnerEnabled] = useState(true)
-  const [snackEnabled, setSnackEnabled] = useState(false)
-
-  // Wylogowanie
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  // Wczytaj ustawienia użytkownika
-  useEffect(() => {
-    const userId = user?.id
-    if (!userId) return
-
-    async function fetchSettings() {
-      setIsLoading(true)
-
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching settings:', error)
-      }
-
-      if (data) {
-        setSettings(data)
-        setName(data.name || '')
-        setSecondBreakfastEnabled(data.second_breakfast_enabled !== false)
-        setLunchEnabled(data.lunch_enabled !== false)
-        setDinnerEnabled(data.dinner_enabled !== false)
-        setSnackEnabled(data.snack_enabled || false)
-      } else {
-        // User has no settings yet - create default ones
-        const defaultSettings = {
-          user_id: userId,
-          name: null,
-          second_breakfast_enabled: true,
-          lunch_enabled: true,
-          dinner_enabled: true,
-          snack_enabled: false,
-        }
-        
-        const { data: newSettings, error: insertError } = await supabase
-          .from('user_settings')
-          .insert([defaultSettings])
-          .select()
-          .single()
-
-        if (!insertError && newSettings) {
-          setSettings(newSettings)
-          setSecondBreakfastEnabled(true)
-          setLunchEnabled(true)
-          setDinnerEnabled(true)
-          setSnackEnabled(false)
-        }
-      }
-
-      setIsLoading(false)
-    }
-
-    fetchSettings()
-  }, [user?.id])
-
-  // Zapisz ustawienia
-  async function saveSettings(e: React.FormEvent) {
-    e.preventDefault()
-    const userId = user?.id
-    if (!userId) return
-
-    setIsSaving(true)
-
-    const settingsData = {
-      user_id: userId,
-      name: name.trim() || null,
-      second_breakfast_enabled: secondBreakfastEnabled,
-      lunch_enabled: lunchEnabled,
-      dinner_enabled: dinnerEnabled,
-      snack_enabled: snackEnabled,
-    }
-
-    let result
-
-    if (settings) {
-      // Aktualizuj istniejące ustawienia
-      result = await supabase
-        .from('user_settings')
-        .update(settingsData)
-        .eq('user_id', userId)
-        .select()
-        .single()
-    } else {
-      // Utwórz nowe ustawienia
-      result = await supabase
-        .from('user_settings')
-        .insert(settingsData)
-        .select()
-        .single()
-    }
-
-    if (result.error) {
-      alert('Nie udało się zapisać ustawień')
-      console.error(result.error)
-    } else {
-      setSettings(result.data)
-      alert('Ustawienia zapisane!')
-    }
-
-    setIsSaving(false)
-  }
+  const { settings, isLoading, error, save, refresh } = useUserSettings(user?.id)
 
   if (userLoading || isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500">Ładowanie...</div>
+      <div role="status" aria-live="polite" className="p-4 space-y-4">
+        <span className="sr-only">Ładowanie...</span>
+        <Skeleton className="h-10 w-full" />
+        <SkeletonText lines={4} />
+        <Skeleton className="h-10 w-32" />
       </div>
     )
   }
@@ -143,6 +29,129 @@ export default function UserSettingsForm() {
         Musisz być zalogowany.
       </div>
     )
+  }
+
+  if (error && !settings) {
+    return (
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700 space-y-3">
+        <p>Nie udało się wczytać ustawień. Sprawdź połączenie i spróbuj ponownie.</p>
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+        >
+          Spróbuj ponownie
+        </button>
+      </div>
+    )
+  }
+
+  // Keyed by user only; fresher settings (another device) are synced inside the fields
+  // component without remounting, so typing and focus survive the user's own save.
+  return <UserSettingsFields key={user.id} settings={settings} save={save} />
+}
+
+type FieldValues = { name: string; second: boolean; lunch: boolean; dinner: boolean; snack: boolean; rules: string }
+
+function fieldValuesOf(settings: UserSettings | null): FieldValues {
+  return {
+    name: settings?.name || '',
+    second: settings?.second_breakfast_enabled !== false,
+    lunch: settings?.lunch_enabled !== false,
+    dinner: settings?.dinner_enabled !== false,
+    snack: settings?.snack_enabled || false,
+    rules: settings?.dietary_rules || '',
+  }
+}
+
+function sameFieldValues(a: FieldValues, b: FieldValues): boolean {
+  return (
+    a.name === b.name &&
+    a.second === b.second &&
+    a.lunch === b.lunch &&
+    a.dinner === b.dinner &&
+    a.snack === b.snack &&
+    a.rules === b.rules
+  )
+}
+
+type UserSettingsFieldsProps = {
+  settings: UserSettings | null
+  save: (patch: Partial<UserSettings>) => Promise<boolean>
+}
+
+function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
+  const router = useRouter()
+  const { toast } = useFeedback()
+  const [isSaving, setIsSaving] = useState(false)
+
+  const [name, setName] = useState(settings?.name || '')
+  const [secondBreakfastEnabled, setSecondBreakfastEnabled] = useState(settings?.second_breakfast_enabled !== false)
+  const [lunchEnabled, setLunchEnabled] = useState(settings?.lunch_enabled !== false)
+  const [dinnerEnabled, setDinnerEnabled] = useState(settings?.dinner_enabled !== false)
+  const [snackEnabled, setSnackEnabled] = useState(settings?.snack_enabled || false)
+  const [dietaryRules, setDietaryRules] = useState(settings?.dietary_rules || '')
+
+  // Sync from fresher settings (another device, or the echo of our own save) without
+  // remounting: only when the form is not dirty, so in-progress typing is never lost.
+  // "Adjusting state during render" pattern; React re-renders immediately with the new values.
+  const [syncedBase, setSyncedBase] = useState<FieldValues>(() => fieldValuesOf(settings))
+  const [syncedVersion, setSyncedVersion] = useState<string | null>(settings?.updated_at ?? null)
+  const incomingVersion = settings?.updated_at ?? null
+  if (incomingVersion !== syncedVersion) {
+    const current: FieldValues = {
+      name,
+      second: secondBreakfastEnabled,
+      lunch: lunchEnabled,
+      dinner: dinnerEnabled,
+      snack: snackEnabled,
+      rules: dietaryRules,
+    }
+    const incoming = fieldValuesOf(settings)
+    // Dirty = the user changed something since the last sync AND it differs from what the
+    // server now has (after our own save the fields already equal the server row).
+    const isDirty = !sameFieldValues(current, syncedBase) && !sameFieldValues(current, incoming)
+    if (!isDirty && !isSaving) {
+      setSyncedVersion(incomingVersion)
+      setName(incoming.name)
+      setSecondBreakfastEnabled(incoming.second)
+      setLunchEnabled(incoming.lunch)
+      setDinnerEnabled(incoming.dinner)
+      setSnackEnabled(incoming.snack)
+      setDietaryRules(incoming.rules)
+      setSyncedBase(incoming)
+    }
+  }
+
+  // Wylogowanie
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
+  // Zapisz ustawienia
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault()
+
+    setIsSaving(true)
+
+    const saved = await save({
+      name: name.trim() || null,
+      second_breakfast_enabled: secondBreakfastEnabled,
+      lunch_enabled: lunchEnabled,
+      dinner_enabled: dinnerEnabled,
+      snack_enabled: snackEnabled,
+      dietary_rules: dietaryRules.trim() || null,
+    })
+
+    if (saved) {
+      toast('Ustawienia zapisane', { type: 'success' })
+    } else {
+      toast('Nie udało się zapisać ustawień', { type: 'error' })
+    }
+
+    setIsSaving(false)
   }
 
   return (
@@ -171,6 +180,26 @@ export default function UserSettingsForm() {
           />
           <p className="text-xs text-gray-500 mt-1">
             To imię będzie wyświetlane w wiadomościach powitalnych i na listach domowników
+          </p>
+        </div>
+
+        {/* Personal dietary rules (read by the MCP assistant) */}
+        <div>
+          <label htmlFor="dietary-rules" className="block text-sm font-medium text-gray-900 mb-2">
+            Moje zasady żywieniowe
+          </label>
+          <textarea
+            id="dietary-rules"
+            value={dietaryRules}
+            onChange={(e) => setDietaryRules(e.target.value)}
+            rows={5}
+            maxLength={2000}
+            placeholder={'Np.\n- na śniadanie maks 2 jajka\n- bez laktozy\n- obiad do 600 kcal'}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Asystent AI (konektor MCP) bierze te zasady pod uwagę, gdy proponuje posiłki i plan dla Ciebie.
+            Jedna zasada w linii. {dietaryRules.length}/2000
           </p>
         </div>
 

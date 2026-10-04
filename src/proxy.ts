@@ -1,7 +1,12 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { publicEnv } from '@/lib/env'
 
-export async function middleware(request: NextRequest) {
+/**
+ * Auth gate (Next.js 16 "proxy", formerly middleware): refreshes the Supabase
+ * session cookie and redirects anonymous visitors to /login.
+ */
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -9,14 +14,14 @@ export async function middleware(request: NextRequest) {
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    publicEnv.supabaseUrl,
+    publicEnv.supabasePublishableKey,
     {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({
             name,
             value,
@@ -33,7 +38,7 @@ export async function middleware(request: NextRequest) {
             ...options,
           })
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: CookieOptions) {
           request.cookies.set({
             name,
             value: '',
@@ -76,7 +81,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// Configure which routes to run middleware on
+// Configure which routes to run the proxy on
 export const config = {
   matcher: [
     /*
@@ -84,8 +89,10 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - manifest / icons / public assets
+     * - api/mcp (MCP connector endpoint, authenticated by its own token)
+     * - sw.js (service worker script; must never be redirected to /login)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

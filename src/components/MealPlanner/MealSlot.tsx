@@ -1,17 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPickerModal from './MealPickerModal'
+import type { MealWithDetails as LoadedMeal } from '@/lib/meals-data'
 import MealDetailsModal from './MealDetailsModal'
+import { calculateNutrition } from '@/lib/nutrition'
 
 // Helper function to calculate nutrition values based on weight
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 100)
-  return (weightGrams / 100) * valuePer100g
-}
-
 type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]
@@ -30,6 +28,8 @@ type MealSlotProps = {
   isConsumed: boolean
   isSkipped: boolean
   householdId: string
+  /** Preloaded meals from the planner; the picker skips its own fetch when provided */
+  meals?: LoadedMeal[]
   onSelectMeal: (meal: MealWithDetails) => void
   onRandomMeal: () => void
   onToggleConsumed: () => void
@@ -51,6 +51,7 @@ export default function MealSlot({
   isConsumed,
   isSkipped,
   householdId,
+  meals,
   onSelectMeal,
   onRandomMeal,
   onToggleConsumed,
@@ -70,17 +71,29 @@ export default function MealSlot({
         </div>
 
         {selectedMeal ? (
-          <div 
-            className="bg-white rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+          <div
+            role="button"
+            tabIndex={0}
+            className="bg-white rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setShowDetailsModal(true)}
+            onKeyDown={(e) => {
+              // Only the card itself; Enter/Space on the nested action buttons keep their own click
+              if (e.target !== e.currentTarget || e.repeat) return
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setShowDetailsModal(true)
+              }
+            }}
           >
             {/* Meal image */}
             {selectedMeal.images && selectedMeal.images.length > 0 ? (
               <div className="relative w-full h-32 bg-gray-100">
-                <img
+                <Image
                   src={selectedMeal.images[0].image_url}
                   alt={selectedMeal.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -136,50 +149,50 @@ export default function MealSlot({
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowPicker(true)
                   }}
-                  className="flex-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                  className="flex-1 min-w-0 px-2 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Zmień
+                  <span className="whitespace-nowrap">Zmień</span>
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     onToggleSkipped()
                   }}
-                  className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                  className={`flex-1 min-w-0 px-2 py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${
                     isSkipped
                       ? 'bg-orange-500 text-white hover:bg-orange-600'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  {isSkipped ? 'Pominięty' : 'Pomiń'}
+                  <span className="whitespace-nowrap">{isSkipped ? 'Pominięty' : 'Pomiń'}</span>
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     onToggleConsumed()
                   }}
-                  className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                  className={`flex-1 min-w-0 px-2 py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${
                     isConsumed
                       ? 'bg-green-600 text-white hover:bg-green-700'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  {isConsumed ? 'Zjedzony' : 'Zjedz'}
+                  <span className="whitespace-nowrap">{isConsumed ? 'Zjedzony' : 'Zjedz'}</span>
                 </button>
               </div>
             </div>
@@ -194,6 +207,7 @@ export default function MealSlot({
             </button>
             <button
               onClick={onRandomMeal}
+              aria-label="Losuj posiłek"
               className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
             >
               🎲 Losuj
@@ -203,6 +217,7 @@ export default function MealSlot({
       </div>
 
       <MealPickerModal
+        meals={meals}
         isOpen={showPicker}
         onClose={() => setShowPicker(false)}
         onSelectMeal={onSelectMeal}

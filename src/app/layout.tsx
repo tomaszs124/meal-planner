@@ -1,7 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
+import { FeedbackProvider } from "@/components/ui/Feedback";
+import { CurrentUserProvider } from "@/components/Auth/CurrentUserProvider";
+import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration";
+import OfflineBanner from "@/components/ui/OfflineBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +20,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Meal Planner",
   description: "Aplikacja do planowania posiłków i zakupów",
+  applicationName: "Meal Planner",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Meal Planner",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#16a34a",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -28,8 +48,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 bg-white`}
       >
-        {children}
-        <BottomNav />
+        <FeedbackProvider>
+          <CurrentUserProvider>
+            {children}
+          </CurrentUserProvider>
+          <OfflineBanner />
+          <BottomNav />
+          <ServiceWorkerRegistration />
+        </FeedbackProvider>
       </body>
     </html>
   );

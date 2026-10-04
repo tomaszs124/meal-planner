@@ -34,9 +34,10 @@ export default function Header() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-4">
+          <nav aria-label="Menu" className="flex items-center gap-4">
             <Link
               href="/dashboard"
+              aria-current={pathname === '/dashboard' ? 'page' : undefined}
               className={`text-sm font-medium transition-colors ${
                 pathname === '/dashboard'
                   ? 'text-blue-600'
@@ -47,6 +48,7 @@ export default function Header() {
             </Link>
             <Link
               href="/products"
+              aria-current={pathname === '/products' ? 'page' : undefined}
               className={`text-sm font-medium transition-colors ${
                 pathname === '/products'
                   ? 'text-blue-600'
@@ -57,6 +59,7 @@ export default function Header() {
             </Link>
             <Link
               href="/settings"
+              aria-current={pathname === '/settings' ? 'page' : undefined}
               className={`text-sm font-medium transition-colors ${
                 pathname === '/settings'
                   ? 'text-blue-600'
@@ -66,6 +69,7 @@ export default function Header() {
               Ustawienia
             </Link>
             <button
+              type="button"
               onClick={handleLogout}
               className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >

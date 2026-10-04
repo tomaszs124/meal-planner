@@ -1,26 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId, useRef } from 'react'
+import { useFocusTrap } from '@/components/ui/useFocusTrap'
+import { SkeletonCard } from '@/components/ui/Skeleton'
 import Image from 'next/image'
-import { supabase, Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
+import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from './MealDetailsModal'
-
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
-
-type MealWithDetails = Meal & {
-  items?: {
-    product?: Product
-    amount: number
-  }[]
-  images?: MealImage[]
-  tags?: Tag[]
-  totalKcal?: number
-  isUserVariant?: boolean
-}
+import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
 
 type MealPickerModalProps = {
   isOpen: boolean
@@ -28,11 +15,20 @@ type MealPickerModalProps = {
   onSelectMeal: (meal: MealWithDetails) => void
   category: MealCategory
   householdId: string
+  /** Preloaded meals (e.g. the planner's allMeals). When provided, the modal does not fetch. */
+  meals?: MealWithDetails[]
 }
 
-export default function MealPickerModal({ isOpen, onClose, onSelectMeal, category, householdId }: MealPickerModalProps) {
+export default function MealPickerModal({
+  isOpen,
+  onClose,
+  onSelectMeal,
+  category,
+  householdId,
+  meals: providedMeals,
+}: MealPickerModalProps) {
   const { user } = useCurrentUser()
-  const [meals, setMeals] = useState<MealWithDetails[]>([])
+  const [fetchedMeals, setFetchedMeals] = useState<MealWithDetails[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -60,87 +56,39 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
 
   useEffect(() => {
     const userId = user?.id
-    if (!isOpen || !householdId || !userId) return
+    // Meals provided by the parent (e.g. the planner's allMeals) - no fetch needed
+    if (!isOpen || !householdId || !userId || providedMeals) return
+
+    let cancelled = false
 
     async function fetchMeals() {
       setIsLoading(true)
 
-      // Pobierz wszystkie posiłki dla household
-      const { data: mealsData } = await supabase
-        .from('meals')
-        .select('*')
-        .eq('household_id', householdId)
-        .order('created_at', { ascending: false })
-
-      if (mealsData) {
-        // Pobierz szczegóły dla każdego posiłku
-        const mealsWithDetails = await Promise.all(
-          mealsData.map(async (meal) => {
-            // Check if user has overrides for this meal
-            const { data: overridesData } = await supabase
-              .from('meal_item_overrides')
-              .select('*, product:products(*)')
-              .eq('meal_id', meal.id)
-              .eq('user_id', userId)
-
-            let itemsData
-            if (overridesData && overridesData.length > 0) {
-              // User has overrides - use them
-              itemsData = overridesData
-            } else {
-              // No overrides - use default meal_items
-              const { data } = await supabase
-                .from('meal_items')
-                .select('*, product:products(*)')
-                .eq('meal_id', meal.id)
-              itemsData = data
-            }
-
-            // Fetch meal images
-            const { data: imagesData } = await supabase
-              .from('meal_images')
-              .select('*')
-              .eq('meal_id', meal.id)
-              .order('uploaded_at', { ascending: false })
-
-            // Fetch meal tags
-            type MealTagRow = { tags: Tag | null }
-
-            const { data: mealTagsData } = await supabase
-              .from('meal_tags')
-              .select('tag_id, tags(*)')
-              .eq('meal_id', meal.id)
-
-            const items = itemsData || []
-            const images = imagesData || []
-            const mealTags = ((mealTagsData as MealTagRow[] | null) || [])
-              .map((mt) => mt.tags)
-              .filter((tag): tag is Tag => Boolean(tag))
-            const totalKcal = items.reduce((sum, item) => {
-              const product = item.product as unknown as Product
-              if (!product) return sum
-              return sum + calculateNutrition(item.amount, product.unit_weight_grams, product.kcal_per_unit)
-            }, 0)
-
-            return {
-              ...meal,
-              items,
-              images,
-              tags: mealTags,
-              totalKcal,
-              isUserVariant: overridesData && overridesData.length > 0,
-            }
-          })
-        )
-
-        setMeals(mealsWithDetails)
+      try {
+        // Batched loader: a fixed number of queries per household instead of 4 per meal
+        const mealsWithDetails = await fetchMealsWithDetails(supabase, { householdId, userId })
+        if (!cancelled) setFetchedMeals(mealsWithDetails)
+      } catch (error) {
+        console.error('Error fetching meals:', error)
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
-
-      setIsLoading(false)
     }
 
     fetchMeals()
-  }, [isOpen, householdId, user?.id])
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, householdId, user?.id, providedMeals])
+
+  const meals = providedMeals ?? fetchedMeals
+  const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  // Focus management + close on Escape. While the nested details modal is open it is
+  // the top-most trap, so it receives Escape/Tab and this one stays idle.
+  useFocusTrap(dialogRef, { active: isOpen, onEscape: onClose })
 
   if (!isOpen) return null
 
@@ -180,13 +128,21 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+      >
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Wybierz posiłek</h2>
+            <h2 id={titleId} className="text-xl font-bold text-gray-900">Wybierz posiłek</h2>
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Zamknij"
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,10 +153,11 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
 
           {/* Search */}
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Szukaj po nazwie lub składnikach..."
+            aria-label="Szukaj po nazwie lub składnikach"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -212,6 +169,7 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
                   <button
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
+                    aria-pressed={selectedTags.includes(tag.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedTags.includes(tag.id)
                         ? 'ring-2 ring-offset-2 ring-blue-500 opacity-100'
@@ -233,7 +191,12 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Ładowanie...</div>
+            <div role="status" aria-live="polite" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <span className="sr-only">Ładowanie...</span>
+              {Array.from({ length: 6 }, (_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           ) : (
             <div className="space-y-6">
               {/* Primary category meals */}
@@ -287,7 +250,8 @@ export default function MealPickerModal({ isOpen, onClose, onSelectMeal, categor
         onClose={() => setSelectedMealForDetails(null)}
         meal={selectedMealForDetails}
         onSelectMeal={(meal) => {
-          onSelectMeal(meal)
+          // MealDetailsModal echoes back the meal it was given; prefer the fully typed instance
+          onSelectMeal(selectedMealForDetails ?? (meal as MealWithDetails))
           setSelectedMealForDetails(null)
           onClose()
         }}
@@ -310,7 +274,8 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
           <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
             <Image
               src={meal.images[0].image_url}
-              alt={meal.name}
+              // Decorative: the meal name is already the button's text
+              alt=""
               width={64}
               height={64}
               className="w-full h-full object-cover"

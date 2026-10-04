@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SkeletonText } from '@/components/ui/Skeleton'
 import { supabase, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 const DEFAULT_COLORS = [
   { bg: '#3B82F6', text: '#FFFFFF', label: 'Niebieski' },
@@ -17,6 +19,7 @@ const DEFAULT_COLORS = [
 
 export default function TagManagement() {
   const { household } = useCurrentUser()
+  const { toast, confirm } = useFeedback()
   const [tags, setTags] = useState<Tag[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -66,7 +69,6 @@ export default function TagManagement() {
           filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
-          console.log('Tags realtime event in TagManagement:', payload.eventType, payload)
           if (payload.eventType === 'INSERT') {
             setTags((current) => [...current, payload.new as Tag].sort((a, b) => a.name.localeCompare(b.name)))
           } else if (payload.eventType === 'UPDATE') {
@@ -106,7 +108,7 @@ export default function TagManagement() {
       setNewTagTextColor('#FFFFFF')
       setShowAddForm(false)
     } else {
-      alert('Błąd: ' + error.message)
+      toast('Błąd: ' + error.message, { type: 'error' })
     }
 
     setIsAdding(false)
@@ -144,23 +146,29 @@ export default function TagManagement() {
     if (!error) {
       setEditingId(null)
     } else {
-      alert('Błąd: ' + error.message)
+      toast('Błąd: ' + error.message, { type: 'error' })
     }
   }
 
   // Delete tag
   async function deleteTag(tagId: string) {
-    if (!confirm('Czy na pewno chcesz usunąć ten tag? Zostanie usunięty ze wszystkich posiłków.')) return
+    if (!(await confirm({ message: 'Czy na pewno chcesz usunąć ten tag? Zostanie usunięty ze wszystkich posiłków.', danger: true, confirmLabel: 'Usuń' }))) return
 
     const { error } = await supabase.from('tags').delete().eq('id', tagId)
 
     if (error) {
-      alert('Nie udało się usunąć tagu: ' + error.message)
+      toast('Nie udało się usunąć tagu: ' + error.message, { type: 'error' })
     }
   }
 
-  if (isLoading) {
-    return <div className="text-gray-500 text-sm">Ładowanie tagów...</div>
+  // Without a household there is nothing to load; do not show the skeleton forever
+  if (isLoading && household?.id) {
+    return (
+      <div role="status" aria-live="polite">
+        <span className="sr-only">Ładowanie tagów...</span>
+        <SkeletonText lines={2} />
+      </div>
+    )
   }
 
   return (
@@ -211,6 +219,7 @@ export default function TagManagement() {
                   type="text"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
+                  aria-label="Kolor tła (kod hex)"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   placeholder="#3B82F6"
                 />
@@ -232,6 +241,7 @@ export default function TagManagement() {
                   type="text"
                   value={newTagTextColor}
                   onChange={(e) => setNewTagTextColor(e.target.value)}
+                  aria-label="Kolor tekstu (kod hex)"
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   placeholder="#FFFFFF"
                 />
@@ -298,6 +308,7 @@ export default function TagManagement() {
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
+                    aria-label="Nazwa tagu"
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                   />
                   <div className="grid grid-cols-2 gap-3">
@@ -306,12 +317,14 @@ export default function TagManagement() {
                         type="color"
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
+                        aria-label="Kolor tła"
                         className="h-10 w-16 rounded border border-gray-300"
                       />
                       <input
                         type="text"
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
+                        aria-label="Kolor tła (kod hex)"
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                       />
                     </div>
@@ -320,12 +333,14 @@ export default function TagManagement() {
                         type="color"
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
+                        aria-label="Kolor tekstu"
                         className="h-10 w-16 rounded border border-gray-300"
                       />
                       <input
                         type="text"
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
+                        aria-label="Kolor tekstu (kod hex)"
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
                       />
                     </div>

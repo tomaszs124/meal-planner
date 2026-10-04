@@ -1,11 +1,8 @@
 import { createBrowserClient } from '@supabase/ssr'
-
-// Supabase configuration from environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+import { publicEnv } from '@/lib/env'
 
 // Create Supabase client for browser (uses cookies instead of localStorage)
-export const supabase = createBrowserClient(supabaseUrl, supabaseKey)
+export const supabase = createBrowserClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey)
 
 // Export TypeScript types for database tables
 export type Profile = {
@@ -50,6 +47,7 @@ export type Product = {
   kcal_per_unit: number  // Calories per 100g
   unit_type: '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'  // Preferred unit
   unit_weight_grams: number | null  // Weight of one preferred unit in grams (e.g., 1 piece = 300g)
+  package_size: number | null  // Amount in one retail package, in preferred unit (e.g., 180 for 180g tofu, 10 for 10 eggs)
   category: ProductCategory
   image_url: string | null
   protein: number | null  // Protein per 100g
@@ -111,6 +109,7 @@ export type MealPlan = {
   date: string
   meal_type: MealCategory
   is_consumed: boolean
+  is_skipped: boolean
   user_id: string
   household_id: string
   meal_id: string
@@ -186,6 +185,7 @@ export type UserSettings = {
   second_breakfast_enabled?: boolean
   lunch_enabled?: boolean
   dinner_enabled?: boolean
+  dietary_rules?: string | null  // Free-text personal rules used by the MCP assistant
   created_at: string
   updated_at: string
 }

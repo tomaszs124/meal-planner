@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 type HouseholdMember = {
   user_id: string
@@ -31,6 +32,7 @@ type CustomList = {
 
 export default function CustomLists() {
   const { user, household } = useCurrentUser()
+  const { confirm } = useFeedback()
   const [lists, setLists] = useState<CustomList[]>([])
   const [members, setMembers] = useState<HouseholdMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -140,7 +142,7 @@ export default function CustomLists() {
   }
 
   async function deleteList(listId: string) {
-    if (!confirm('Usunąć tę listę wraz ze wszystkimi pozycjami?')) return
+    if (!(await confirm({ message: 'Usunąć tę listę wraz ze wszystkimi pozycjami?', danger: true, confirmLabel: 'Usuń' }))) return
     await supabase.from('custom_lists').delete().eq('id', listId)
     setLists((prev) => prev.filter((l) => l.id !== listId))
     if (expandedListId === listId) setExpandedListId(null)
@@ -236,8 +238,9 @@ export default function CustomLists() {
       {showNewListForm && (
         <form onSubmit={createList} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nazwa listy</label>
+            <label htmlFor="new-custom-list-name" className="block text-xs font-medium text-gray-700 mb-1">Nazwa listy</label>
             <input
+              id="new-custom-list-name"
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
@@ -249,11 +252,12 @@ export default function CustomLists() {
           {members.length > 1 && (
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">Widoczna dla</label>
-              <div className="flex flex-wrap gap-3">
+              <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                 {members.map((m) => (
                   <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
+                      onClick={(e) => e.stopPropagation()}
                       checked={newListVisibleTo.includes(m.user_id)}
                       onChange={(e) => {
                         setNewListVisibleTo((prev) =>
@@ -294,34 +298,57 @@ export default function CustomLists() {
           <div key={list.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             {/* List header */}
             <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <button
-                onClick={() => setExpandedListId(isExpanded ? null : list.id)}
-                className="flex-1 flex items-center gap-2 text-left min-w-0"
-              >
-                <svg
-                  className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+              {/* The rename input must not live inside the expand <button> (invalid HTML), so while
+                  renaming the button shrinks to the chevron and the input/count are its siblings. */}
+              <div className="flex-1 flex items-center gap-2 text-left min-w-0">
                 {editingListId === list.id ? (
-                  <input
-                    type="text"
-                    value={editListName}
-                    onChange={(e) => setEditListName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') { e.preventDefault(); saveListName(list) }
-                      if (e.key === 'Escape') setEditingListId(null)
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                    className="flex-1 rounded border border-blue-400 px-2 py-0.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
-                  />
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedListId(isExpanded ? null : list.id)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? `Zwiń listę ${list.name}` : `Rozwiń listę ${list.name}`}
+                      className="flex items-center flex-shrink-0"
+                    >
+                      <svg
+                        className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    <input
+                      type="text"
+                      value={editListName}
+                      onChange={(e) => setEditListName(e.target.value)}
+                      aria-label="Nazwa listy"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); saveListName(list) }
+                        if (e.key === 'Escape') setEditingListId(null)
+                      }}
+                      autoFocus
+                      className="flex-1 rounded border border-blue-400 px-2 py-0.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+                    />
+                    <span className="text-xs text-gray-500 flex-shrink-0">{items.length} poz.</span>
+                  </>
                 ) : (
-                  <span className="font-semibold text-sm text-gray-900 truncate">{list.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedListId(isExpanded ? null : list.id)}
+                    aria-expanded={isExpanded}
+                    className="flex-1 flex items-center gap-2 text-left min-w-0"
+                  >
+                    <svg
+                      className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="font-semibold text-sm text-gray-900 truncate">{list.name}</span>
+                    <span className="text-xs text-gray-500 flex-shrink-0">{items.length} poz.</span>
+                  </button>
                 )}
-                <span className="text-xs text-gray-500 flex-shrink-0">{items.length} poz.</span>
-              </button>
+              </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 {editingListId === list.id ? (
                   <>
@@ -338,6 +365,7 @@ export default function CustomLists() {
                 )}
                 <button
                   onClick={() => deleteList(list.id)}
+                  aria-label={`Usuń listę ${list.name}`}
                   className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
                 >
                   Usuń
@@ -351,11 +379,12 @@ export default function CustomLists() {
                 {members.length > 1 && (
                   <div>
                     <p className="text-xs font-medium text-gray-600 mb-2">Widoczna dla</p>
-                    <div className="flex flex-wrap gap-3">
+                    <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                       {members.map((m) => (
                         <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                           <input
                             type="checkbox"
+                            onClick={(e) => e.stopPropagation()}
                             checked={list.visible_to.includes(m.user_id)}
                             onChange={(e) => updateVisibility(list, m.user_id, e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -375,12 +404,24 @@ export default function CustomLists() {
                     {items.map((item) => (
                       <div
                         key={item.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => toggleItem(list.id, item)}
-                        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity cursor-pointer ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
+                        onKeyDown={(e) => {
+                          // Only the row itself; keys on the nested checkbox/button keep their native behaviour
+                          if (e.target !== e.currentTarget || e.repeat) return
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            toggleItem(list.id, item)
+                          }
+                        }}
+                        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
                       >
                         <input
                           type="checkbox"
+                          onClick={(e) => e.stopPropagation()}
                           checked={item.is_checked}
+                          aria-label={item.name}
                           onChange={(e) => { e.stopPropagation(); toggleItem(list.id, item) }}
                           className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         />
@@ -395,7 +436,7 @@ export default function CustomLists() {
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteItem(list.id, item.id) }}
                           className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
-                          aria-label="Usuń pozycję"
+                          aria-label={`Usuń ${item.name}`}
                         >
                           Usuń
                         </button>
@@ -420,6 +461,7 @@ export default function CustomLists() {
                     value={newItemName[list.id] || ''}
                     onChange={(e) => setNewItemName((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Nazwa produktu"
+                    aria-label="Nazwa produktu"
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
@@ -427,6 +469,7 @@ export default function CustomLists() {
                     value={newItemQty[list.id] || ''}
                     onChange={(e) => setNewItemQty((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Ilość"
+                    aria-label="Ilość"
                     className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button

@@ -1,18 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import Image from 'next/image'
 import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
-
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
-
-function formatAmount(amount: number): string {
-  return Number(amount.toFixed(2)).toString()
-}
+import { calculateNutrition, formatAmount } from '@/lib/nutrition'
 
 type MealItem = {
   product?: Product
@@ -50,6 +43,8 @@ type MealDetailsModalProps = {
   householdId?: string
   showVariantSelector?: boolean
   initialVariantUserId?: string | null
+  /** Set to false when related controls are rendered outside the dialog (e.g. a floating footer). */
+  ariaModal?: boolean
 }
 
 function translateUnit(unitType: string): string {
@@ -74,13 +69,14 @@ export default function MealDetailsModal({
   householdId,
   showVariantSelector,
   initialVariantUserId,
+  ariaModal = true,
 }: MealDetailsModalProps) {
+  const titleId = useId()
   const [servings, setServings] = useState(1)
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
   const [selectedVariantUserId, setSelectedVariantUserId] = useState<string | null>(initialVariantUserId ?? null)
   const [activeIngredientTooltip, setActiveIngredientTooltip] = useState<number | null>(null)
   const [variantItemsByUser, setVariantItemsByUser] = useState<Record<string, VariantItem[]>>({})
-  const [variantUserIds, setVariantUserIds] = useState<string[]>([])
   const [baseItems, setBaseItems] = useState<MealItem[] | null>(null)
   const membersCacheRef = useRef<{ householdId: string | null; userId: string | null; members: HouseholdMember[] } | null>(null)
 
@@ -140,15 +136,6 @@ export default function MealDetailsModal({
           }
         })
 
-        const { data: overridesData } = await supabase
-          .from('meal_item_overrides')
-          .select('user_id')
-          .eq('meal_id', meal.id)
-          .in('user_id', userIds)
-
-        const overrideIds = (overridesData || []).map((row: { user_id: string }) => row.user_id)
-        setVariantUserIds(overrideIds)
-
         membersCacheRef.current = { householdId: householdId ?? null, userId: userId ?? null, members }
         setHouseholdMembers(members)
       } catch {
@@ -193,7 +180,6 @@ export default function MealDetailsModal({
   useEffect(() => {
     setSelectedVariantUserId(initialVariantUserId ?? null)
     setVariantItemsByUser({})
-    setVariantUserIds([])
     setBaseItems(null)
   }, [meal?.id, initialVariantUserId])
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -215,6 +201,12 @@ export default function MealDetailsModal({
 
     loadBaseItems()
   }, [meal?.id])
+
+  // Focus management + close on Escape. With ariaModal=false the related footer lives
+  // outside the dialog (MealDetailsWithActions), so Tab must be allowed to leave it.
+  const isVisible = isOpen && !!meal
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef, { active: isVisible, onEscape: onClose, trapTab: ariaModal })
 
   const selectedVariantItems = selectedVariantUserId ? variantItemsByUser[selectedVariantUserId] : undefined
 
@@ -261,18 +253,24 @@ export default function MealDetailsModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal={ariaModal ? 'true' : undefined}
+        aria-labelledby={titleId}
         className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{meal.name}</h2>
+            <h2 id={titleId} className="text-2xl font-bold text-gray-900">{meal.name}</h2>
             {meal.isUserVariant && (
               <p className="text-xs text-indigo-600 font-semibold mt-1">→ Przepis dostosowany dla Ciebie</p>
             )}
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Zamknij"
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,6 +319,7 @@ export default function MealDetailsModal({
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedVariantUserId(userId ?? null)}
+                    aria-pressed={selectedVariantUserId === (userId ?? null)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       selectedVariantUserId === (userId ?? null)
                         ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-500'
@@ -333,6 +332,7 @@ export default function MealDetailsModal({
                     <button
                       key={member.user_id}
                       onClick={() => setSelectedVariantUserId(member.user_id)}
+                      aria-pressed={selectedVariantUserId === member.user_id}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         selectedVariantUserId === member.user_id
                           ? 'bg-indigo-600 text-white ring-2 ring-offset-2 ring-indigo-500'
@@ -375,13 +375,17 @@ export default function MealDetailsModal({
                 <h3 className="text-lg font-semibold text-gray-900">Składniki</h3>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => setServings(Math.max(0.5, servings - 0.5))}
+                    aria-label="Zmniejsz liczbę porcji"
                     className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
                   >
                     -
                   </button>
                   <input
                     type="number"
+                    inputMode="decimal"
+                    aria-label="Liczba porcji"
                     value={servings}
                     onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 1))}
                     step="0.5"
@@ -389,7 +393,9 @@ export default function MealDetailsModal({
                     className="w-14 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
+                    type="button"
                     onClick={() => setServings(servings + 0.5)}
+                    aria-label="Zwiększ liczbę porcji"
                     className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
                   >
                     +
@@ -412,6 +418,7 @@ export default function MealDetailsModal({
                               onClick={() => setActiveIngredientTooltip(activeIngredientTooltip === index ? null : index)}
                               className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold leading-none"
                               aria-label="Pokaż notatkę"
+                              aria-expanded={activeIngredientTooltip === index}
                             >
                               i
                             </button>
