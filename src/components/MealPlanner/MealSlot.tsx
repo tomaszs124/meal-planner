@@ -149,7 +149,7 @@ export default function MealSlot({
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -160,7 +160,7 @@ export default function MealSlot({
                   <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <span className="truncate">Zmień</span>
+                  <span className="whitespace-nowrap">Zmień</span>
                 </button>
                 <button
                   onClick={(e) => {
@@ -176,7 +176,7 @@ export default function MealSlot({
                   <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span className="truncate">{isSkipped ? 'Pominięty' : 'Pomiń'}</span>
+                  <span className="whitespace-nowrap">{isSkipped ? 'Pominięty' : 'Pomiń'}</span>
                 </button>
                 <button
                   onClick={(e) => {
@@ -192,7 +192,7 @@ export default function MealSlot({
                   <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="truncate">{isConsumed ? 'Zjedzony' : 'Zjedz'}</span>
+                  <span className="whitespace-nowrap">{isConsumed ? 'Zjedzony' : 'Zjedz'}</span>
                 </button>
               </div>
             </div>
