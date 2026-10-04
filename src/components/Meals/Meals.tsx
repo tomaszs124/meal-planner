@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
-import { supabase, Product, MealCategory, Tag } from '@/lib/supabase/client'
+import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProducts } from '@/hooks/useProducts'
 import { useFeedback } from '@/components/ui/Feedback'
 import TagManagement from './TagManagement'
 import MealDetailsModal from '../MealPlanner/MealDetailsModal'
@@ -249,7 +250,7 @@ export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
   const { toast, confirm } = useFeedback()
   const [meals, setMeals] = useState<MealWithItems[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+  const { products } = useProducts(household?.id)
   const [tags, setTags] = useState<Tag[]>([])
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -352,26 +353,6 @@ export default function Meals() {
     return () => {
       channel.unsubscribe()
     }
-  }, [household?.id])
-
-  // Fetch products
-  useEffect(() => {
-    const householdId = household?.id
-    if (!householdId) return
-
-    async function fetchProducts() {
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .eq('household_id', householdId)
-        .order('name')
-
-      if (data) {
-        setProducts(data)
-      }
-    }
-
-    fetchProducts()
   }, [household?.id])
 
   // Fetch household members

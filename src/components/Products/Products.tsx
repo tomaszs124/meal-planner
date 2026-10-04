@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase, Product, ProductCategory, ProductCategoryRecord } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProducts } from '@/hooks/useProducts'
 import { useFeedback } from '@/components/ui/Feedback'
 
 type UnitType = '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'
@@ -22,7 +23,17 @@ const DEFAULT_CATEGORY_NAME = 'Pozostałe'
 export default function Products() {
   const { toast, confirm } = useFeedback()
   const { user, household, isLoading: userLoading } = useCurrentUser()
-  const [products, setProducts] = useState<Product[]>([])
+  const {
+    products: productsByName,
+    isLoading: productsLoading,
+    setProducts,
+    refresh: refreshProducts,
+  } = useProducts(household?.id)
+  // This tab lists the newest products first (the shared cache is sorted by name).
+  const products = useMemo(
+    () => [...productsByName].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)),
+    [productsByName]
+  )
   const [isLoading, setIsLoading] = useState(true)
   
   // Add form state
@@ -63,7 +74,7 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('')
 
-  // Fetch products and categories
+  // Fetch categories (products come from the shared useProducts cache)
   useEffect(() => {
     if (!household?.id) return
     const householdId = household.id
@@ -71,22 +82,11 @@ export default function Products() {
     async function fetchData() {
       setIsLoading(true)
 
-      const [{ data: productsData, error: productsError }, { data: categoriesData, error: categoriesError }] = await Promise.all([
-        supabase
-          .from('products')
-          .select('*')
-          .eq('household_id', householdId)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('product_categories')
-          .select('*')
-          .eq('household_id', householdId)
-          .order('name', { ascending: true }),
-      ])
-
-      if (!productsError && productsData) {
-        setProducts(productsData)
-      }
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('product_categories')
+        .select('*')
+        .eq('household_id', householdId)
+        .order('name', { ascending: true })
 
       if (!categoriesError && categoriesData) {
         setCategories(categoriesData)
@@ -103,35 +103,6 @@ export default function Products() {
     }
 
     fetchData()
-
-    // Realtime subscription (optional)
-    const channel = supabase
-      .channel('products-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products',
-          filter: `household_id=eq.${household.id}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setProducts((current) => [payload.new as Product, ...current])
-          } else if (payload.eventType === 'UPDATE') {
-            setProducts((current) =>
-              current.map((p) => (p.id === payload.new.id ? (payload.new as Product) : p))
-            )
-          } else if (payload.eventType === 'DELETE') {
-            setProducts((current) => current.filter((p) => p.id !== payload.old.id))
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      channel.unsubscribe()
-    }
   }, [household?.id])
 
   // Add new product
@@ -384,15 +355,7 @@ export default function Products() {
       setEditingId(null)
     } else {
       // Rollback on error - refetch from database
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .eq('household_id', household!.id)
-        .order('created_at', { ascending: false })
-
-      if (data) {
-        setProducts(data)
-      }
+      await refreshProducts()
     }
   }
 
@@ -413,7 +376,7 @@ export default function Products() {
     }
   }
 
-  if (userLoading || isLoading) {
+  if (userLoading || isLoading || productsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-gray-500">Ładowanie...</div>
