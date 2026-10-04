@@ -12,7 +12,75 @@ const CATEGORY_ENUM = z.enum(MEAL_CATEGORIES as [MealCategory, ...MealCategory[]
  * matching description keeps the assistant from inventing a new recipe when the
  * user means the meal that is already planned.
  */
+/** Lowercased, accent-insensitive stems (first 5 chars of words >= 3 chars) for fuzzy matching Polish inflections. */
+function stems(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/ł/g, 'l')
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 3)
+    .map((w) => w.slice(0, 5))
+}
+
 export function registerTodayTools(server: McpServer) {
+  server.registerTool(
+    'find_recipe',
+    {
+      title: 'Find a saved recipe by name (full details)',
+      description:
+        'Finds the household\'s SAVED recipes whose name or description matches the words of a query (fuzzy, tolerant to Polish inflections and hyphens, e.g. "kurczak musztardowo-miodowy") and returns them with full details: ingredients for the acting user, preparation steps (times, temperatures), tags, kcal. Use this FIRST for any question about a specific dish ("ile się piecze...", "co jest w...", "jak zrobić..."): the saved recipe is the household\'s source of truth; answer from general knowledge only when nothing matches, and say so.',
+      inputSchema: {
+        query: z.string().min(2).describe('Dish name or its key words, e.g. "kurczak musztardowo miodowy".'),
+        limit: z.number().int().min(1).max(10).optional().describe('Max results (default 3).'),
+      },
+      annotations: READ_ONLY,
+    },
+    async ({ query, limit }) =>
+      run(async () => {
+        const ctx = await loadContext()
+        const wanted = Array.from(new Set(stems(query)))
+        if (wanted.length === 0) throw new Error('query is too short')
+        const all = await loadMealsDetailed(ctx)
+        const ranked = all
+          .map((meal) => {
+            const hay = stems(`${meal.name} ${meal.description ?? ''}`)
+            const nameHay = stems(meal.name)
+            const hits = wanted.filter((w) => hay.includes(w)).length
+            const nameHits = wanted.filter((w) => nameHay.includes(w)).length
+            return { meal, score: hits + nameHits }
+          })
+          .filter((r) => r.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, limit ?? 3)
+
+        return ok({
+          query,
+          matches: ranked.map(({ meal, score }) => {
+            const variant = meal.variants.find((v) => v.user_id === ctx.actingUserId)
+            return {
+              meal_id: meal.id,
+              name: meal.name,
+              match_score: score,
+              primary_category: meal.primary_category_label,
+              tags: meal.tags.map((t) => t.name),
+              preparation: meal.description,
+              ingredients: variant?.items ?? meal.base_items,
+              totals: variant?.totals ?? meal.base_totals,
+              other_members: meal.variants
+                .filter((v) => v.user_id !== ctx.actingUserId)
+                .map((v) => ({ user_name: v.user_name, kcal: v.totals.kcal, has_own_variant: v.is_override })),
+            }
+          }),
+          hint:
+            ranked.length === 0
+              ? 'No saved recipe matches. Tell the user and only then answer from general knowledge.'
+              : 'Answer from the saved recipe (preparation field). Mention if the recipe has no preparation steps.',
+        })
+      })
+  )
+
   server.registerTool(
     'get_my_planned_meal',
     {
