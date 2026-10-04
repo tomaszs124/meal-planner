@@ -26,9 +26,18 @@ co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 
 - [x] **P1 Jedno źródło prawdy dla obliczeń odżywczych** (branch `chore/optimizations`): `calculateNutrition` jest skopiowana w 6 plikach (`MealDetailsModal`, `MealPickerModal`, `MealPlanner`, `MealSlot`, `Meals`, `MealsWithOverrides`) i siódmy raz w `src/lib/mcp/nutrition.ts`. Docelowo `src/lib/nutrition.ts` importowana wszędzie, z testami.
 - [x] **P1 Martwy kod**: `src/components/Meals/MealsWithOverrides.tsx` i `src/components/ShoppingList/ShoppingList.tsx` nie są nigdzie importowane. Strona `src/app/debug/page.tsx` wystawia surowe dane użytkownika i gospodarstwa; w produkcji nie powinna istnieć (albo tylko w `NODE_ENV=development`).
-- [ ] **P2 Rozmiar komponentów**: `Meals.tsx` 2317 linii, `ShoppingListEnhanced.tsx` 1668, `MealPlanner.tsx` 1040, `Products.tsx` 999. Każdy trzyma pobieranie danych, formularze i widok. Docelowo: hooki danych (`useMeals`, `useShoppingList`, `useMealPlan`) + komponenty prezentacyjne (formularz posiłku, karta posiłku, grupa zakupów). Robić dopiero po dodaniu testów logiki, inaczej refaktor jest ślepy.
+- [x] **P2 Rozmiar komponentów**: zrobione dla `Meals.tsx` (2230 → 197 linii, 14 modułów, jeden formularz add/edit), `ShoppingListEnhanced.tsx` (1595 → 231, 11 modułów), `MealPlanner.tsx` (973 → 170, hook `useMealPlan` + `src/lib/plan.ts` z 18 testami). `Products.tsx` w trakcie. Refaktor był przenoszeniem kodu, nie przepisywaniem; **wymaga przeklikania w przeglądarce** (lista w sekcji "Do sprawdzenia ręcznie" poniżej).
 - [x] **P2 Typy `any`**: `src/middleware.ts` (2 błędy lintu), `src/app/debug/page.tsx` (4). Lint (`npm run lint`) obecnie nie przechodzi na czysto.
-- [ ] **P3 Pozostałe `console.log`** w kodzie produkcyjnym (5 miejsc), do usunięcia lub zamiany na logger.
+- [x] **P3 Pozostałe `console.log`** usunięte (5 miejsc); `console.error` zostaje do czasu wdrożenia loggera/Sentry.
+
+### Do sprawdzenia ręcznie po refaktorach (brak dostępu do zalogowanej sesji w tej pracy)
+
+- [ ] Posiłki: dodanie posiłku ze zdjęciem, tagami i wariantem domownika; edycja (podmiana zdjęcia, usunięcie wariantu); usunięcie z potwierdzeniem; filtry i akordeon kategorii; realtime tagów.
+- [ ] Planer: wybór posiłku do slotu (modal dostaje posiłki z planera, bez własnego zapytania), losowanie, zjedzone/pominięte, duplikuj z wczoraj, kopiuj od domownika, wyślij domownikowi, pasek postępu tygodnia.
+- [ ] Lista zakupów: generowanie z planu (dialog "Wyczyść/Zachowaj"), odhaczanie, szybkie klikanie +/− porcji, usuwanie dania, widok wg kategorii i wg dania, odświeżanie realtime na dwóch urządzeniach, listy własne.
+- [ ] Produkty: dodanie/edycja/usunięcie z rollbackiem, kategorie, cache między zakładkami (Posiłki widzą nowy produkt bez odświeżania).
+- [ ] Toasty i modal potwierdzenia na telefonie (pozycja nad dolną nawigacją, Escape, klik w tło).
+- [ ] PWA: "Dodaj do ekranu głównego" na Androidzie/iOS, ikona, kolor paska.
 
 ## C. Baza danych i typy
 
