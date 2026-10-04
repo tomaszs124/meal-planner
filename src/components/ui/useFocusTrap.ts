@@ -56,10 +56,15 @@ const trapStack: object[] = []
 // Reference-counted body scroll lock shared by all traps
 let scrollLockCount = 0
 let savedBodyOverflow = ''
+let savedBodyPaddingRight = ''
 
 function lockBodyScroll() {
   if (scrollLockCount === 0) {
     savedBodyOverflow = document.body.style.overflow
+    savedBodyPaddingRight = document.body.style.paddingRight
+    // Compensate for the disappearing scrollbar so the page does not shift on desktop
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`
     document.body.style.overflow = 'hidden'
   }
   scrollLockCount++
@@ -69,6 +74,7 @@ function unlockBodyScroll() {
   scrollLockCount = Math.max(0, scrollLockCount - 1)
   if (scrollLockCount === 0) {
     document.body.style.overflow = savedBodyOverflow
+    document.body.style.paddingRight = savedBodyPaddingRight
   }
 }
 

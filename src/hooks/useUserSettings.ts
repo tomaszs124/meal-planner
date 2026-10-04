@@ -5,6 +5,7 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 import { supabase, UserSettings } from '@/lib/supabase/client'
 import {
   NO_ROWS_ERROR_CODE,
+  UNIQUE_VIOLATION_CODE,
   applySettingsEvent,
   buildSaveRow,
   defaultSettingsRow,
@@ -80,6 +81,17 @@ async function createDefaultSettings(
     .insert([defaultSettingsRow(userId)])
     .select()
     .single()
+
+  if (error?.code === UNIQUE_VIOLATION_CODE) {
+    // Another tab/device created the row in the meantime: read it instead of failing
+    const { data: existing, error: selectError } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+    if (!selectError && existing) return { settings: existing as UserSettings, error: null }
+    return { settings: null, error: selectError?.message ?? 'Failed to load settings' }
+  }
 
   if (error || !data) return { settings: null, error: error?.message ?? 'Failed to create settings' }
   return { settings: data as UserSettings, error: null }
@@ -209,11 +221,13 @@ async function saveSettings(userId: string, patch: UserSettingsPatch): Promise<b
   }
   const optimisticVersion = entry.version
 
-  const result = previous
-    ? // Update the existing settings
-      await supabase.from('user_settings').update(row).eq('user_id', userId).select().single()
-    : // Create new settings
-      await supabase.from('user_settings').insert(row).select().single()
+  // Upsert on user_id: works whether the row exists, was created by another tab in the
+  // meantime, or is missing (no insert-vs-update race, no unique violation).
+  const result = await supabase
+    .from('user_settings')
+    .upsert({ ...row, user_id: userId }, { onConflict: 'user_id' })
+    .select()
+    .single()
 
   if (result.error || !result.data) {
     console.error(result.error)

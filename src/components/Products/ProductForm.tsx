@@ -149,7 +149,8 @@ export default function ProductForm(props: ProductFormProps) {
           <div className="flex items-end">
             <button
               type="submit"
-              disabled={isSubmitting || categories.length === 0 || !isProductFormValid(values)}
+              disabled={isSubmitting || categories.length === 0}
+              aria-disabled={!isProductFormValid(values) || undefined}
               className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? 'Dodawanie...' : 'Dodaj produkt'}

@@ -10,7 +10,7 @@ import { useFeedback } from '@/components/ui/Feedback'
 
 export default function UserSettingsForm() {
   const { user, isLoading: userLoading } = useCurrentUser()
-  const { settings, isLoading, save } = useUserSettings(user?.id)
+  const { settings, isLoading, error, save, refresh } = useUserSettings(user?.id)
 
   if (userLoading || isLoading) {
     return (
@@ -31,8 +31,24 @@ export default function UserSettingsForm() {
     )
   }
 
-  // Keyed by user so the form fields are initialised once from the loaded settings.
-  return <UserSettingsFields key={user.id} settings={settings} save={save} />
+  if (error && !settings) {
+    return (
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700 space-y-3">
+        <p>Nie udało się wczytać ustawień. Sprawdź połączenie i spróbuj ponownie.</p>
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+        >
+          Spróbuj ponownie
+        </button>
+      </div>
+    )
+  }
+
+  // Keyed by user and row version so the fields re-initialise when fresher settings
+  // arrive (e.g. changed on another device while this tab was elsewhere).
+  return <UserSettingsFields key={`${user.id}:${settings?.updated_at ?? 'new'}`} settings={settings} save={save} />
 }
 
 type UserSettingsFieldsProps = {

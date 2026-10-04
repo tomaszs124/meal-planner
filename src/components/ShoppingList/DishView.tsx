@@ -88,7 +88,7 @@ export default function DishView({
             >
               <input
                 type="checkbox"
-        onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 checked={groupedItem.allChecked}
                 aria-label={groupedItem.name}
                 onChange={(e) => {

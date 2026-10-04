@@ -171,8 +171,8 @@ export type CategoryGroup = {
  * Category view grouping: product categories sorted alphabetically ('pl' locale),
  * followed by the uncategorized bucket (UNCATEGORIZED_LABEL) holding custom items
  * (no product). Items inside each category are aggregated with groupItems.
- * Empty categories are omitted. Note: items whose product has no category
- * match neither a named category nor the uncategorized bucket.
+ * Empty categories are omitted. Products with an empty category, or whose category
+ * equals UNCATEGORIZED_LABEL, share the uncategorized bucket with custom items.
  */
 export function groupByCategory(items: ShoppingListItemWithProduct[]): CategoryGroup[] {
   // Products whose category is empty or equals the "uncategorized" label share one

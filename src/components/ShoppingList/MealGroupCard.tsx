@@ -197,7 +197,7 @@ export default function MealGroupCard({
             >
               <input
                 type="checkbox"
-        onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 checked={item.is_checked}
                 aria-label={item.name ?? undefined}
                 onChange={(e) => {
