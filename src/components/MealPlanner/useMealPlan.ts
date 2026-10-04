@@ -451,7 +451,6 @@ export function useMealPlan() {
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
-    console.log('Saving meal:', { category, mealId: meal.id, date: dateStr })
 
     // Check if meal already planned for this category
     const existing = plannedMeals.find((p) => p.meal_type === category)
@@ -469,7 +468,6 @@ export function useMealPlan() {
         return
       }
 
-      console.log('Meal plan updated successfully')
 
       setPlannedMeals((current) =>
         current.map((p) =>
@@ -496,7 +494,6 @@ export function useMealPlan() {
         return
       }
 
-      console.log('Meal plan inserted successfully:', data)
 
       if (data) {
         setPlannedMeals((current) => [

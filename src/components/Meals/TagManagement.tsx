@@ -68,7 +68,6 @@ export default function TagManagement() {
           filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
-          console.log('Tags realtime event in TagManagement:', payload.eventType, payload)
           if (payload.eventType === 'INSERT') {
             setTags((current) => [...current, payload.new as Tag].sort((a, b) => a.name.localeCompare(b.name)))
           } else if (payload.eventType === 'UPDATE') {

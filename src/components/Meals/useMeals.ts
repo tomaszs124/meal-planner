@@ -74,7 +74,6 @@ export function useMeals(householdId: string | undefined, userId: string | undef
           filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
-          console.log('Tags realtime event in Meals:', payload.eventType, payload)
           if (payload.eventType === 'INSERT') {
             setTags((current) => [...current, payload.new as Tag].sort((a, b) => a.name.localeCompare(b.name)))
           } else if (payload.eventType === 'UPDATE') {
