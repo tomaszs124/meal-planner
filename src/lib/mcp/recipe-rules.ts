@@ -24,6 +24,11 @@ export const RECIPE_RULES = `# Zasady tworzenia i edycji przepisów (wersja ${RE
 - Produkty luzem (warzywa na wagę, przyprawy, oliwa) nie podlegają zasadzie opakowania; tam liczy się sensowna gramatura i kalorie.
 - Narzędzie \`preview_meal_nutrition\` zwraca \`household_totals\` ze statusem \`ok\` / \`off\` / \`unknown_package\` dla każdego składnika. Status \`off\` oznacza, że trzeba skorygować ilości (pole \`nearest_clean_amount\` podpowiada najbliższą czystą wartość).
 
+## 1a. Zasady osobiste domowników
+- Każdy domownik może wpisać w Ustawieniach własne zasady (np. "na śniadanie maks 2 jajka", "bez laktozy"). Dostajesz je na końcu tego dokumentu i w \`get_household\` (pole \`dietary_rules\`).
+- Zasady osobiste mają pierwszeństwo przed ogólnymi widełkami z punktu 2 dla wariantu tej osoby. Jeśli zasady dwóch osób są sprzeczne, zrób osobne warianty przez \`member_variants\`.
+- Gdy użytkownik prosi "zapamiętaj, że...", zapisz to przez \`set_my_dietary_rules\` (pełna, zaktualizowana lista), nie tylko w rozmowie.
+
 ## 2. Kaloryczność
 - Każdy domownik ma własny wariant ilości (mechanizm \`member_variants\`). Bazowy przepis (\`items\`) jest wariantem osoby "ja"; drugiemu domownikowi przypisuj własne ilości, jeśli różnią się od bazowych.
 - Docelowe widełki kcal na posiłek na osobę:
