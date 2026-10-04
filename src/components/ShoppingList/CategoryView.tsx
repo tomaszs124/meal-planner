@@ -1,7 +1,7 @@
 'use client'
 
 import type { GroupedItem, ShoppingListItemWithProduct, ShoppingListMeal } from './types'
-import { UNCATEGORIZED_LABEL, groupItems } from './shoppingListUtils'
+import { groupByCategory } from './shoppingListUtils'
 import GroupedItemRow from './GroupedItemRow'
 
 /**
@@ -32,31 +32,7 @@ export default function CategoryView({
 }) {
   return (
     <>
-      {[
-        ...Array.from(
-          new Set(
-            items
-              .map((item) => item.product?.category)
-              .filter((category): category is string => Boolean(category))
-          )
-        )
-          .sort((a, b) => a.localeCompare(b, 'pl'))
-          .map((category) => ({ key: category, label: category, category })),
-        { key: '__uncategorized__', label: UNCATEGORIZED_LABEL, category: null as string | null },
-      ].map(({ key, label, category }) => {
-        const categoryItems = items.filter(item => {
-          // For items with product, check product.category
-          if (item.product) {
-            return category !== null && item.product.category === category
-          }
-          // For custom items (no product), show in uncategorized bucket
-          return category === null
-        })
-
-        if (categoryItems.length === 0) return null
-
-        const groupedCategoryItems = groupItems(categoryItems)
-
+      {groupByCategory(items).map(({ key, label, groupedItems: groupedCategoryItems }) => {
         return (
           <div key={key} className="space-y-2">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
