@@ -34,6 +34,8 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   const initializedRef = useRef(false)
   const mountedRef = useRef(false)
   const userRef = useRef<User | null>(null)
+  // Mirrors `household` for effects that must not re-run on every state change
+  const householdRef = useRef<Household | null>(null)
   // Incremented on every household lookup / sign-out so a slow response for a
   // previous user can never overwrite newer state.
   const requestIdRef = useRef(0)
@@ -70,7 +72,8 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
         const nextHousehold = Array.isArray(householdsValue)
           ? householdsValue[0] || null
           : householdsValue || null
-        setHousehold(nextHousehold as Household | null)
+        householdRef.current = nextHousehold as Household | null
+        setHousehold(householdRef.current)
         setIsLoading(false)
       }
     } catch (err) {
@@ -83,6 +86,13 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
 
   const applySignedIn = useCallback((nextUser: User) => {
     initializedRef.current = true
+    if (userRef.current?.id !== nextUser.id) {
+      // New or different user: hide pages until the household is known, otherwise the
+      // dashboard briefly renders "Nie zalogowano" / "dołącz do gospodarstwa" right after login.
+      setIsLoading(true)
+      householdRef.current = null
+      setHousehold(null)
+    }
     userRef.current = nextUser
     setUser(nextUser)
     void fetchHousehold(nextUser)
@@ -101,6 +111,7 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
         // Only clear state on an explicit sign-out, never on a transient null session
         initializedRef.current = true
         userRef.current = null
+        householdRef.current = null
         requestIdRef.current++ // drop any in-flight household lookup
         setUser(null)
         setHousehold(null)
@@ -143,7 +154,13 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (pathname === lastPathnameRef.current) return
     lastPathnameRef.current = pathname
-    if (userRef.current) return
+
+    if (userRef.current) {
+      // Known user but no household (transient error at startup, or the user was just
+      // added to a household): retry on navigation so the app can recover without a reload.
+      if (!householdRef.current) void fetchHousehold(userRef.current)
+      return
+    }
 
     let cancelled = false
     void supabase.auth.getSession().then(({ data: { session } }) => {
@@ -155,7 +172,7 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [pathname, applySignedIn])
+  }, [pathname, applySignedIn, fetchHousehold])
 
   const refreshHousehold = useCallback(async () => {
     const currentUser = userRef.current
