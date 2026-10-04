@@ -91,7 +91,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - manifest / icons / public assets
      * - api/mcp (MCP connector endpoint, authenticated by its own token)
+     * - sw.js (service worker script; must never be redirected to /login)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon-|api/mcp|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
