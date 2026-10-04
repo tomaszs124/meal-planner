@@ -1,350 +1,104 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { supabase, Product, ProductCategory, ProductCategoryRecord } from '@/lib/supabase/client'
+import { useMemo, useState } from 'react'
+import { supabase, Product } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProducts } from '@/hooks/useProducts'
 import { useFeedback } from '@/components/ui/Feedback'
-
-type UnitType = '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'
-
-const UNITS: { value: UnitType; label: string }[] = [
-  { value: '100g', label: 'g' },
-  { value: 'piece', label: 'Sztuka' },
-  { value: 'tablespoon', label: 'Łyżka' },
-  { value: 'teaspoon', label: 'Łyżeczka' },
-  { value: 'leaf', label: 'Liść' },
-  { value: 'cube', label: 'Kostka' },
-  { value: 'slice', label: 'Plaster' },
-]
-
-const DEFAULT_CATEGORY_NAME = 'Pozostałe'
+import CategoryManager from './CategoryManager'
+import ProductForm from './ProductForm'
+import ProductList from './ProductList'
+import { useProductCategories } from './useProductCategories'
+import { emptyProductForm, getDefaultCategoryName, isProductFormValid, productToFormValues, toProductPayload } from './productFormHelpers'
+import type { ProductFormValues } from './productFormHelpers'
 
 export default function Products() {
   const { toast, confirm } = useFeedback()
   const { user, household, isLoading: userLoading } = useCurrentUser()
-  const {
-    products: productsByName,
-    isLoading: productsLoading,
-    setProducts,
-    refresh: refreshProducts,
-  } = useProducts(household?.id)
+  const { products: productsByName, isLoading: productsLoading, setProducts, refresh: refreshProducts } = useProducts(household?.id)
   // This tab lists the newest products first (the shared cache is sorted by name).
   const products = useMemo(
     () => [...productsByName].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)),
     [productsByName]
   )
-  const [isLoading, setIsLoading] = useState(true)
-  
-  // Add form state
-  const [newName, setNewName] = useState('')
-  const [newKcal, setNewKcal] = useState('')
-  const [newUnit, setNewUnit] = useState<UnitType>('100g')
-  const [newUnitWeight, setNewUnitWeight] = useState('1')
-  const [newCategory, setNewCategory] = useState<ProductCategory>('')
-  const [newProtein, setNewProtein] = useState('')
-  const [newFat, setNewFat] = useState('')
-  const [newCarbs, setNewCarbs] = useState('')
-  const [newNotes, setNewNotes] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
 
-  // Categories state
-  const [categories, setCategories] = useState<ProductCategoryRecord[]>([])
-  const [newCategoryName, setNewCategoryName] = useState('')
-  const [isAddingCategory, setIsAddingCategory] = useState(false)
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
-  const [editingCategoryName, setEditingCategoryName] = useState('')
-  
+  // Add form state
+  const [newForm, setNewForm] = useState<ProductFormValues>(() => emptyProductForm())
+  const [isAdding, setIsAdding] = useState(false)
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
-  const [editKcal, setEditKcal] = useState('')
-  const [editUnit, setEditUnit] = useState<UnitType>('100g')
-  const [editUnitWeight, setEditUnitWeight] = useState('1')
-  const [editCategory, setEditCategory] = useState<ProductCategory>('')
-  const [editProtein, setEditProtein] = useState('')
-  const [editFat, setEditFat] = useState('')
-  const [editCarbs, setEditCarbs] = useState('')
-  const [editNotes, setEditNotes] = useState('')
-
-  // Tooltip state
+  const [editForm, setEditForm] = useState<ProductFormValues>(() => emptyProductForm())
   const [activeTooltipId, setActiveTooltipId] = useState<string | null>(null)
-
   // Filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('')
 
-  // Fetch categories (products come from the shared useProducts cache)
-  useEffect(() => {
-    if (!household?.id) return
-    const householdId = household.id
-
-    async function fetchData() {
-      setIsLoading(true)
-
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('product_categories')
-        .select('*')
-        .eq('household_id', householdId)
-        .order('name', { ascending: true })
-
-      if (!categoriesError && categoriesData) {
-        setCategories(categoriesData)
-
-        if (categoriesData.length > 0) {
-          const fallback = categoriesData.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || categoriesData[0].name
-          setNewCategory((current) =>
-            current && categoriesData.some((c) => c.name === current) ? current : fallback
-          )
-        }
-      }
-
-      setIsLoading(false)
-    }
-
-    fetchData()
-  }, [household?.id])
+  // Keep the category selected in the add/edit forms valid when categories change.
+  const setFormCategory = (name: string) => (f: ProductFormValues) => ({ ...f, category: name })
+  const { categories, isLoading, isAddingCategory, addCategory, renameCategory, deleteCategory } = useProductCategories({
+    householdId: household?.id,
+    userId: user?.id,
+    products,
+    setProducts,
+    toast,
+    confirm,
+    onLoaded: (loaded) => {
+      if (loaded.length === 0) return
+      const fallback = getDefaultCategoryName(loaded)
+      setNewForm((current) =>
+        current.category && loaded.some((c) => c.name === current.category) ? current : { ...current, category: fallback }
+      )
+    },
+    onAdded: (name) => setNewForm((current) => (current.category ? current : { ...current, category: name })),
+    onRenamed: (previousName, name) => {
+      if (newForm.category === previousName) setNewForm(setFormCategory(name))
+      if (editForm.category === previousName) setEditForm(setFormCategory(name))
+    },
+    onDeleted: (name, remaining) => {
+      if (newForm.category === name) setNewForm(setFormCategory(getDefaultCategoryName(remaining)))
+      if (editForm.category === name) setEditForm(setFormCategory(getDefaultCategoryName(remaining)))
+    },
+  })
 
   // Add new product
   async function addProduct(e: React.FormEvent) {
     e.preventDefault()
-    if (!household?.id || !user?.id || !newName.trim() || !newKcal || !newUnitWeight || !newCategory) return
+    if (!household?.id || !user?.id || !isProductFormValid(newForm)) return
 
     setIsAdding(true)
 
     const { data, error } = await supabase.from('products').insert({
       household_id: household.id,
-      name: newName.trim(),
-      kcal_per_unit: parseFloat(newKcal),
-      unit_type: newUnit,
-      unit_weight_grams: parseFloat(newUnitWeight),
-      category: newCategory,
-      protein: newProtein ? parseFloat(newProtein) : null,
-      fat: newFat ? parseFloat(newFat) : null,
-      carbs: newCarbs ? parseFloat(newCarbs) : null,
-      notes: newNotes.trim() || null,
+      ...toProductPayload(newForm),
       created_by: user.id,
     }).select().single()
 
     if (!error && data) {
       // Add to list immediately (optimistic update)
       setProducts((current) => [data as Product, ...current])
-      setNewName('')
-      setNewKcal('')
-      setNewUnit('100g')
-      setNewUnitWeight('1')
-      const fallback = categories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || categories[0]?.name || ''
-      setNewCategory(fallback)
-      setNewProtein('')
-      setNewFat('')
-      setNewCarbs('')
-      setNewNotes('')
+      setNewForm(emptyProductForm(getDefaultCategoryName(categories)))
     }
 
     setIsAdding(false)
   }
 
-  async function addCategory(e: React.FormEvent) {
-    e.preventDefault()
-    if (!household?.id || !user?.id || !newCategoryName.trim()) return
-
-    const normalizedName = newCategoryName.trim()
-    const isDuplicate = categories.some((category) => category.name.toLowerCase() === normalizedName.toLowerCase())
-    if (isDuplicate) {
-      toast('Kategoria o tej nazwie już istnieje', { type: 'error' })
-      return
-    }
-
-    setIsAddingCategory(true)
-
-    const { data, error } = await supabase
-      .from('product_categories')
-      .insert({
-        household_id: household.id,
-        name: normalizedName,
-        created_by: user.id,
-      })
-      .select('*')
-      .single()
-
-    if (error || !data) {
-      toast('Nie udało się dodać kategorii', { type: 'error' })
-      setIsAddingCategory(false)
-      return
-    }
-
-    setCategories((current) => [...current, data as ProductCategoryRecord].sort((a, b) => a.name.localeCompare(b.name, 'pl')))
-    setNewCategory((current) => current || normalizedName)
-    setNewCategoryName('')
-    setIsAddingCategory(false)
-  }
-
-  function startCategoryEdit(category: ProductCategoryRecord) {
-    setEditingCategoryId(category.id)
-    setEditingCategoryName(category.name)
-  }
-
-  function cancelCategoryEdit() {
-    setEditingCategoryId(null)
-    setEditingCategoryName('')
-  }
-
-  async function saveCategoryEdit(category: ProductCategoryRecord) {
-    const normalizedName = editingCategoryName.trim()
-    if (!normalizedName) return
-    if (!household?.id) return
-
-    const isDuplicate = categories.some(
-      (currentCategory) =>
-        currentCategory.id !== category.id && currentCategory.name.toLowerCase() === normalizedName.toLowerCase()
-    )
-    if (isDuplicate) {
-      toast('Kategoria o tej nazwie już istnieje', { type: 'error' })
-      return
-    }
-
-    const previousName = category.name
-
-    const { error: productsUpdateError } = await supabase
-      .from('products')
-      .update({ category: normalizedName })
-      .eq('household_id', household.id)
-      .eq('category', previousName)
-
-    if (productsUpdateError) {
-      toast('Nie udało się zaktualizować produktów dla tej kategorii', { type: 'error' })
-      return
-    }
-
-    const { error: categoryUpdateError } = await supabase
-      .from('product_categories')
-      .update({ name: normalizedName })
-      .eq('id', category.id)
-
-    if (categoryUpdateError) {
-      toast('Nie udało się zaktualizować kategorii', { type: 'error' })
-      return
-    }
-
-    setCategories((current) =>
-      current
-        .map((currentCategory) =>
-          currentCategory.id === category.id ? { ...currentCategory, name: normalizedName } : currentCategory
-        )
-        .sort((a, b) => a.name.localeCompare(b.name, 'pl'))
-    )
-
-    setProducts((current) =>
-      current.map((product) =>
-        product.category === previousName ? { ...product, category: normalizedName } : product
-      )
-    )
-
-    if (newCategory === previousName) {
-      setNewCategory(normalizedName)
-    }
-    if (editCategory === previousName) {
-      setEditCategory(normalizedName)
-    }
-
-    cancelCategoryEdit()
-  }
-
-  async function deleteCategory(category: ProductCategoryRecord) {
-    if (!(await confirm({ message: `Usunąć kategorię "${category.name}"?`, danger: true, confirmLabel: 'Usuń' }))) return
-
-    const isUsedByProducts = products.some((product) => product.category === category.name)
-    if (isUsedByProducts) {
-      toast('Nie można usunąć kategorii, która jest przypisana do produktów', { type: 'error' })
-      return
-    }
-
-    const { error } = await supabase
-      .from('product_categories')
-      .delete()
-      .eq('id', category.id)
-
-    if (error) {
-      toast('Nie udało się usunąć kategorii', { type: 'error' })
-      return
-    }
-
-    const remainingCategories = categories.filter((currentCategory) => currentCategory.id !== category.id)
-    setCategories(remainingCategories)
-
-    if (newCategory === category.name) {
-      const fallback = remainingCategories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || remainingCategories[0]?.name || ''
-      setNewCategory(fallback)
-    }
-
-    if (editCategory === category.name) {
-      const fallback = remainingCategories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || remainingCategories[0]?.name || ''
-      setEditCategory(fallback)
-    }
-
-    if (editingCategoryId === category.id) {
-      cancelCategoryEdit()
-    }
-  }
-
-  // Start editing
   function startEdit(product: Product) {
     setEditingId(product.id)
-    setEditName(product.name)
-    setEditKcal(product.kcal_per_unit.toString())
-    setEditUnit(product.unit_type as UnitType)
-    // Set default weight based on unit type if not provided
-    const defaultWeight = product.unit_type === '100g' ? '1' 
-      : product.unit_type === 'tablespoon' ? '15'
-      : product.unit_type === 'teaspoon' ? '5'
-      : product.unit_type === 'leaf' ? '2'
-      : product.unit_type === 'cube' ? '10'
-      : product.unit_type === 'slice' ? '30'
-      : '100'
-    setEditUnitWeight(product.unit_weight_grams?.toString() || defaultWeight)
-    setEditCategory(product.category)
-    setEditProtein(product.protein?.toString() || '')
-    setEditFat(product.fat?.toString() || '')
-    setEditCarbs(product.carbs?.toString() || '')
-    setEditNotes(product.notes || '')
+    setEditForm(productToFormValues(product))
   }
 
-  // Cancel editing
   function cancelEdit() {
     setEditingId(null)
-    setEditName('')
-    setEditKcal('')
-    setEditUnit('100g')
-    setEditUnitWeight('1')
-    setEditCategory(categories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || categories[0]?.name || '')
-    setEditProtein('')
-    setEditFat('')
-    setEditCarbs('')
-    setEditNotes('')
+    setEditForm(emptyProductForm(getDefaultCategoryName(categories)))
   }
 
-  // Save edit
   async function saveEdit(productId: string) {
-    if (!editName.trim() || !editKcal || !editUnitWeight || !editCategory) return
+    if (!isProductFormValid(editForm)) return
 
     // Optimistic update - update list immediately
-    const updatedProduct = {
-      name: editName.trim(),
-      kcal_per_unit: parseFloat(editKcal),
-      unit_type: editUnit,
-      unit_weight_grams: parseFloat(editUnitWeight),
-      category: editCategory,
-      protein: editProtein ? parseFloat(editProtein) : null,
-      fat: editFat ? parseFloat(editFat) : null,
-      carbs: editCarbs ? parseFloat(editCarbs) : null,
-      notes: editNotes.trim() || null,
-    }
+    const updatedProduct = toProductPayload(editForm)
 
-    setProducts((current) =>
-      current.map((p) =>
-        p.id === productId ? { ...p, ...updatedProduct } : p
-      )
-    )
+    setProducts((current) => current.map((p) => (p.id === productId ? { ...p, ...updatedProduct } : p)))
 
     const { error } = await supabase
       .from('products')
@@ -359,7 +113,6 @@ export default function Products() {
     }
   }
 
-  // Delete product
   async function deleteProduct(productId: string) {
     if (!(await confirm({ message: 'Czy na pewno chcesz usunąć ten produkt?', danger: true, confirmLabel: 'Usuń' }))) return
 
@@ -400,509 +153,40 @@ export default function Products() {
         <p className="text-sm text-gray-500 mt-1">Zarządzaj bazą produktów spożywczych</p>
       </div>
 
-      {/* Categories management */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Kategorie produktów</h3>
-          <p className="text-xs text-gray-500 mt-1">Nazwy kategorii, które przypisujesz produktom</p>
-        </div>
+      <CategoryManager
+        categories={categories}
+        isAddingCategory={isAddingCategory}
+        onAdd={addCategory}
+        onRename={renameCategory}
+        onDelete={deleteCategory}
+      />
 
-        <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder="Np. Przyprawy"
-            disabled={isAddingCategory}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-          />
-          <button
-            type="submit"
-            disabled={isAddingCategory || !newCategoryName.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {isAddingCategory ? 'Dodawanie...' : 'Dodaj kategorię'}
-          </button>
-        </form>
+      <ProductForm
+        mode="add"
+        values={newForm}
+        onChange={(patch) => setNewForm((current) => ({ ...current, ...patch }))}
+        categories={categories}
+        isSubmitting={isAdding}
+        onSubmit={addProduct}
+      />
 
-        {categories.length === 0 ? (
-          <p className="text-sm text-gray-500">Brak kategorii. Dodaj pierwszą kategorię.</p>
-        ) : (
-          <div className="space-y-2">
-            {categories.map((category) => (
-              <div key={category.id} className="flex items-center gap-2">
-                {editingCategoryId === category.id ? (
-                  <>
-                    <input
-                      type="text"
-                      value={editingCategoryName}
-                      onChange={(e) => setEditingCategoryName(e.target.value)}
-                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => saveCategoryEdit(category)}
-                      className="rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-                    >
-                      Zapisz
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelCategoryEdit}
-                      className="rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
-                    >
-                      Anuluj
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex-1 text-sm text-gray-800">{category.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => startCategoryEdit(category)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
-                    >
-                      Edytuj
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteCategory(category)}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition-colors"
-                    >
-                      Usuń
-                    </button>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Add new product form */}
-      <form onSubmit={addProduct} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Dodaj nowy produkt</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div>
-            <label htmlFor="product-name" className="block text-sm font-medium text-gray-700 mb-1">
-              Nazwa produktu
-            </label>
-            <input
-              id="product-name"
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nazwa produktu"
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="product-kcal" className="block text-sm font-medium text-gray-700 mb-1">
-              Kalorie (kcal)
-            </label>
-            <input
-              id="product-kcal"
-              type="number"
-              step="0.01"
-              value={newKcal}
-              onChange={(e) => setNewKcal(e.target.value)}
-              placeholder="Kalorie"
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="product-protein" className="block text-sm font-medium text-gray-700 mb-1">
-              Białko (g)
-            </label>
-            <input
-              id="product-protein"
-              type="number"
-              step="0.01"
-              value={newProtein}
-              onChange={(e) => setNewProtein(e.target.value)}
-              placeholder="Białko"
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            />
-          </div>
-          <div>
-            <label htmlFor="product-fat" className="block text-sm font-medium text-gray-700 mb-1">
-              Tłuszcz (g)
-            </label>
-            <input
-              id="product-fat"
-              type="number"
-              step="0.01"
-              value={newFat}
-              onChange={(e) => setNewFat(e.target.value)}
-              placeholder="Tłuszcz"
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            />
-          </div>
-          <div>
-            <label htmlFor="product-carbs" className="block text-sm font-medium text-gray-700 mb-1">
-              Węglowodany (g)
-            </label>
-            <input
-              id="product-carbs"
-              type="number"
-              step="0.01"
-              value={newCarbs}
-              onChange={(e) => setNewCarbs(e.target.value)}
-              placeholder="Węglowodany"
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3">
-          <div>
-            <label htmlFor="product-unit" className="block text-sm font-medium text-gray-700 mb-1">
-              Preferowana jednostka
-            </label>
-            <select
-              id="product-unit"
-              value={newUnit}
-              onChange={(e) => {
-                const unit = e.target.value as UnitType
-                setNewUnit(unit)
-                // Auto-set default weight based on unit
-                if (unit === '100g') setNewUnitWeight('1')
-                else if (unit === 'tablespoon') setNewUnitWeight('15')
-                else if (unit === 'teaspoon') setNewUnitWeight('5')
-                else if (unit === 'leaf') setNewUnitWeight('2')
-                else if (unit === 'cube') setNewUnitWeight('10')
-                else if (unit === 'slice') setNewUnitWeight('30')
-                else if (unit === 'piece') setNewUnitWeight('100')
-              }}
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            >
-              {UNITS.map((unit) => (
-                <option key={unit.value} value={unit.value}>
-                  {unit.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="product-unit-weight" className="block text-sm font-medium text-gray-700 mb-1">
-              Waga jednostki (g)
-            </label>
-            <input
-              id="product-unit-weight"
-              type="number"
-              step="0.01"
-              value={newUnitWeight}
-              onChange={(e) => setNewUnitWeight(e.target.value)}
-              placeholder={newUnit === '100g' ? '1 (dla gramów)' : newUnit === 'piece' ? 'np. 300 dla sztuki' : newUnit === 'tablespoon' ? '15' : newUnit === 'teaspoon' ? '5' : newUnit === 'leaf' ? '2' : newUnit === 'cube' ? '10' : newUnit === 'slice' ? '30' : ''}
-              disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="product-category" className="block text-sm font-medium text-gray-700 mb-1">
-              Kategoria
-            </label>
-            <select
-              id="product-category"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              disabled={isAdding || categories.length === 0}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={isAdding || !newName.trim() || !newKcal || categories.length === 0 || !newCategory}
-              className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isAdding ? 'Dodawanie...' : 'Dodaj produkt'}
-            </button>
-          </div>
-        </div>
-        <div className="mt-3">
-          <label htmlFor="product-notes" className="block text-sm font-medium text-gray-700 mb-1">
-            Notatka (opcjonalnie)
-          </label>
-          <textarea
-            id="product-notes"
-            value={newNotes}
-            onChange={(e) => setNewNotes(e.target.value)}
-            placeholder="Np. kupować tylko eko, marki X, sprawdzić datę ważności..."
-            disabled={isAdding}
-            rows={2}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-none"
-          />
-        </div>
-      </form>
-
-      {/* Products list */}
-      <div className="space-y-3">
-        {/* Search and filter */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Szukaj po nazwie</label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Np. jajka, mleko..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="sm:w-56">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kategoria</label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Wszystkie kategorie</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.name}>{category.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {(() => {
-          const filtered = products
-            .filter((p) => {
-              const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
-              const matchesCategory = !filterCategory || p.category === filterCategory
-              return matchesSearch && matchesCategory
-            })
-            .sort((a, b) => a.name.localeCompare(b.name, 'pl'))
-
-          if (products.length === 0) return (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-              <p className="text-gray-500 text-sm">Brak produktów</p>
-              <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy produkt powyżej</p>
-            </div>
-          )
-
-          if (filtered.length === 0) return (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-              <p className="text-gray-500 text-sm">Brak wyników</p>
-              <p className="text-gray-400 text-xs mt-1">Spróbuj zmienić kryteria wyszukiwania</p>
-            </div>
-          )
-
-          return filtered.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-            >
-              {editingId === product.id ? (
-                // Edit mode
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Nazwa produktu</label>
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        placeholder="Nazwa"
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Kalorie (kcal)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editKcal}
-                        onChange={(e) => setEditKcal(e.target.value)}
-                        placeholder="Kalorie"
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Białko (g)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editProtein}
-                        onChange={(e) => setEditProtein(e.target.value)}
-                        placeholder="Białko"
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Tłuszcz (g)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editFat}
-                        onChange={(e) => setEditFat(e.target.value)}
-                        placeholder="Tłuszcz"
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Węglowodany (g)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editCarbs}
-                        onChange={(e) => setEditCarbs(e.target.value)}
-                        placeholder="Węglowodany"
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-end gap-3">
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Preferowana jednostka</label>
-                      <select
-                        value={editUnit}
-                        onChange={(e) => {
-                          const unit = e.target.value as UnitType
-                          setEditUnit(unit)
-                          // Auto-set default weight based on unit
-                          if (unit === '100g') setEditUnitWeight('1')
-                          else if (unit === 'tablespoon') setEditUnitWeight('15')
-                          else if (unit === 'teaspoon') setEditUnitWeight('5')
-                          else if (unit === 'leaf') setEditUnitWeight('2')
-                          else if (unit === 'cube') setEditUnitWeight('10')
-                          else if (unit === 'slice') setEditUnitWeight('30')
-                          else if (unit === 'piece') setEditUnitWeight('100')
-                        }}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {UNITS.map((unit) => (
-                          <option key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Waga jednostki (g)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editUnitWeight}
-                        onChange={(e) => setEditUnitWeight(e.target.value)}
-                        placeholder={editUnit === '100g' ? '1 (dla gramów)' : editUnit === 'piece' ? 'np. 300 dla sztuki' : editUnit === 'tablespoon' ? '15' : editUnit === 'teaspoon' ? '5' : editUnit === 'leaf' ? '2' : editUnit === 'cube' ? '10' : editUnit === 'slice' ? '30' : ''}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Kategoria</label>
-                      <select
-                        value={editCategory}
-                        onChange={(e) => setEditCategory(e.target.value)}
-                        disabled={categories.length === 0}
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.name}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      onClick={() => saveEdit(product.id)}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-                    >
-                      Zapisz
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
-                    >
-                      Anuluj
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Notatka (opcjonalnie)</label>
-                    <textarea
-                      value={editNotes}
-                      onChange={(e) => setEditNotes(e.target.value)}
-                      placeholder="Np. kupować tylko eko, marki X..."
-                      rows={2}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    />
-                  </div>
-                </div>
-              ) : (
-                // View mode
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate">
-                      {product.name}
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-600">
-                      <span className="bg-gray-100 px-2 py-0.5 rounded">
-                        {product.category}
-                      </span>
-                      <span>{product.kcal_per_unit} kcal</span>
-                      {product.protein && <span>• B: {product.protein}g</span>}
-                      {product.fat && <span>• T: {product.fat}g</span>}
-                      {product.carbs && <span>• W: {product.carbs}g</span>}
-                      <span>
-                        • {UNITS.find((u) => u.value === product.unit_type)?.label || product.unit_type}
-                        {product.unit_weight_grams && ` (${product.unit_weight_grams}g)`}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0 items-center">
-                    {product.notes && (
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setActiveTooltipId(activeTooltipId === product.id ? null : product.id)}
-                          className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-xs font-bold"
-                          aria-label="Pokaż notatkę"
-                        >
-                          i
-                        </button>
-                        {activeTooltipId === product.id && (
-                          <div className="absolute right-0 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
-                            {product.notes}
-                            <div className="absolute right-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <button
-                      onClick={() => startEdit(product)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
-                    >
-                      Edytuj
-                    </button>
-                    <button
-                      onClick={() => deleteProduct(product.id)}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition-colors"
-                    >
-                      Usuń
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
-        })()}
-      </div>
+      <ProductList
+        products={products}
+        categories={categories}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterCategory={filterCategory}
+        onFilterCategoryChange={setFilterCategory}
+        editingId={editingId}
+        editValues={editForm}
+        onEditChange={(patch) => setEditForm((current) => ({ ...current, ...patch }))}
+        onStartEdit={startEdit}
+        onSaveEdit={saveEdit}
+        onCancelEdit={cancelEdit}
+        onDelete={deleteProduct}
+        activeTooltipId={activeTooltipId}
+        onActiveTooltipChange={setActiveTooltipId}
+      />
 
       {/* Stats */}
       {products.length > 0 && (
