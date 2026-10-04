@@ -257,6 +257,7 @@ export default function CustomLists() {
                   <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                       checked={newListVisibleTo.includes(m.user_id)}
                       onChange={(e) => {
                         setNewListVisibleTo((prev) =>
@@ -362,6 +363,7 @@ export default function CustomLists() {
                         <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
                           <input
                             type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                             checked={list.visible_to.includes(m.user_id)}
                             onChange={(e) => updateVisibility(list, m.user_id, e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -386,6 +388,7 @@ export default function CustomLists() {
                       >
                         <input
                           type="checkbox"
+        onClick={(e) => e.stopPropagation()}
                           checked={item.is_checked}
                           aria-label={item.name}
                           onChange={(e) => { e.stopPropagation(); toggleItem(list.id, item) }}

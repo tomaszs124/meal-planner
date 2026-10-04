@@ -161,7 +161,8 @@ export default function TagManagement() {
     }
   }
 
-  if (isLoading) {
+  // Without a household there is nothing to load; do not show the skeleton forever
+  if (isLoading && household?.id) {
     return (
       <div role="status" aria-live="polite">
         <span className="sr-only">Ładowanie tagów...</span>

@@ -175,12 +175,17 @@ export type CategoryGroup = {
  * match neither a named category nor the uncategorized bucket.
  */
 export function groupByCategory(items: ShoppingListItemWithProduct[]): CategoryGroup[] {
+  // Products whose category is empty or equals the "uncategorized" label share one
+  // bucket with custom items, so the view never shows two "Pozostałe" sections.
+  const isUncategorized = (item: ShoppingListItemWithProduct) =>
+    !item.product || !item.product.category || item.product.category === UNCATEGORIZED_LABEL
+
   const buckets = [
     ...Array.from(
       new Set(
         items
-          .map((item) => item.product?.category)
-          .filter((category): category is string => Boolean(category))
+          .filter((item) => !isUncategorized(item))
+          .map((item) => item.product!.category)
       )
     )
       .sort((a, b) => a.localeCompare(b, 'pl'))
@@ -190,14 +195,9 @@ export function groupByCategory(items: ShoppingListItemWithProduct[]): CategoryG
 
   const groups: CategoryGroup[] = []
   for (const { key, label, category } of buckets) {
-    const categoryItems = items.filter(item => {
-      // For items with product, check product.category
-      if (item.product) {
-        return category !== null && item.product.category === category
-      }
-      // For custom items (no product), show in uncategorized bucket
-      return category === null
-    })
+    const categoryItems = items.filter((item) =>
+      category === null ? isUncategorized(item) : !isUncategorized(item) && item.product!.category === category
+    )
 
     if (categoryItems.length === 0) continue
 

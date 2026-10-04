@@ -64,7 +64,11 @@ export default function Products() {
   // Add new product
   async function addProduct(e: React.FormEvent) {
     e.preventDefault()
-    if (!household?.id || !user?.id || !isProductFormValid(newForm)) return
+    if (!household?.id || !user?.id) return
+    if (!isProductFormValid(newForm)) {
+      toast('Uzupełnij nazwę, kalorie (≥ 0), wagę jednostki (> 0) i kategorię', { type: 'error' })
+      return
+    }
 
     setIsAdding(true)
 
@@ -94,7 +98,10 @@ export default function Products() {
   }
 
   async function saveEdit(productId: string) {
-    if (!isProductFormValid(editForm)) return
+    if (!isProductFormValid(editForm)) {
+      toast('Uzupełnij nazwę, kalorie (≥ 0), wagę jednostki (> 0) i kategorię', { type: 'error' })
+      return
+    }
 
     // Optimistic update - update list immediately
     const updatedProduct = toProductPayload(editForm)
