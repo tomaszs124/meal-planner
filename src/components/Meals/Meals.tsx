@@ -121,11 +121,7 @@ export default function Meals() {
 
       {/* Meals list - Grid view */}
       <div>
-        {isLoading ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Ładowanie...</p>
-          </div>
-        ) : meals.length === 0 ? (
+        {meals.length === 0 ? (
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
             <p className="text-gray-500 text-sm">Brak posiłków</p>
             <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy posiłek powyżej</p>

@@ -68,7 +68,16 @@ export function getDefaultCategoryName(categories: ProductCategoryRecord[]): Pro
 
 /** Required fields: name, kcal, unit weight and category. */
 export function isProductFormValid(values: ProductFormValues): boolean {
-  return !!values.name.trim() && !!values.kcal && !!values.unitWeight && !!values.category
+  const kcal = parseFloat(values.kcal)
+  const unitWeight = parseFloat(values.unitWeight)
+  return (
+    !!values.name.trim() &&
+    Number.isFinite(kcal) &&
+    kcal >= 0 &&
+    Number.isFinite(unitWeight) &&
+    unitWeight > 0 &&
+    !!values.category
+  )
 }
 
 /** Columns written to `products` on insert/update. */

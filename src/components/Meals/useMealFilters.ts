@@ -15,10 +15,11 @@ export function useMealFilters(meals: MealWithItems[]) {
     let filtered = meals
 
     // Filter by search query
-    if (searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase()
+    if (q) {
       filtered = filtered.filter(meal =>
-        meal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meal.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        meal.name.toLowerCase().includes(q) ||
+        meal.description?.toLowerCase().includes(q)
       )
     }
 

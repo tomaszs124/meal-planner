@@ -28,7 +28,7 @@ export function getGroupedItemAmountLabel(groupedItem: GroupedItem): string | nu
       return `${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g`
     }
 
-    return `${formatAmount(groupedItem.totalAmount)} ${translateUnit(groupedItem.unit_type || '')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
+    return `${[formatAmount(groupedItem.totalAmount), translateUnit(groupedItem.unit_type || '')].filter(Boolean).join(' ')} (${Math.round(groupedItem.totalAmount * (groupedItem.product.unit_weight_grams || 1))}g)`
   }
 
   if (groupedItem.totalAmount > 0) {
@@ -49,7 +49,7 @@ export function getSingleItemAmountLabel(item: ShoppingListItemWithProduct): str
       return `${totalWeight}g`
     }
 
-    return `${formatAmount(item.amount)} ${translateUnit(item.unit_type || '')} (${totalWeight}g)`
+    return `${[formatAmount(item.amount), translateUnit(item.unit_type || '')].filter(Boolean).join(' ')} (${totalWeight}g)`
   }
 
   if (item.amount > 0) {
@@ -88,10 +88,10 @@ export function groupItems(items: ShoppingListItemWithProduct[]): GroupedItem[] 
     } else {
       groups.set(key, {
         key,
-        name: item.name || 'Unnamed item',
+        name: item.name || 'Bez nazwy',
         product_id: item.product_id,
         product: item.product,
-        totalAmount: item.amount,
+        totalAmount: parseFloat(String(item.amount)),
         unit_type: item.unit_type,
         custom_amount_text: item.custom_amount_text,
         itemIds: [item.id],

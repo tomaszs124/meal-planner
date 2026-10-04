@@ -82,9 +82,15 @@ export default function MealPlanner() {
     }
   }, [selectedDate, plannedMeals, isLoading, categories])
 
-  if (userLoading || !household) {
+  if (userLoading) {
+    return <PlannerSkeleton />
+  }
+
+  if (!household) {
     return (
-      <PlannerSkeleton />
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center text-gray-600">
+        Musisz najpierw dołączyć do gospodarstwa.
+      </div>
     )
   }
 
