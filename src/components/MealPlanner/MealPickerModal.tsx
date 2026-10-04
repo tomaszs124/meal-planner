@@ -5,11 +5,7 @@ import Image from 'next/image'
 import { supabase, Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from './MealDetailsModal'
-
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
+import { calculateNutrition } from '@/lib/nutrition'
 
 type MealWithDetails = Meal & {
   items?: {

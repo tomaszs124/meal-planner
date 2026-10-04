@@ -6,13 +6,9 @@ import { supabase, Meal, MealCategory, UserSettings, Product, MealImage, Tag } f
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
+import { calculateNutrition } from '@/lib/nutrition'
 
 // Helper function to calculate nutrition values based on weight
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
-
 type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]

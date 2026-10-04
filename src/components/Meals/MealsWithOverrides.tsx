@@ -3,17 +3,9 @@
 import { useEffect, useState } from 'react'
 import { supabase, Product, Meal } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
+import { calculateNutrition, formatAmount } from '@/lib/nutrition'
 
 // Helper function to format amount without trailing zeros
-function formatAmount(amount: number): string {
-  return Number(amount.toFixed(2)).toString()
-}
-
 // Funkcja tłumacząca jednostki na polski
 function translateUnit(unitType: string): string {
   const units: { [key: string]: string } = {

@@ -5,13 +5,9 @@ import { Meal, MealCategory, Product, MealImage, Tag } from '@/lib/supabase/clie
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPickerModal from './MealPickerModal'
 import MealDetailsModal from './MealDetailsModal'
+import { calculateNutrition } from '@/lib/nutrition'
 
 // Helper function to calculate nutrition values based on weight
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 100)
-  return (weightGrams / 100) * valuePer100g
-}
-
 type MealWithDetails = Meal & {
   totalKcal?: number
   images?: MealImage[]

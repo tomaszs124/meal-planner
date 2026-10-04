@@ -7,13 +7,10 @@ import { supabase, ShoppingListItem, Product, Profile, UserSettings, Meal, MealI
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
 import CustomLists from '@/components/ShoppingList/CustomLists'
+import { formatAmount } from '@/lib/nutrition'
 
 const UNCATEGORIZED_LABEL = 'Pozostałe'
 // Helper function to format amount without trailing zeros
-function formatAmount(amount: number): string {
-  return Number(amount.toFixed(2)).toString()
-}
-
 // Funkcja tłumacząca jednostki na polski
 function translateUnit(unitType: string): string {
   const units: { [key: string]: string } = {

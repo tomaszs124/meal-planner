@@ -4,15 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
-
-function calculateNutrition(amount: number, unitWeightGrams: number | null, valuePer100g: number): number {
-  const weightGrams = amount * (unitWeightGrams || 1)
-  return (weightGrams / 100) * valuePer100g
-}
-
-function formatAmount(amount: number): string {
-  return Number(amount.toFixed(2)).toString()
-}
+import { calculateNutrition, formatAmount } from '@/lib/nutrition'
 
 type MealItem = {
   product?: Product

@@ -24,7 +24,7 @@ co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 
 ## B. Jakość kodu
 
-- [ ] **P1 Jedno źródło prawdy dla obliczeń odżywczych**: `calculateNutrition` jest skopiowana w 6 plikach (`MealDetailsModal`, `MealPickerModal`, `MealPlanner`, `MealSlot`, `Meals`, `MealsWithOverrides`) i siódmy raz w `src/lib/mcp/nutrition.ts`. Docelowo `src/lib/nutrition.ts` importowana wszędzie, z testami.
+- [x] **P1 Jedno źródło prawdy dla obliczeń odżywczych** (branch `chore/optimizations`): `calculateNutrition` jest skopiowana w 6 plikach (`MealDetailsModal`, `MealPickerModal`, `MealPlanner`, `MealSlot`, `Meals`, `MealsWithOverrides`) i siódmy raz w `src/lib/mcp/nutrition.ts`. Docelowo `src/lib/nutrition.ts` importowana wszędzie, z testami.
 - [ ] **P1 Martwy kod**: `src/components/Meals/MealsWithOverrides.tsx` i `src/components/ShoppingList/ShoppingList.tsx` nie są nigdzie importowane. Strona `src/app/debug/page.tsx` wystawia surowe dane użytkownika i gospodarstwa; w produkcji nie powinna istnieć (albo tylko w `NODE_ENV=development`).
 - [ ] **P2 Rozmiar komponentów**: `Meals.tsx` 2317 linii, `ShoppingListEnhanced.tsx` 1668, `MealPlanner.tsx` 1040, `Products.tsx` 999. Każdy trzyma pobieranie danych, formularze i widok. Docelowo: hooki danych (`useMeals`, `useShoppingList`, `useMealPlan`) + komponenty prezentacyjne (formularz posiłku, karta posiłku, grupa zakupów). Robić dopiero po dodaniu testów logiki, inaczej refaktor jest ślepy.
 - [ ] **P2 Typy `any`**: `src/middleware.ts` (2 błędy lintu), `src/app/debug/page.tsx` (4). Lint (`npm run lint`) obecnie nie przechodzi na czysto.
@@ -70,6 +70,24 @@ potrzebne są rzeczy, których nie da się dorobić na końcu bez przepisywania:
 9. **Jakość produktu**: i18n (dziś polskie teksty na sztywno w JSX), dostępność (etykiety, kontrast), onboarding w aplikacji, strona marketingowa.
 10. **Metryki**: analityka zdarzeń (ile osób planuje tydzień, ile generuje zakupy), żeby decyzje o funkcjach były oparte na danych.
 
+## G. Pomysły produktowe
+
+### Promocje Lidla w planowaniu posiłków (pomysł z 2026-10-04)
+
+Cel: podpowiadać posiłki, których składniki są akurat w promocji (kupony Lidl Plus, gazetka).
+
+Źródła danych, od najpewniejszego:
+
+1. **Gazetka lidl.pl** (publiczna, co tydzień): pobieranie cronem (Vercel Cron) ze strony ofert, parsowanie nazw, cen i dat ważności. Bez logowania, stabilne, legalne. Brak kuponów spersonalizowanych.
+2. **Zrzuty ekranu z Lidl Plus**: użytkownik wysyła screenshot do asystenta (ChatGPT/Claude), model odczytuje kupony i zapisuje je przez narzędzie MCP `import_promotions`. Działa od razu, ręczne raz w tygodniu.
+3. **Nieoficjalny klient Lidl Plus** (biblioteki open source odtworzone z aplikacji; logowanie kontem użytkownika, dostęp do kuponów i paragonów). Paragony pozwoliłyby automatycznie uzupełniać `package_size` i ceny produktów. Ryzyka: łamie się po aktualizacjach aplikacji, logowanie z kodem SMS, niezgodne z regulaminem Lidla. Tylko na własny użytek, nie do wersji komercyjnej.
+
+Model danych: tabela `promotions` (`household_id`, `product_id` nullable, `raw_name`, `store`, `price`, `discount_text`, `valid_from`, `valid_to`, `source`: flyer | screenshot | api) oraz `product_aliases` (nazwa ze sklepu → produkt), żeby dopasowanie po pierwszym razie było automatyczne.
+
+Funkcje: odznaka "promocja" na karcie posiłku i w modalu wyboru do planu; filtr "w promocji" na liście posiłków; w MCP `list_promotions`, `import_promotions`, `suggest_meals_on_promotion` (punktacja przepisu = udział składników w promocji ważony ceną; podpowiedź "zaplanuj w tym tygodniu"). Dopasowanie nazw kuponów do produktów robi model, aliasy zapamiętywane.
+
+Kolejność: gazetka + zrzuty ekranu najpierw, klient Lidl Plus jako eksperyment.
+
 ---
 
 ## Plan realizacji na branchu `chore/optimizations`
@@ -77,7 +95,7 @@ potrzebne są rzeczy, których nie da się dorobić na końcu bez przepisywania:
 Kolejność dobrana tak, żeby każdy krok był osobnym, odwracalnym commitem i żeby testy
 powstały zanim ruszę większe refaktory.
 
-1. [ ] `src/lib/nutrition.ts` + Vitest z testami, podmiana 6 kopii `calculateNutrition`.
+1. [x] `src/lib/nutrition.ts` + Vitest z testami, podmiana 6 kopii `calculateNutrition`.
 2. [ ] N+1 w liście posiłków (`Meals.tsx`).
 3. [ ] N+1 w planerze (ładowanie posiłków + postęp tygodnia).
 4. [ ] N+1 w generowaniu listy zakupów.
