@@ -15,19 +15,19 @@ Każdy przypadek to pętla po rekordach z osobnym zapytaniem do Supabase na iter
 Przy 50 przepisach i 2 domownikach daje to setki requestów na wejście w zakładkę,
 co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 
-- [ ] **P1 Lista posiłków** (`src/components/Meals/Meals.tsx`, `fetchMeals` ok. linii 408-500): na każdy posiłek 4 zapytania (nadpisania, składniki, tagi, zdjęcia). Docelowo: 1 zapytanie o posiłki + 4 zapytania zbiorcze `.in('meal_id', ids)` i składanie w pamięci. Wzorzec jest już napisany w `src/lib/mcp/data.ts` (`loadMealsDetailed`) na branchu `feature/mcp-connector`.
-- [ ] **P1 Planer: ładowanie posiłków** (`src/components/MealPlanner/MealPlanner.tsx` ok. linii 140-200): ten sam wzorzec co wyżej.
-- [ ] **P1 Planer: postęp tygodnia** (`MealPlanner.tsx`, `fetchWeekProgress` ok. linii 300-345): 7 zapytań dziennych zamiast jednego `gte/lte` na zakres tygodnia. Dodatkowo efekt zależy od `plannedMeals`, więc odpala się ponownie po każdej zmianie w dniu.
-- [ ] **P1 Generowanie listy zakupów** (`src/components/ShoppingList/ShoppingListEnhanced.tsx`, ok. linii 427-500): per wpis planu 1-2 zapytania o nadpisania/składniki. Docelowo: 2 zapytania zbiorcze dla wszystkich par (posiłek, użytkownik).
-- [ ] **P2 Modal wyboru posiłku** (`src/components/MealPlanner/MealPickerModal.tsx`, ok. linii 70-115): N+1 jak w liście posiłków; ponadto ładuje wszystko od nowa przy każdym otwarciu. Mógłby dostać gotowe dane z planera.
+- [x] **P1 Lista posiłków** (`src/components/Meals/Meals.tsx`, `fetchMeals` ok. linii 408-500): na każdy posiłek 4 zapytania (nadpisania, składniki, tagi, zdjęcia). Docelowo: 1 zapytanie o posiłki + 4 zapytania zbiorcze `.in('meal_id', ids)` i składanie w pamięci. Wzorzec jest już napisany w `src/lib/mcp/data.ts` (`loadMealsDetailed`) na branchu `feature/mcp-connector`.
+- [x] **P1 Planer: ładowanie posiłków** (`src/components/MealPlanner/MealPlanner.tsx` ok. linii 140-200): ten sam wzorzec co wyżej.
+- [x] **P1 Planer: postęp tygodnia** (`MealPlanner.tsx`, `fetchWeekProgress` ok. linii 300-345): 7 zapytań dziennych zamiast jednego `gte/lte` na zakres tygodnia. Dodatkowo efekt zależy od `plannedMeals`, więc odpala się ponownie po każdej zmianie w dniu.
+- [x] **P1 Generowanie listy zakupów** (`src/components/ShoppingList/ShoppingListEnhanced.tsx`, ok. linii 427-500): per wpis planu 1-2 zapytania o nadpisania/składniki. Docelowo: 2 zapytania zbiorcze dla wszystkich par (posiłek, użytkownik).
+- [x] **P2 Modal wyboru posiłku** (`src/components/MealPlanner/MealPickerModal.tsx`, ok. linii 70-115): N+1 jak w liście posiłków; ponadto ładuje wszystko od nowa przy każdym otwarciu. Mógłby dostać gotowe dane z planera.
 - [ ] **P2 Produkty ładowane w całości na każdej stronie**: przy kilkuset produktach nadal OK, ale warto przejść na jeden współdzielony hook z cache (np. prosty kontekst albo React Query), żeby nie pobierać ich osobno w posiłkach, planerze i liście zakupów.
 
 ## B. Jakość kodu
 
 - [x] **P1 Jedno źródło prawdy dla obliczeń odżywczych** (branch `chore/optimizations`): `calculateNutrition` jest skopiowana w 6 plikach (`MealDetailsModal`, `MealPickerModal`, `MealPlanner`, `MealSlot`, `Meals`, `MealsWithOverrides`) i siódmy raz w `src/lib/mcp/nutrition.ts`. Docelowo `src/lib/nutrition.ts` importowana wszędzie, z testami.
-- [ ] **P1 Martwy kod**: `src/components/Meals/MealsWithOverrides.tsx` i `src/components/ShoppingList/ShoppingList.tsx` nie są nigdzie importowane. Strona `src/app/debug/page.tsx` wystawia surowe dane użytkownika i gospodarstwa; w produkcji nie powinna istnieć (albo tylko w `NODE_ENV=development`).
+- [x] **P1 Martwy kod**: `src/components/Meals/MealsWithOverrides.tsx` i `src/components/ShoppingList/ShoppingList.tsx` nie są nigdzie importowane. Strona `src/app/debug/page.tsx` wystawia surowe dane użytkownika i gospodarstwa; w produkcji nie powinna istnieć (albo tylko w `NODE_ENV=development`).
 - [ ] **P2 Rozmiar komponentów**: `Meals.tsx` 2317 linii, `ShoppingListEnhanced.tsx` 1668, `MealPlanner.tsx` 1040, `Products.tsx` 999. Każdy trzyma pobieranie danych, formularze i widok. Docelowo: hooki danych (`useMeals`, `useShoppingList`, `useMealPlan`) + komponenty prezentacyjne (formularz posiłku, karta posiłku, grupa zakupów). Robić dopiero po dodaniu testów logiki, inaczej refaktor jest ślepy.
-- [ ] **P2 Typy `any`**: `src/middleware.ts` (2 błędy lintu), `src/app/debug/page.tsx` (4). Lint (`npm run lint`) obecnie nie przechodzi na czysto.
+- [x] **P2 Typy `any`**: `src/middleware.ts` (2 błędy lintu), `src/app/debug/page.tsx` (4). Lint (`npm run lint`) obecnie nie przechodzi na czysto.
 - [ ] **P3 Pozostałe `console.log`** w kodzie produkcyjnym (5 miejsc), do usunięcia lub zamiany na logger.
 
 ## C. Baza danych i typy
@@ -40,18 +40,18 @@ co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 
 ## D. UX
 
-- [ ] **P1 Natywne `alert`/`confirm`**: 49 wystąpień. Na telefonie w trybie PWA wyglądają obco, blokują wątek i nie da się ich ostylować. Docelowo: komponent toast (sukces/błąd) i modal potwierdzenia, jeden na całą aplikację.
-- [ ] **P1 Brak manifestu PWA**: dokument założeń mówi o instalacji jak aplikacja, ale w `public/` nie ma `manifest.json` ani ikon, a `layout.tsx` go nie linkuje. Bez tego nie ma "Dodaj do ekranu głównego" z pełnym ekranem.
+- [x] **P1 Natywne `alert`/`confirm`**: 49 wystąpień. Na telefonie w trybie PWA wyglądają obco, blokują wątek i nie da się ich ostylować. Docelowo: komponent toast (sukces/błąd) i modal potwierdzenia, jeden na całą aplikację.
+- [x] **P1 Brak manifestu PWA**: dokument założeń mówi o instalacji jak aplikacja, ale w `public/` nie ma `manifest.json` ani ikon, a `layout.tsx` go nie linkuje. Bez tego nie ma "Dodaj do ekranu głównego" z pełnym ekranem.
 - [ ] **P2 Stany ładowania i błędów**: większość widoków pokazuje "Ładowanie..." tekstem; brak skeletonów i brak obsługi utraty sieci (lista zakupów w sklepie bez zasięgu).
-- [ ] **P2 Obrazki**: jedno `<img>` poza `next/image`; przy zdjęciach z telefonu (kilka MB) warto wymusić kompresję przy uploadzie.
+- [x] **P2 Obrazki**: `<img>` zamienione na `next/image` (MealSlot); przy zdjęciach z telefonu (kilka MB) warto wymusić kompresję przy uploadzie.
 - [ ] **P3 Tryb offline** dla listy zakupów (service worker + kolejka zmian), realny scenariusz w sklepie.
 
 ## E. Inżynieria
 
-- [ ] **P1 Testy jednostkowe** logiki czystej: obliczenia kcal, ułamki opakowań, agregacja listy zakupów, skalowanie porcji, "unikalne wpisy per slot". Vitest, bez przeglądarki. Zero testów dziś.
-- [ ] **P2 CI** (GitHub Actions): lint + typecheck + testy + build na każdym PR. Brak `.github/`.
-- [ ] **P2 `middleware.ts` → `proxy.ts`**: Next 16 ostrzega przy buildzie, że konwencja middleware jest przestarzała.
-- [ ] **P2 Walidacja zmiennych środowiskowych** przy starcie (np. mały moduł `env.ts` rzucający czytelny błąd), zamiast `!` na `process.env`.
+- [x] **P1 Testy jednostkowe** (Vitest, 26 testów: nutrition, meals-data, shopping; dalsze do dopisania) logiki czystej: obliczenia kcal, ułamki opakowań, agregacja listy zakupów, skalowanie porcji, "unikalne wpisy per slot". Vitest, bez przeglądarki. Zero testów dziś.
+- [x] **P2 CI** (GitHub Actions): lint + typecheck + testy + build na każdym PR. Brak `.github/`.
+- [x] **P2 `middleware.ts` → `proxy.ts`**: Next 16 ostrzega przy buildzie, że konwencja middleware jest przestarzała.
+- [x] **P2 Walidacja zmiennych środowiskowych** przy starcie (np. mały moduł `env.ts` rzucający czytelny błąd), zamiast `!` na `process.env`.
 - [ ] **P3 Obserwowalność**: Sentry lub odpowiednik na błędy frontu i route handlerów; dziś błędy giną w `console.error`.
 
 ## F. Droga do wersji komercyjnej (P3, ale warto mieć przed oczami)
@@ -96,12 +96,12 @@ Kolejność dobrana tak, żeby każdy krok był osobnym, odwracalnym commitem i 
 powstały zanim ruszę większe refaktory.
 
 1. [x] `src/lib/nutrition.ts` + Vitest z testami, podmiana 6 kopii `calculateNutrition`.
-2. [ ] N+1 w liście posiłków (`Meals.tsx`).
-3. [ ] N+1 w planerze (ładowanie posiłków + postęp tygodnia).
-4. [ ] N+1 w generowaniu listy zakupów.
-5. [ ] N+1 w modalu wyboru posiłku.
-6. [ ] Usunięcie martwego kodu i wyłączenie strony debug poza developmentem.
-7. [ ] `middleware.ts` → `proxy.ts`, typy zamiast `any`, lint na czysto.
-8. [ ] Typ `MealPlan` z `is_skipped`.
-9. [ ] Manifest PWA + ikony.
-10. [ ] Toast i modal potwierdzenia zamiast `alert`/`confirm` (największa zmiana, na końcu).
+2. [x] N+1 w liście posiłków (`Meals.tsx`).
+3. [x] N+1 w planerze (ładowanie posiłków + postęp tygodnia).
+4. [x] N+1 w generowaniu listy zakupów.
+5. [x] N+1 w modalu wyboru posiłku.
+6. [x] Usunięcie martwego kodu i wyłączenie strony debug poza developmentem.
+7. [x] `middleware.ts` → `proxy.ts`, typy zamiast `any`, lint na czysto.
+8. [x] Typ `MealPlan` z `is_skipped`.
+9. [x] Manifest PWA + ikony.
+10. [x] Toast i modal potwierdzenia zamiast `alert`/`confirm` (największa zmiana, na końcu).
