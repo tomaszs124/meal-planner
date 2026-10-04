@@ -46,9 +46,25 @@ export default function UserSettingsForm() {
     )
   }
 
-  // Keyed by user and row version so the fields re-initialise when fresher settings
-  // arrive (e.g. changed on another device while this tab was elsewhere).
-  return <UserSettingsFields key={`${user.id}:${settings?.updated_at ?? 'new'}`} settings={settings} save={save} />
+  // Keyed by user only; fresher settings (another device) are synced inside the fields
+  // component without remounting, so typing and focus survive the user's own save.
+  return <UserSettingsFields key={user.id} settings={settings} save={save} />
+}
+
+type FieldValues = { name: string; second: boolean; lunch: boolean; dinner: boolean; snack: boolean }
+
+function fieldValuesOf(settings: UserSettings | null): FieldValues {
+  return {
+    name: settings?.name || '',
+    second: settings?.second_breakfast_enabled !== false,
+    lunch: settings?.lunch_enabled !== false,
+    dinner: settings?.dinner_enabled !== false,
+    snack: settings?.snack_enabled || false,
+  }
+}
+
+function sameFieldValues(a: FieldValues, b: FieldValues): boolean {
+  return a.name === b.name && a.second === b.second && a.lunch === b.lunch && a.dinner === b.dinner && a.snack === b.snack
 }
 
 type UserSettingsFieldsProps = {
@@ -66,6 +82,29 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
   const [lunchEnabled, setLunchEnabled] = useState(settings?.lunch_enabled !== false)
   const [dinnerEnabled, setDinnerEnabled] = useState(settings?.dinner_enabled !== false)
   const [snackEnabled, setSnackEnabled] = useState(settings?.snack_enabled || false)
+
+  // Sync from fresher settings (another device, or the echo of our own save) without
+  // remounting: only when the form is not dirty, so in-progress typing is never lost.
+  // "Adjusting state during render" pattern; React re-renders immediately with the new values.
+  const [syncedBase, setSyncedBase] = useState<FieldValues>(() => fieldValuesOf(settings))
+  const [syncedVersion, setSyncedVersion] = useState<string | null>(settings?.updated_at ?? null)
+  const incomingVersion = settings?.updated_at ?? null
+  if (incomingVersion !== syncedVersion) {
+    const current: FieldValues = { name, second: secondBreakfastEnabled, lunch: lunchEnabled, dinner: dinnerEnabled, snack: snackEnabled }
+    const incoming = fieldValuesOf(settings)
+    // Dirty = the user changed something since the last sync AND it differs from what the
+    // server now has (after our own save the fields already equal the server row).
+    const isDirty = !sameFieldValues(current, syncedBase) && !sameFieldValues(current, incoming)
+    if (!isDirty && !isSaving) {
+      setSyncedVersion(incomingVersion)
+      setName(incoming.name)
+      setSecondBreakfastEnabled(incoming.second)
+      setLunchEnabled(incoming.lunch)
+      setDinnerEnabled(incoming.dinner)
+      setSnackEnabled(incoming.snack)
+      setSyncedBase(incoming)
+    }
+  }
 
   // Wylogowanie
   async function handleLogout() {

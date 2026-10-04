@@ -119,6 +119,9 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setHousehold(null)
         setIsLoading(false)
+        // A sign-out without navigation (other tab, failed refresh) must not leave the
+        // current protected page in the "checking session" state.
+        setSessionCheckedFor(window.location.pathname)
         return
       }
 
@@ -167,20 +170,28 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
     lastPathnameRef.current = pathname
 
     if (userRef.current) {
-      // Known user but no household (transient error at startup, or the user was just
-      // added to a household): retry on navigation so the app can recover without a reload.
+      // Known user: no session re-check needed. If the household is missing (transient
+      // error at startup, or the user was just added to one) retry on navigation.
       if (!householdRef.current) void fetchHousehold(userRef.current)
       return
     }
 
     let cancelled = false
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled || !mountedRef.current) return
-      if (session?.user && !userRef.current) {
-        applySignedIn(session.user)
-      }
-      setSessionCheckedFor(pathname)
-    })
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (cancelled || !mountedRef.current) return
+        if (session?.user && !userRef.current) {
+          applySignedIn(session.user)
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Session re-check failed:', err)
+      })
+      .finally(() => {
+        // Always resolve the "checking" state, even if getSession() rejected
+        if (!cancelled && mountedRef.current) setSessionCheckedFor(pathname)
+      })
     return () => {
       cancelled = true
     }
