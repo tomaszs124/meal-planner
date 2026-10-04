@@ -15,6 +15,8 @@ export type Member = {
   email: string | null
   is_acting_user: boolean
   settings: MemberSettings
+  /** Free-text personal rules from Settings ("na śniadanie maks 2 jajka"), null when none */
+  dietary_rules: string | null
 }
 
 export type McpContext = {
@@ -33,6 +35,7 @@ type UserSettingsRow = {
   lunch_enabled: boolean | null
   dinner_enabled: boolean | null
   snack_enabled: boolean | null
+  dietary_rules: string | null
 }
 type ProfileRow = { id: string; display_name: string | null }
 
@@ -115,7 +118,7 @@ export async function loadContext(): Promise<McpContext> {
   const [{ data: settingsRows }, { data: profileRows }, emails] = await Promise.all([
     db
       .from('user_settings')
-      .select('user_id, name, second_breakfast_enabled, lunch_enabled, dinner_enabled, snack_enabled')
+      .select('user_id, name, second_breakfast_enabled, lunch_enabled, dinner_enabled, snack_enabled, dietary_rules')
       .in('user_id', memberIds),
     db.from('profiles').select('id, display_name').in('id', memberIds),
     loadEmails(db),
@@ -137,6 +140,7 @@ export async function loadContext(): Promise<McpContext> {
         dinner_enabled: s?.dinner_enabled ?? true,
         snack_enabled: s?.snack_enabled ?? false,
       },
+      dietary_rules: s?.dietary_rules?.trim() || null,
     }
   })
 

@@ -6,7 +6,7 @@ uruchamiane przeciw prawdziwej bazie**, bo sesja nie miała klucza service role.
 
 ## 1. Do zrobienia przez Tomasza (bez tego connector nie ruszy)
 
-- [ ] Uruchomić migrację [`docs/add-package-size-to-products.sql`](../add-package-size-to-products.sql) w Supabase → SQL Editor.
+- [ ] Uruchomić migracje w Supabase → SQL Editor: [`docs/add-package-size-to-products.sql`](../add-package-size-to-products.sql) oraz [`docs/add-dietary-rules-to-user-settings.sql`](../add-dietary-rules-to-user-settings.sql) (zasady osobiste domowników; plik jest na branchu optymalizacji/integracyjnym).
 - [ ] Uzupełnić `.env.local` według [`.env.example`](../../.env.example): `SUPABASE_SERVICE_ROLE_KEY`, `MCP_ACCESS_TOKEN` (min. 16 znaków), `MCP_ACTING_USER_EMAIL`.
 - [ ] Test lokalny: `npm run dev`, potem `node scripts/mcp-smoke.mjs --call get_household`. Oczekiwane: lista domowników z Twoim kontem jako `is_me: true`.
 - [ ] Uruchomić analizę: `node scripts/analyze-recipes.mjs`, przejrzeć `docs/mcp/analysis-output.md` (plik jest w `.gitignore`).

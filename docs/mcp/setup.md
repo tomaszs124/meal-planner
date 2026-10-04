@@ -229,3 +229,14 @@ MCP_ACCESS_TOKENS="k3J...a1=tomasz@example.com;Qp9...z7=kasia@example.com"
 
 Docelowo (patrz `TODO.md`): OAuth 2.1 przez Supabase Auth, czyli logowanie własnym kontem
 podczas dodawania konektora, bez tokenów w adresie i bez klucza service role.
+
+## 11. Zasady osobiste domowników
+
+Każdy domownik może wpisać w aplikacji (Ustawienia → "Moje zasady żywieniowe") własne reguły,
+np. "na śniadanie maks 2 jajka", "bez laktozy". Wymaga migracji
+`docs/add-dietary-rules-to-user-settings.sql` (kolumna `user_settings.dietary_rules`).
+
+Konektor zwraca je w `get_household` (pole `dietary_rules`) i dokleja na końcu `get_recipe_rules`
+jako sekcję "Zasady osobiste domowników". Zasady osobiste mają pierwszeństwo przed ogólnymi widełkami
+dla wariantu danej osoby. Asystent może je też zapisać na prośbę użytkownika
+("zapamiętaj, że...") przez `set_my_dietary_rules`, ale tylko dla osoby, której token jest używany.
