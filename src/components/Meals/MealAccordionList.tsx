@@ -68,7 +68,9 @@ export default function MealAccordionList({
         return (
           <div key={key} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
             <button
+              type="button"
               onClick={() => toggle(key)}
+              aria-expanded={isOpen}
               className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
             >
               <span className="font-semibold text-gray-800">

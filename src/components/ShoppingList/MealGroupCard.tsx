@@ -115,6 +115,8 @@ export default function MealGroupCard({
 
             <div className="mt-3 flex items-center gap-2">
             <button
+              type="button"
+              aria-label="Zmniejsz liczbę porcji"
               onClick={() => {
                 const current = mealServingsById[mealGroup.group_key] ?? 1
                 const next = Math.max(0.5, Number((current - 0.5).toFixed(1)))
@@ -127,8 +129,10 @@ export default function MealGroupCard({
             </button>
             <input
               type="number"
+              inputMode="decimal"
               min="0.5"
               step="0.5"
+              aria-label="Liczba porcji"
               disabled={updatingServingsKey !== null}
               value={editingServings[mealGroup.group_key] ?? (mealServingsById[mealGroup.group_key] ?? 1)}
               onChange={(e) => {
@@ -151,6 +155,8 @@ export default function MealGroupCard({
               className="w-16 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed"
             />
             <button
+              type="button"
+              aria-label="Zwiększ liczbę porcji"
               onClick={() => {
                 const current = mealServingsById[mealGroup.group_key] ?? 1
                 const next = Number((current + 0.5).toFixed(1))
@@ -182,6 +188,7 @@ export default function MealGroupCard({
               <input
                 type="checkbox"
                 checked={item.is_checked}
+                aria-label={item.name ?? undefined}
                 onChange={(e) => {
                   e.stopPropagation()
                   void toggleSingleItem(item)

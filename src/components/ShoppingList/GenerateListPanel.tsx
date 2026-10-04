@@ -60,7 +60,7 @@ export default function GenerateListPanel({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Wybierz osoby z gospodarstwa
         </label>
-        <div className="space-y-2">
+        <div role="group" aria-label="Wybierz osoby z gospodarstwa" className="space-y-2">
           {householdMembers.map((member) => (
             <label
               key={member.user_id}

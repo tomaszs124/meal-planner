@@ -74,6 +74,7 @@ export default function DateRangePicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
         className="w-full flex items-center gap-2 p-3 rounded-lg border border-gray-300 bg-white hover:border-gray-400 transition-colors"
       >
         <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,6 +92,7 @@ export default function DateRangePicker({
             <button
               type="button"
               onClick={() => setCurrentMonth(addDays(currentMonth, -30))}
+              aria-label="Poprzedni miesiąc"
               className="p-1 hover:bg-gray-100 rounded"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,6 +105,7 @@ export default function DateRangePicker({
             <button
               type="button"
               onClick={() => setCurrentMonth(addDays(currentMonth, 30))}
+              aria-label="Następny miesiąc"
               className="p-1 hover:bg-gray-100 rounded"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,6 +136,7 @@ export default function DateRangePicker({
                   key={idx}
                   type="button"
                   onClick={() => handleDayClick(day)}
+                  aria-label={format(day, 'd MMMM yyyy', { locale: pl })}
                   className={`
                     p-2 text-sm rounded transition-colors
                     ${!isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}

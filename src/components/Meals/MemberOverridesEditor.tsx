@@ -92,6 +92,7 @@ export default function MemberOverridesEditor({
                               <label className="block text-xs font-medium text-gray-600 mb-1">Produkt</label>
                               <select
                                 value={sp.product_id}
+                                aria-label={`Produkt ${index + 1} (${member.display_name})`}
                                 onChange={(e) =>
                                   updateMemberOverrideProduct(
                                     member.user_id,
@@ -116,8 +117,10 @@ export default function MemberOverridesEditor({
                               <label className="block text-xs font-medium text-gray-600 mb-1">Ilość</label>
                               <input
                                 type="number"
+                                inputMode="decimal"
                                 step="0.5"
                                 value={sp.amount}
+                                aria-label={`Ilość: ${product?.name ?? `produkt ${index + 1}`} (${member.display_name})`}
                                 onChange={(e) =>
                                   updateMemberOverrideProduct(
                                     member.user_id,
@@ -152,6 +155,7 @@ export default function MemberOverridesEditor({
                                 )
                               }
                               disabled={isAdding}
+                              aria-label={`Usuń ${product?.name ?? `produkt ${index + 1}`} (${member.display_name})`}
                               className="text-red-600 hover:text-red-700 px-2 pb-1.5"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

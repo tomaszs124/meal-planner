@@ -34,6 +34,8 @@ export default function MealDetailsWithActions({
         } : null}
         userId={userId}
         householdId={householdId}
+        // The Edit/Delete footer below lives outside the dialog, so it must stay reachable for screen readers
+        ariaModal={false}
       />
 
       {/* Modal Footer with Edit/Delete */}

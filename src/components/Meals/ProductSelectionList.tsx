@@ -44,6 +44,7 @@ export default function ProductSelectionList({
                     <label className="block text-xs font-medium text-gray-600 mb-1">Produkt</label>
                     <select
                       value={sp.product_id}
+                      aria-label={`Produkt ${index + 1}`}
                       onChange={(e) =>
                         updateProductSelection(index, 'product_id', e.target.value, selectedProducts, setSelectedProducts)
                       }
@@ -60,8 +61,10 @@ export default function ProductSelectionList({
                     <label className="block text-xs font-medium text-gray-600 mb-1">Ilość</label>
                     <input
                       type="number"
+                      inputMode="decimal"
                       step="0.5"
                       value={sp.amount}
+                      aria-label={`Ilość: ${product?.name ?? `produkt ${index + 1}`}`}
                       onChange={(e) =>
                         updateProductSelection(index, 'amount', e.target.value, selectedProducts, setSelectedProducts)
                       }
@@ -77,6 +80,7 @@ export default function ProductSelectionList({
                   <button
                     type="button"
                     onClick={() => removeProductFromSelection(index, selectedProducts, setSelectedProducts)}
+                    aria-label={`Usuń ${product?.name ?? `produkt ${index + 1}`}`}
                     className="text-red-600 hover:text-red-700 px-2 pb-2"
                   >
                     ✕

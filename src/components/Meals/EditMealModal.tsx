@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { useEffect, useId, type ComponentProps } from 'react'
 import MealForm from './MealForm'
 
 // Modal shell around the edit-mode MealForm
@@ -8,17 +8,33 @@ export default function EditMealModal({
   onCancel,
   ...formProps
 }: Omit<ComponentProps<typeof MealForm>, 'mode' | 'onCancel'> & { onCancel: () => void }) {
+  const titleId = useId()
+
+  // Close on Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onCancel()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel])
+
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[100] pt-8 pb-6">
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-gray-900">Edytuj posiłek</h2>
+          <h2 id={titleId} className="text-2xl font-bold text-gray-900">Edytuj posiłek</h2>
           <button
+            type="button"
             onClick={onCancel}
+            aria-label="Zamknij"
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

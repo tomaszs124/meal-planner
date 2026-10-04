@@ -69,10 +69,12 @@ export default function CategoryView({
                   >
                     {hasMeals && (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           setExpandedCategoryGroupKey(isExpanded ? null : groupedItem.key)
                         }}
+                        aria-expanded={isExpanded}
                         className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
                         aria-label={isExpanded ? 'Ukryj przepisy' : 'Pokaż przepisy'}
                       >

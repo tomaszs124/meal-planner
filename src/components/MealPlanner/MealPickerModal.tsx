@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { SkeletonCard } from '@/components/ui/Skeleton'
 import Image from 'next/image'
 import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
@@ -82,6 +82,17 @@ export default function MealPickerModal({
   }, [isOpen, householdId, user?.id, providedMeals])
 
   const meals = providedMeals ?? fetchedMeals
+  const titleId = useId()
+
+  // Close on Escape; while the nested details modal is open, it handles Escape itself
+  useEffect(() => {
+    if (!isOpen || selectedMealForDetails) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, selectedMealForDetails, onClose])
 
   if (!isOpen) return null
 
@@ -121,13 +132,20 @@ export default function MealPickerModal({
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+      >
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Wybierz posiłek</h2>
+            <h2 id={titleId} className="text-xl font-bold text-gray-900">Wybierz posiłek</h2>
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Zamknij"
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,10 +156,11 @@ export default function MealPickerModal({
 
           {/* Search */}
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Szukaj po nazwie lub składnikach..."
+            aria-label="Szukaj po nazwie lub składnikach"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -153,6 +172,7 @@ export default function MealPickerModal({
                   <button
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
+                    aria-pressed={selectedTags.includes(tag.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedTags.includes(tag.id)
                         ? 'ring-2 ring-offset-2 ring-blue-500 opacity-100'
@@ -257,7 +277,8 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
           <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
             <Image
               src={meal.images[0].image_url}
-              alt={meal.name}
+              // Decorative: the meal name is already the button's text
+              alt=""
               width={64}
               height={64}
               className="w-full h-full object-cover"

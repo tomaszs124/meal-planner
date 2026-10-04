@@ -69,6 +69,8 @@ export default function WeekNavigator({
             <button
               key={day.toISOString()}
               onClick={() => onDateSelect(day)}
+              aria-label={format(day, 'EEEE, d MMMM yyyy', { locale: pl })}
+              aria-current={isSelected ? 'date' : undefined}
               className={`
                 flex flex-col items-center p-1 md:p-2 rounded-lg transition-all border-2
                 ${isSelected
