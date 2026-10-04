@@ -43,7 +43,11 @@ export function useProductCategories(options: UseProductCategoriesOptions) {
 
   // Fetch categories (products come from the shared useProducts cache)
   useEffect(() => {
-    if (!householdId) return
+    if (!householdId) {
+      // No household yet (or still resolving): nothing to load, let the page show its empty state
+      setIsLoading(false)
+      return
+    }
 
     async function fetchData() {
       setIsLoading(true)
