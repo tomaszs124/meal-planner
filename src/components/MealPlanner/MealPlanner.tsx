@@ -10,6 +10,7 @@ import DailySummary from './DailySummary'
 import DayActions from './DayActions'
 import { CATEGORY_LABELS } from './types'
 import { useMealPlan } from './useMealPlan'
+import { PlannerSkeleton, PlannerSlotsSkeleton } from '@/components/ui/Skeleton'
 
 export default function MealPlanner() {
   const {
@@ -83,9 +84,7 @@ export default function MealPlanner() {
 
   if (userLoading || !household) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500">Ładowanie...</div>
-      </div>
+      <PlannerSkeleton />
     )
   }
 
@@ -102,7 +101,7 @@ export default function MealPlanner() {
       {/* Day plan */}
       <div>
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Ładowanie planu...</div>
+          <PlannerSlotsSkeleton />
         ) : (
           <>
             {/* Mobile slider view */}

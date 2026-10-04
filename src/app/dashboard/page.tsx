@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealPlanner from '@/components/MealPlanner/MealPlanner'
+import { PlannerSkeleton, Skeleton } from '@/components/ui/Skeleton'
 import { supabase, UserSettings } from '@/lib/supabase/client'
 
 export default function DashboardPage() {
@@ -31,8 +32,16 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">Ładowanie...</div>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 space-y-3" aria-hidden="true">
+            <Skeleton className="h-9 w-56" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+          <div className="mb-8">
+            <PlannerSkeleton />
+          </div>
+        </div>
       </div>
     )
   }

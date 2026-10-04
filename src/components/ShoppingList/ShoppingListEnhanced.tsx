@@ -14,6 +14,7 @@ import GenerateListPanel from './GenerateListPanel'
 import GroupedItemRow from './GroupedItemRow'
 import CategoryView from './CategoryView'
 import DishView from './DishView'
+import { ShoppingListSkeleton } from '@/components/ui/Skeleton'
 
 export default function ShoppingListEnhanced() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
@@ -52,8 +53,8 @@ export default function ShoppingListEnhanced() {
 
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500">Ładowanie...</div>
+      <div className="max-w-4xl mx-auto p-4">
+        <ShoppingListSkeleton />
       </div>
     )
   }

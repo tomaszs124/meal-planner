@@ -11,6 +11,7 @@ import ProductList from './ProductList'
 import { useProductCategories } from './useProductCategories'
 import { emptyProductForm, getDefaultCategoryName, isProductFormValid, productToFormValues, toProductPayload } from './productFormHelpers'
 import type { ProductFormValues } from './productFormHelpers'
+import { ProductsSkeleton } from '@/components/ui/Skeleton'
 
 export default function Products() {
   const { toast, confirm } = useFeedback()
@@ -131,8 +132,8 @@ export default function Products() {
 
   if (userLoading || isLoading || productsLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-gray-500">Ładowanie...</div>
+      <div className="max-w-4xl mx-auto p-4">
+        <ProductsSkeleton />
       </div>
     )
   }
