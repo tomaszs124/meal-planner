@@ -150,6 +150,9 @@ function scheduleChannelTeardown(entry: Entry) {
     if (entry.listeners.size > 0 || !entry.channel) return
     const channel = entry.channel
     entry.channel = null
+    // Realtime events are no longer applied while nobody listens, so the cache may go
+    // stale silently: force a revalidation on the next mount.
+    entry.fetchedAt = 0
     void supabase.removeChannel(channel)
   }, CHANNEL_TEARDOWN_DELAY_MS)
 }

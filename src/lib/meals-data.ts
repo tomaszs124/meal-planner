@@ -102,10 +102,20 @@ export async function fetchMealsWithDetails(
           supabase.from('meal_item_overrides').select('*, product:products(*)').in('meal_id', ids).eq('user_id', userId)
         )
       : Promise.resolve([]),
+    // Images and tags are decoration: if their query fails (e.g. a policy change)
+    // still show the meals, just without them, instead of an empty list.
     inChunks(mealIds, (ids) =>
       supabase.from('meal_images').select('*').in('meal_id', ids).order('uploaded_at', { ascending: false })
+    ).catch((err: unknown) => {
+      console.error('meal_images query failed, continuing without images', err)
+      return [] as unknown[]
+    }),
+    inChunks(mealIds, (ids) => supabase.from('meal_tags').select('meal_id, tag_id, tags(*)').in('meal_id', ids)).catch(
+      (err: unknown) => {
+        console.error('meal_tags query failed, continuing without tags', err)
+        return [] as unknown[]
+      }
     ),
-    inChunks(mealIds, (ids) => supabase.from('meal_tags').select('meal_id, tag_id, tags(*)').in('meal_id', ids)),
   ])
 
   return assembleMeals(

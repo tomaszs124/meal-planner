@@ -434,14 +434,15 @@ export function useMeals(householdId: string | undefined, userId: string | undef
               baseItems,
               isUserVariant,
               tags: input.tags.map(tagId => tags.find(t => t.id === tagId)).filter((t): t is Tag => t !== undefined),
+              // Newest first, same order as the loader (uploaded_at desc), so the card shows the new photo
               images: uploadedImageUrl
-                ? [...(m.images || []), {
+                ? [{
                     id: crypto.randomUUID(),
                     meal_id: mealId,
                     image_url: uploadedImageUrl,
                     uploaded_by: userId,
                     uploaded_at: new Date().toISOString(),
-                  }]
+                  }, ...(m.images || [])]
                 : m.images,
               ...mealTotals(items),
             }

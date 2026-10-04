@@ -89,11 +89,14 @@ function seededIndex(seed: string, length: number): number {
  * the same meal. Prefers meals whose primary category matches, then meals listing
  * the category as an alternative, then any meal. Returns null for an empty list.
  */
-export function pickRandomMeal<T extends CategorizedMeal>(
-  meals: T[],
+export function pickRandomMeal<T extends CategorizedMeal & { id: string }>(
+  mealsInput: T[],
   category: MealCategory,
   dateSeed: string
 ): T | null {
+  // Index by a stable order (id) so the pick for a given day does not depend on
+  // fetch ordering or change every time a meal is added at the top of the list.
+  const meals = [...mealsInput].sort((a, b) => a.id.localeCompare(b.id))
   const primaryMeals = meals.filter((m) => m.primary_category === category)
   const alternativeMeals = meals.filter(
     (m) => m.primary_category !== category && m.alternative_categories?.includes(category)

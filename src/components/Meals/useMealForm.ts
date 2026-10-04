@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { MealCategory, Product } from '@/lib/supabase/client'
 import type { ToastOptions } from '@/components/ui/Feedback'
 import { calculateNutrition } from '@/lib/nutrition'
@@ -23,8 +23,12 @@ export function useMealFormState() {
   const [tags, setTags] = useState<string[]>([])
   const [primaryCategory, setPrimaryCategory] = useState<MealCategory | ''>('')
   const [alternativeCategories, setAlternativeCategories] = useState<MealCategory[]>([])
+  // Incremented by every loadMealIntoForm call so a slow response for meal A cannot
+  // overwrite the form after the user already opened meal B (or cancelled).
+  const loadSeq = useRef(0)
 
   function reset() {
+    loadSeq.current += 1
     setName('')
     setDescription('')
     setImageFile(null)
@@ -38,6 +42,7 @@ export function useMealFormState() {
   }
 
   return {
+    loadSeq,
     name, setName,
     description, setDescription,
     imageFile, setImageFile,
@@ -58,6 +63,9 @@ type Toast = (message: string, options?: ToastOptions) => void
 
 // Fill the edit form from a meal: plain fields first, then the base recipe and member overrides from the DB
 export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems) {
+  const seq = ++form.loadSeq.current
+  const isStale = () => form.loadSeq.current !== seq
+
   form.setName(meal.name)
   form.setDescription(meal.description || '')
   form.setImageFile(null)
@@ -71,6 +79,7 @@ export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems)
   // Always fetch base meal_items from DB so the form always reflects the base recipe,
   // regardless of whether the current user has an override (meal.items may contain overrides).
   const baseMealItems = await fetchBaseMealItems(meal.id)
+  if (isStale()) return
 
   form.setSelectedProducts(
     (baseMealItems || meal.items).map((item) => ({
@@ -81,6 +90,7 @@ export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems)
 
   // Load existing member overrides
   const overridesData = await fetchMealItemOverrides(meal.id)
+  if (isStale()) return
 
   if (overridesData) {
     const overridesByMember: MemberOverrides = {}

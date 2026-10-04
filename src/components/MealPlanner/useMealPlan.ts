@@ -52,6 +52,8 @@ export function useMealPlan() {
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
   const [plannedMeals, setPlannedMeals] = useState<PlannedMeal[]>([])
   const [allMeals, setAllMeals] = useState<MealWithDetails[]>([])
+  // true once the meals query finished (even with zero meals), so the day plan can stop loading
+  const [mealsLoaded, setMealsLoaded] = useState(false)
   const [weekProgress, setWeekProgress] = useState<DayProgress[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
@@ -137,6 +139,8 @@ export function useMealPlan() {
         if (!cancelled) setAllMeals(mealsWithDetails)
       } catch (error) {
         console.error('Error fetching meals:', error)
+      } finally {
+        if (!cancelled) setMealsLoaded(true)
       }
     }
 
@@ -207,10 +211,12 @@ export function useMealPlan() {
       setIsLoading(false)
     }
 
-    if (allMeals.length > 0) {
+    // Wait for the meals list so plans can be joined with meal details, but do not
+    // hang on "Ładowanie planu..." forever when the household has no meals yet.
+    if (allMeals.length > 0 || mealsLoaded) {
       fetchPlannedMeals(userId, householdId)
     }
-  }, [user?.id, household?.id, selectedDate, allMeals])
+  }, [user?.id, household?.id, selectedDate, allMeals, mealsLoaded])
 
   // Fetch week progress
   useEffect(() => {

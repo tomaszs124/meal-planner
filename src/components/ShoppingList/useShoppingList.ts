@@ -189,6 +189,11 @@ export function useShoppingList(household: Household | null, user: User | null) 
       // Clear existing items (optional - you might want to ask user)
       if (items.length > 0) {
         const confirmClear = await confirm({ message: 'Czy chcesz wyczyścić istniejącą listę zakupów przed wygenerowaniem nowej?', danger: true, confirmLabel: 'Wyczyść', cancelLabel: 'Zachowaj' })
+        if (confirmClear === null) {
+          // Dismissed (Escape / backdrop): abort instead of silently appending a second copy
+          setIsGenerating(false)
+          return
+        }
         if (confirmClear) {
           await supabase
             .from('shopping_list_items')

@@ -33,13 +33,20 @@ export type ConfirmOptions = {
 
 type FeedbackContextValue = {
   toast: (message: string, options?: ToastOptions) => void
-  confirm: (options: ConfirmOptions | string) => Promise<boolean>
+  /**
+   * Resolves true (confirm), false (cancel button) or null when the dialog was
+   * dismissed with Escape / a click on the backdrop. `if (!(await confirm(...)))`
+   * treats null like cancel; check for null explicitly when "dismiss" should abort
+   * a flow whose cancel button means "continue without".
+   */
+  confirm: (options: ConfirmOptions | string) => Promise<boolean | null>
 }
 
 const FeedbackContext = createContext<FeedbackContextValue | null>(null)
 
 type ToastItem = { id: number; message: string; type: ToastType; durationMs: number }
-type ConfirmState = ConfirmOptions & { resolve: (value: boolean) => void }
+type ConfirmResult = boolean | null
+type ConfirmState = ConfirmOptions & { resolve: (value: ConfirmResult) => void }
 
 const TOAST_STYLES: Record<ToastType, string> = {
   info: 'bg-gray-900 text-white',
@@ -65,13 +72,17 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback((options: ConfirmOptions | string) => {
     const normalized: ConfirmOptions = typeof options === 'string' ? { message: options } : options
-    return new Promise<boolean>((resolve) => {
-      setConfirmState({ ...normalized, resolve })
+    return new Promise<ConfirmResult>((resolve) => {
+      setConfirmState((previous) => {
+        // A second confirm while one is open: dismiss the first so its caller never hangs
+        previous?.resolve(null)
+        return { ...normalized, resolve }
+      })
     })
   }, [])
 
   const closeConfirm = useCallback(
-    (value: boolean) => {
+    (value: ConfirmResult) => {
       confirmState?.resolve(value)
       setConfirmState(null)
     },
@@ -102,7 +113,7 @@ function ToastViewport({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: 
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-20 z-[110] flex flex-col items-center gap-2 px-4"
     >
       {toasts.map((t) => (
         <Toast key={t.id} item={t} onDismiss={onDismiss} />
@@ -128,13 +139,13 @@ function Toast({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) =
   )
 }
 
-function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (value: boolean) => void }) {
+function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (value: ConfirmResult) => void }) {
   const confirmRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     confirmRef.current?.focus()
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose(false)
+      if (e.key === 'Escape') onClose(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -145,8 +156,8 @@ function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (valu
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-4"
-      onClick={() => onClose(false)}
+      className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/50 p-4"
+      onClick={() => onClose(null)}
     >
       <div
         className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
