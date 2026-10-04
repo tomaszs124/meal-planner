@@ -4,6 +4,8 @@ import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
 import { FeedbackProvider } from "@/components/ui/Feedback";
 import { CurrentUserProvider } from "@/components/Auth/CurrentUserProvider";
+import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration";
+import OfflineBanner from "@/components/ui/OfflineBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +52,9 @@ export default function RootLayout({
           <CurrentUserProvider>
             {children}
           </CurrentUserProvider>
+          <OfflineBanner />
           <BottomNav />
+          <ServiceWorkerRegistration />
         </FeedbackProvider>
       </body>
     </html>
