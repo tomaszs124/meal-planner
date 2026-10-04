@@ -1,13 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { notFound } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
+import { supabase, Household, HouseholdUser } from '@/lib/supabase/client'
 
+type RawQueryResult = { data: unknown; error: { message: string; code?: string } | null }
+
+/**
+ * Developer-only page that dumps auth / household rows for the signed-in user.
+ * Never served in production: it would expose raw account data.
+ */
 export default function DebugPage() {
-  const [user, setUser] = useState<any>(null)
-  const [householdUsers, setHouseholdUsers] = useState<any[]>([])
-  const [households, setHouseholds] = useState<any[]>([])
-  const [rawQuery, setRawQuery] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [householdUsers, setHouseholdUsers] = useState<HouseholdUser[]>([])
+  const [households, setHouseholds] = useState<Household[]>([])
+  const [rawQuery, setRawQuery] = useState<RawQueryResult | null>(null)
 
   useEffect(() => {
     async function fetchDebugData() {
@@ -22,15 +30,15 @@ export default function DebugPage() {
         .from('household_users')
         .select('*')
         .eq('user_id', currentUser.id)
-      
-      setHouseholdUsers(huData || [])
+
+      setHouseholdUsers((huData || []) as HouseholdUser[])
 
       // Get all households
       const { data: hData } = await supabase
         .from('households')
         .select('*')
-      
-      setHouseholds(hData || [])
+
+      setHouseholds((hData || []) as Household[])
 
       // Try the original query
       const { data: rawData, error: rawError } = await supabase
@@ -52,6 +60,10 @@ export default function DebugPage() {
 
     fetchDebugData()
   }, [])
+
+  if (process.env.NODE_ENV === 'production') {
+    notFound()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

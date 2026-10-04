@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { login } from '@/app/login/actions'
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -23,7 +21,7 @@ export default function LoginForm() {
         setIsLoading(false)
       }
       // Jeśli nie ma błędu, redirect z Server Action zadziała
-    } catch (err) {
+    } catch {
       setError('Failed to login')
       setIsLoading(false)
     }

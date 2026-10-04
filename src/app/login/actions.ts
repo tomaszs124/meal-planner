@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
@@ -19,17 +19,17 @@ export async function login(formData: FormData) {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set(name, value, options)
-          } catch (error) {
+          } catch {
             // Ignore - może być wywoływane z Server Action
           }
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set(name, '', options)
-          } catch (error) {
+          } catch {
             // Ignore - może być wywoływane z Server Action
           }
         },

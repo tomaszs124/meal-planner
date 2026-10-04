@@ -111,6 +111,7 @@ export type MealPlan = {
   date: string
   meal_type: MealCategory
   is_consumed: boolean
+  is_skipped: boolean
   user_id: string
   household_id: string
   meal_id: string

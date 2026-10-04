@@ -72,7 +72,6 @@ export default function MealDetailsModal({
   const [selectedVariantUserId, setSelectedVariantUserId] = useState<string | null>(initialVariantUserId ?? null)
   const [activeIngredientTooltip, setActiveIngredientTooltip] = useState<number | null>(null)
   const [variantItemsByUser, setVariantItemsByUser] = useState<Record<string, VariantItem[]>>({})
-  const [variantUserIds, setVariantUserIds] = useState<string[]>([])
   const [baseItems, setBaseItems] = useState<MealItem[] | null>(null)
   const membersCacheRef = useRef<{ householdId: string | null; userId: string | null; members: HouseholdMember[] } | null>(null)
 
@@ -132,15 +131,6 @@ export default function MealDetailsModal({
           }
         })
 
-        const { data: overridesData } = await supabase
-          .from('meal_item_overrides')
-          .select('user_id')
-          .eq('meal_id', meal.id)
-          .in('user_id', userIds)
-
-        const overrideIds = (overridesData || []).map((row: { user_id: string }) => row.user_id)
-        setVariantUserIds(overrideIds)
-
         membersCacheRef.current = { householdId: householdId ?? null, userId: userId ?? null, members }
         setHouseholdMembers(members)
       } catch {
@@ -185,7 +175,6 @@ export default function MealDetailsModal({
   useEffect(() => {
     setSelectedVariantUserId(initialVariantUserId ?? null)
     setVariantItemsByUser({})
-    setVariantUserIds([])
     setBaseItems(null)
   }, [meal?.id, initialVariantUserId])
   /* eslint-enable react-hooks/set-state-in-effect */
