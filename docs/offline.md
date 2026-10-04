@@ -88,3 +88,23 @@ SW działa tylko w buildzie produkcyjnym: `npx next build && npx next start`.
 - **Dane z cache mogą być nieaktualne** aż do następnego udanego pobrania; dotyczy to też
   zmian uprawnień (RLS) — odpowiedź zapisana przed zmianą może być pokazana offline.
 - Wolna sieć (> 4 s) również skutkuje pokazaniem danych z cache.
+
+## Do poprawienia przed scaleniem (wynik recenzji z 2026-10-04)
+
+Recenzja kodu service workera wskazała dwa problemy, których nie zdążono naprawić:
+
+1. **Stare dane przy wolnej, ale żywej sieci.** Odczyty z Supabase mają limit 4 s, po którym
+   strona dostaje kopię z cache, choć `navigator.onLine` jest `true`. Operacje typu
+   "odczytaj, przelicz, zapisz" (skalowanie porcji na liście zakupów, kopiowanie dnia w planerze)
+   mogą wtedy zapisać złe wartości. Poprawka: dla `/rest/v1/` nie używać limitu czasu; cache
+   tylko gdy `fetch` zakończy się błędem albo `!navigator.onLine`.
+2. **Czyszczenie cache przy wylogowaniu jest zawodne.** Czyszczenie startuje w momencie
+   `POST /auth/v1/logout`, a spóźnione odpowiedzi REST z tokenem poprzedniego użytkownika
+   mogą ponownie zapisać cache; wylogowanie przez wygaśnięcie sesji lub w innej karcie nie
+   wywołuje czyszczenia wcale. Poprawka: licznik "epoki" w SW (odpowiedzi rozpoczęte przed
+   czyszczeniem nie trafiają do cache) oraz komunikat `{ type: 'clear-user-caches' }` wysyłany
+   z `CurrentUserProvider` przy `SIGNED_OUT` i przy zmianie użytkownika; czyścić też cache zdjęć.
+
+Mniejsze: strony otwierane nawigacją kliencką nie trafiają do cache (warto "rozgrzać" główne
+trasy po `activate`), baner offline jest przykrywany przez toasty (`bottom-20`), limit wpisów
+działa jak FIFO, nie LRU.
