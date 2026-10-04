@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { SkeletonCard } from '@/components/ui/Skeleton'
 import Image from 'next/image'
 import { supabase, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -173,7 +174,12 @@ export default function MealPickerModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Ładowanie...</div>
+            <div role="status" aria-live="polite" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <span className="sr-only">Ładowanie...</span>
+              {Array.from({ length: 6 }, (_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           ) : (
             <div className="space-y-6">
               {/* Primary category meals */}
