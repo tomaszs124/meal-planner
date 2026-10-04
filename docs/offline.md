@@ -108,3 +108,9 @@ Recenzja kodu service workera wskazała dwa problemy, których nie zdążono nap
 Mniejsze: strony otwierane nawigacją kliencką nie trafiają do cache (warto "rozgrzać" główne
 trasy po `activate`), baner offline jest przykrywany przez toasty (`bottom-20`), limit wpisów
 działa jak FIFO, nie LRU.
+
+## Włączanie w produkcji
+
+Do czasu naprawienia punktów powyżej service worker rejestruje się tylko, gdy w środowisku
+produkcyjnym ustawiona jest zmienna `NEXT_PUBLIC_ENABLE_SW=1`. Bez niej aplikacja działa jak
+dotąd (online), a baner "Brak połączenia" nadal się pokazuje.

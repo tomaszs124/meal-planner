@@ -185,6 +185,7 @@ export type UserSettings = {
   second_breakfast_enabled?: boolean
   lunch_enabled?: boolean
   dinner_enabled?: boolean
+  dietary_rules?: string | null  // Free-text personal rules used by the MCP assistant
   created_at: string
   updated_at: string
 }
