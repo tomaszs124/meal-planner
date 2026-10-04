@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
+import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import Image from 'next/image'
 import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
@@ -201,16 +202,11 @@ export default function MealDetailsModal({
     loadBaseItems()
   }, [meal?.id])
 
-  // Close on Escape
+  // Focus management + close on Escape. With ariaModal=false the related footer lives
+  // outside the dialog (MealDetailsWithActions), so Tab must be allowed to leave it.
   const isVisible = isOpen && !!meal
-  useEffect(() => {
-    if (!isVisible) return
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isVisible, onClose])
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef, { active: isVisible, onEscape: onClose, trapTab: ariaModal })
 
   const selectedVariantItems = selectedVariantUserId ? variantItemsByUser[selectedVariantUserId] : undefined
 
@@ -257,6 +253,7 @@ export default function MealDetailsModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal={ariaModal ? 'true' : undefined}
         aria-labelledby={titleId}
