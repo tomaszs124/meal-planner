@@ -13,7 +13,9 @@ export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    if (process.env.NODE_ENV !== 'production') {
+    // Opt-in until the review findings in docs/offline.md are fixed:
+    // NEXT_PUBLIC_ENABLE_SW=1 enables the service worker in production builds.
+    if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_ENABLE_SW !== '1') {
       navigator.serviceWorker
         .getRegistrations()
         .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))

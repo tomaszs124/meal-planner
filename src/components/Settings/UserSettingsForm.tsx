@@ -51,7 +51,7 @@ export default function UserSettingsForm() {
   return <UserSettingsFields key={user.id} settings={settings} save={save} />
 }
 
-type FieldValues = { name: string; second: boolean; lunch: boolean; dinner: boolean; snack: boolean }
+type FieldValues = { name: string; second: boolean; lunch: boolean; dinner: boolean; snack: boolean; rules: string }
 
 function fieldValuesOf(settings: UserSettings | null): FieldValues {
   return {
@@ -60,11 +60,19 @@ function fieldValuesOf(settings: UserSettings | null): FieldValues {
     lunch: settings?.lunch_enabled !== false,
     dinner: settings?.dinner_enabled !== false,
     snack: settings?.snack_enabled || false,
+    rules: settings?.dietary_rules || '',
   }
 }
 
 function sameFieldValues(a: FieldValues, b: FieldValues): boolean {
-  return a.name === b.name && a.second === b.second && a.lunch === b.lunch && a.dinner === b.dinner && a.snack === b.snack
+  return (
+    a.name === b.name &&
+    a.second === b.second &&
+    a.lunch === b.lunch &&
+    a.dinner === b.dinner &&
+    a.snack === b.snack &&
+    a.rules === b.rules
+  )
 }
 
 type UserSettingsFieldsProps = {
@@ -82,6 +90,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
   const [lunchEnabled, setLunchEnabled] = useState(settings?.lunch_enabled !== false)
   const [dinnerEnabled, setDinnerEnabled] = useState(settings?.dinner_enabled !== false)
   const [snackEnabled, setSnackEnabled] = useState(settings?.snack_enabled || false)
+  const [dietaryRules, setDietaryRules] = useState(settings?.dietary_rules || '')
 
   // Sync from fresher settings (another device, or the echo of our own save) without
   // remounting: only when the form is not dirty, so in-progress typing is never lost.
@@ -90,7 +99,14 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
   const [syncedVersion, setSyncedVersion] = useState<string | null>(settings?.updated_at ?? null)
   const incomingVersion = settings?.updated_at ?? null
   if (incomingVersion !== syncedVersion) {
-    const current: FieldValues = { name, second: secondBreakfastEnabled, lunch: lunchEnabled, dinner: dinnerEnabled, snack: snackEnabled }
+    const current: FieldValues = {
+      name,
+      second: secondBreakfastEnabled,
+      lunch: lunchEnabled,
+      dinner: dinnerEnabled,
+      snack: snackEnabled,
+      rules: dietaryRules,
+    }
     const incoming = fieldValuesOf(settings)
     // Dirty = the user changed something since the last sync AND it differs from what the
     // server now has (after our own save the fields already equal the server row).
@@ -102,6 +118,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
       setLunchEnabled(incoming.lunch)
       setDinnerEnabled(incoming.dinner)
       setSnackEnabled(incoming.snack)
+      setDietaryRules(incoming.rules)
       setSyncedBase(incoming)
     }
   }
@@ -125,6 +142,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
       lunch_enabled: lunchEnabled,
       dinner_enabled: dinnerEnabled,
       snack_enabled: snackEnabled,
+      dietary_rules: dietaryRules.trim() || null,
     })
 
     if (saved) {
@@ -162,6 +180,26 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
           />
           <p className="text-xs text-gray-500 mt-1">
             To imię będzie wyświetlane w wiadomościach powitalnych i na listach domowników
+          </p>
+        </div>
+
+        {/* Personal dietary rules (read by the MCP assistant) */}
+        <div>
+          <label htmlFor="dietary-rules" className="block text-sm font-medium text-gray-900 mb-2">
+            Moje zasady żywieniowe
+          </label>
+          <textarea
+            id="dietary-rules"
+            value={dietaryRules}
+            onChange={(e) => setDietaryRules(e.target.value)}
+            rows={5}
+            maxLength={2000}
+            placeholder={'Np.\n- na śniadanie maks 2 jajka\n- bez laktozy\n- obiad do 600 kcal'}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Asystent AI (konektor MCP) bierze te zasady pod uwagę, gdy proponuje posiłki i plan dla Ciebie.
+            Jedna zasada w linii. {dietaryRules.length}/2000
           </p>
         </div>
 
