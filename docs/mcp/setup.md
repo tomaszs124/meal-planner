@@ -208,3 +208,24 @@ Raport zawiera dane gospodarstwa (imiona, identyfikatory) – nie commituj go.
 | `acting user does not belong to any household` | Użytkownik nie jest w `household_users`. |
 | Błąd o kolumnie `package_size` | Nie uruchomiono migracji `docs/add-package-size-to-products.sql`. |
 | ChatGPT nie widzi nowych narzędzi | Settings → Apps & Connectors → konektor → Refresh. |
+
+## 10. Każdy domownik ze swoim ChatGPT (tokeny per osoba)
+
+Konektor może działać w imieniu różnych osób. Zamiast jednego `MCP_ACCESS_TOKEN` ustaw
+`MCP_ACCESS_TOKENS` z parami `<token>=<e-mail użytkownika Supabase>` rozdzielonymi średnikiem:
+
+```
+MCP_ACCESS_TOKENS="k3J...a1=tomasz@example.com;Qp9...z7=kasia@example.com"
+```
+
+- Każdy token generujesz osobno (`node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`).
+- Każda osoba dodaje w swoim ChatGPT konektor z adresem `https://<host>/api/mcp/<swój token>`
+  (Developer mode, "No authentication") i działa jako siebie: `get_household` zwraca ją jako `is_me`,
+  plan i warianty posiłków dotyczą jej konta, a drugiego domownika wskazuje po imieniu.
+- Zamiast e-maila można podać UUID użytkownika (Supabase → Authentication → Users).
+- Token to jedyne zabezpieczenie: traktuj adres jak hasło, nie wklejaj go do wspólnych czatów.
+  Zmiana tokenu = zmiana wartości w zmiennej i nowy adres w ChatGPT.
+- Stara konfiguracja (`MCP_ACCESS_TOKEN` + `MCP_ACTING_USER_EMAIL`) nadal działa równolegle.
+
+Docelowo (patrz `TODO.md`): OAuth 2.1 przez Supabase Auth, czyli logowanie własnym kontem
+podczas dodawania konektora, bez tokenów w adresie i bez klucza service role.

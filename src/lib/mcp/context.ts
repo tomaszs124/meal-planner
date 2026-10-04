@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAdminClient } from './supabase-admin'
 
@@ -35,7 +36,16 @@ type UserSettingsRow = {
 }
 type ProfileRow = { id: string; display_name: string | null }
 
-let resolvedActingUserId: string | null = null
+/**
+ * Who the current request acts as. The route handler resolves the access token
+ * to a principal (one token per household member) and runs the MCP request inside
+ * `actingUserStorage.run(principal, ...)`; tools then call `loadContext()` without
+ * arguments. Falls back to MCP_ACTING_USER_ID / MCP_ACTING_USER_EMAIL when unset.
+ */
+export type ActingPrincipal = { userId?: string; email?: string }
+export const actingUserStorage = new AsyncLocalStorage<ActingPrincipal>()
+
+const resolvedIdByEmail = new Map<string, string>()
 let emailCache: Map<string, string> | null = null
 
 async function loadEmails(db: SupabaseClient): Promise<Map<string, string>> {
@@ -52,23 +62,23 @@ async function loadEmails(db: SupabaseClient): Promise<Map<string, string>> {
 }
 
 async function resolveActingUserId(db: SupabaseClient): Promise<string> {
-  if (resolvedActingUserId) return resolvedActingUserId
+  const principal = actingUserStorage.getStore()
 
-  const fromEnvId = process.env.MCP_ACTING_USER_ID?.trim()
-  if (fromEnvId) {
-    resolvedActingUserId = fromEnvId
-    return fromEnvId
-  }
+  const userId = principal?.userId?.trim() || process.env.MCP_ACTING_USER_ID?.trim()
+  if (userId) return userId
 
-  const email = process.env.MCP_ACTING_USER_EMAIL?.trim().toLowerCase()
+  const email = (principal?.email || process.env.MCP_ACTING_USER_EMAIL || '').trim().toLowerCase()
   if (!email) {
-    throw new Error('MCP: set MCP_ACTING_USER_ID or MCP_ACTING_USER_EMAIL in the environment')
+    throw new Error('MCP: no acting user for this token (set MCP_ACCESS_TOKENS or MCP_ACTING_USER_EMAIL)')
   }
+
+  const cached = resolvedIdByEmail.get(email)
+  if (cached) return cached
 
   const emails = await loadEmails(db)
   for (const [id, e] of emails) {
     if (e.toLowerCase() === email) {
-      resolvedActingUserId = id
+      resolvedIdByEmail.set(email, id)
       return id
     }
   }
