@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import type { MealCategory, Product } from '@/lib/supabase/client'
 import type { ToastOptions } from '@/components/ui/Feedback'
 import { calculateNutrition } from '@/lib/nutrition'
+import { IMAGE_ACCEPTED_TYPES, IMAGE_MAX_INPUT_BYTES, compressImage } from '@/lib/image'
 import { fetchBaseMealItems, fetchMealItemOverrides } from './useMeals'
 import type { MealWithItems, MemberOverrides, ProductSelection } from './types'
 
@@ -118,14 +119,13 @@ export function handleImageChange(file: File | null, form: MealFormState, toast:
   }
 
   // Validate file type
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
-  if (!validTypes.includes(file.type)) {
+  if (!IMAGE_ACCEPTED_TYPES.includes(file.type)) {
     toast('Nieprawidłowy format pliku. Dozwolone: JPG, PNG, WebP, GIF', { type: 'error' })
     return
   }
 
-  // Validate file size (5MB)
-  if (file.size > 5 * 1024 * 1024) {
+  // Validate file size (5MB, checked on the selected file, before compression)
+  if (file.size > IMAGE_MAX_INPUT_BYTES) {
     toast('Plik jest za duży. Maksymalny rozmiar: 5MB', { type: 'error' })
     return
   }
@@ -137,6 +137,14 @@ export function handleImageChange(file: File | null, form: MealFormState, toast:
     form.setImagePreview(reader.result as string)
   }
   reader.readAsDataURL(file)
+
+  // Compress in the background (downscale + re-encode). Until it finishes the original
+  // file is used, so submitting early still works. Swap only if the form still holds
+  // this exact file (not removed, replaced or reset in the meantime).
+  void compressImage(file).then((compressed) => {
+    if (compressed === file) return
+    form.setImageFile(current => (current === file ? compressed : current))
+  })
 }
 
 // Add product to selection

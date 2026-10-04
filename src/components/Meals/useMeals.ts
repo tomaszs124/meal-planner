@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase, Product, Tag } from '@/lib/supabase/client'
 import { useFeedback } from '@/components/ui/Feedback'
 import { fetchMealsWithDetails } from '@/lib/meals-data'
+import { extensionForType } from '@/lib/image'
 import { mealTotals } from './mealHelpers'
 import type {
   HouseholdMember,
@@ -183,8 +184,9 @@ export function useMeals(householdId: string | undefined, userId: string | undef
     setIsUploadingImage(true)
 
     try {
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop()
+      // Generate unique filename; the extension follows the actual content type
+      // (the file may have been re-encoded, e.g. PNG -> JPEG, before upload)
+      const fileExt = extensionForType(file.type) ?? file.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
       const filePath = `${householdId}/${mealId}/${fileName}`
 
@@ -193,6 +195,7 @@ export function useMeals(householdId: string | undefined, userId: string | undef
         .from('meal-images')
         .upload(filePath, file, {
           cacheControl: '3600',
+          contentType: file.type || undefined,
           upsert: false
         })
 
