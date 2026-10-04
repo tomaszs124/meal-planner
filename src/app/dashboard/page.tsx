@@ -1,34 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useUserSettings } from '@/hooks/useUserSettings'
 import MealPlanner from '@/components/MealPlanner/MealPlanner'
 import { PlannerSkeleton, Skeleton } from '@/components/ui/Skeleton'
-import { supabase, UserSettings } from '@/lib/supabase/client'
 
 export default function DashboardPage() {
   const { user, household, isLoading } = useCurrentUser()
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
-
-  // Fetch user settings to get name
-  useEffect(() => {
-    const userId = user?.id
-    if (!userId) return
-
-    async function fetchSettings() {
-      const { data } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (data) {
-        setUserSettings(data)
-      }
-    }
-
-    fetchSettings()
-  }, [user?.id])
+  // Shared settings cache (also used by the planner), for the name in the greeting
+  const { settings: userSettings } = useUserSettings(user?.id)
 
   if (isLoading) {
     return (

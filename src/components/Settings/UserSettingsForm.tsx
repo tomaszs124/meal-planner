@@ -1,136 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 import { useRouter } from 'next/navigation'
 import { supabase, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useUserSettings } from '@/hooks/useUserSettings'
 import { useFeedback } from '@/components/ui/Feedback'
 
 export default function UserSettingsForm() {
-  const router = useRouter()
   const { user, isLoading: userLoading } = useCurrentUser()
-  const { toast } = useFeedback()
-  const [settings, setSettings] = useState<UserSettings | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-
-  const [name, setName] = useState('')
-  const [secondBreakfastEnabled, setSecondBreakfastEnabled] = useState(true)
-  const [lunchEnabled, setLunchEnabled] = useState(true)
-  const [dinnerEnabled, setDinnerEnabled] = useState(true)
-  const [snackEnabled, setSnackEnabled] = useState(false)
-
-  // Wylogowanie
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  // Wczytaj ustawienia użytkownika
-  useEffect(() => {
-    const userId = user?.id
-    if (!userId) return
-
-    async function fetchSettings() {
-      setIsLoading(true)
-
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching settings:', error)
-      }
-
-      if (data) {
-        setSettings(data)
-        setName(data.name || '')
-        setSecondBreakfastEnabled(data.second_breakfast_enabled !== false)
-        setLunchEnabled(data.lunch_enabled !== false)
-        setDinnerEnabled(data.dinner_enabled !== false)
-        setSnackEnabled(data.snack_enabled || false)
-      } else {
-        // User has no settings yet - create default ones
-        const defaultSettings = {
-          user_id: userId,
-          name: null,
-          second_breakfast_enabled: true,
-          lunch_enabled: true,
-          dinner_enabled: true,
-          snack_enabled: false,
-        }
-        
-        const { data: newSettings, error: insertError } = await supabase
-          .from('user_settings')
-          .insert([defaultSettings])
-          .select()
-          .single()
-
-        if (!insertError && newSettings) {
-          setSettings(newSettings)
-          setSecondBreakfastEnabled(true)
-          setLunchEnabled(true)
-          setDinnerEnabled(true)
-          setSnackEnabled(false)
-        }
-      }
-
-      setIsLoading(false)
-    }
-
-    fetchSettings()
-  }, [user?.id])
-
-  // Zapisz ustawienia
-  async function saveSettings(e: React.FormEvent) {
-    e.preventDefault()
-    const userId = user?.id
-    if (!userId) return
-
-    setIsSaving(true)
-
-    const settingsData = {
-      user_id: userId,
-      name: name.trim() || null,
-      second_breakfast_enabled: secondBreakfastEnabled,
-      lunch_enabled: lunchEnabled,
-      dinner_enabled: dinnerEnabled,
-      snack_enabled: snackEnabled,
-    }
-
-    let result
-
-    if (settings) {
-      // Aktualizuj istniejące ustawienia
-      result = await supabase
-        .from('user_settings')
-        .update(settingsData)
-        .eq('user_id', userId)
-        .select()
-        .single()
-    } else {
-      // Utwórz nowe ustawienia
-      result = await supabase
-        .from('user_settings')
-        .insert(settingsData)
-        .select()
-        .single()
-    }
-
-    if (result.error) {
-      toast('Nie udało się zapisać ustawień', { type: 'error' })
-      console.error(result.error)
-    } else {
-      setSettings(result.data)
-      toast('Ustawienia zapisane', { type: 'success' })
-    }
-
-    setIsSaving(false)
-  }
+  const { settings, isLoading, save } = useUserSettings(user?.id)
 
   if (userLoading || isLoading) {
     return (
@@ -149,6 +29,56 @@ export default function UserSettingsForm() {
         Musisz być zalogowany.
       </div>
     )
+  }
+
+  // Keyed by user so the form fields are initialised once from the loaded settings.
+  return <UserSettingsFields key={user.id} settings={settings} save={save} />
+}
+
+type UserSettingsFieldsProps = {
+  settings: UserSettings | null
+  save: (patch: Partial<UserSettings>) => Promise<boolean>
+}
+
+function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
+  const router = useRouter()
+  const { toast } = useFeedback()
+  const [isSaving, setIsSaving] = useState(false)
+
+  const [name, setName] = useState(settings?.name || '')
+  const [secondBreakfastEnabled, setSecondBreakfastEnabled] = useState(settings?.second_breakfast_enabled !== false)
+  const [lunchEnabled, setLunchEnabled] = useState(settings?.lunch_enabled !== false)
+  const [dinnerEnabled, setDinnerEnabled] = useState(settings?.dinner_enabled !== false)
+  const [snackEnabled, setSnackEnabled] = useState(settings?.snack_enabled || false)
+
+  // Wylogowanie
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
+  // Zapisz ustawienia
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault()
+
+    setIsSaving(true)
+
+    const saved = await save({
+      name: name.trim() || null,
+      second_breakfast_enabled: secondBreakfastEnabled,
+      lunch_enabled: lunchEnabled,
+      dinner_enabled: dinnerEnabled,
+      snack_enabled: snackEnabled,
+    })
+
+    if (saved) {
+      toast('Ustawienia zapisane', { type: 'success' })
+    } else {
+      toast('Nie udało się zapisać ustawień', { type: 'error' })
+    }
+
+    setIsSaving(false)
   }
 
   return (
