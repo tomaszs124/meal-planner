@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Meal } from '@/lib/supabase/client'
 import { loadContext, type McpContext } from '../context'
 import { loadMealDetailed } from '../data'
-import { ok, READ_ONLY, run, WRITE } from '../respond'
+import { DESTRUCTIVE, ok, READ_ONLY, run, WRITE } from '../respond'
 
 /**
  * Meal pictures through the connector, without paid APIs:
@@ -23,25 +23,39 @@ const ALLOWED_TYPES: Record<string, string> = {
 }
 
 function freeImageUrl(prompt: string, seed: number): string {
-  // Pollinations.ai: free text-to-image, no key. Square food photo, no watermark/logo.
+  // Pollinations.ai: free text-to-image. Anonymous requests get a small watermark; a free
+  // token (https://auth.pollinations.ai) in POLLINATIONS_TOKEN removes it (sent as a header).
   const p = encodeURIComponent(prompt)
-  return `https://image.pollinations.ai/prompt/${p}?width=1024&height=1024&nologo=true&seed=${seed}&model=flux`
+  return `https://image.pollinations.ai/prompt/${p}?width=1024&height=1024&nologo=true&seed=${seed}&model=flux&enhance=false`
 }
 
+/**
+ * Fallback prompt when the assistant gives none. The generator does not understand
+ * Polish dish names, so the assistant should pass an English visual `prompt`; this
+ * fallback at least lists the ingredients (product names are Polish too, but recognisable
+ * ones like "banan", "łosoś" often still help).
+ */
 export function buildFoodPrompt(name: string, ingredients: string[]): string {
   const main = ingredients.slice(0, 6).join(', ')
   return (
-    `Appetizing overhead food photography of "${name}", a homemade Polish everyday dish` +
-    (main ? ` with ${main}` : '') +
-    ', served on a plate on a wooden table, natural daylight, shallow depth of field, no text, no people'
+    `Appetizing food photography of a homemade dish called "${name}"` +
+    (main ? ` made of ${main}` : '') +
+    ', served on a plate or in a glass on a wooden table, natural daylight, shallow depth of field, no text, no people'
   )
 }
+
+const FOOD_PROMPT_SUFFIX = ', realistic food photography, natural daylight, wooden table, shallow depth of field, no text, no people, no watermark'
 
 async function fetchImage(url: string): Promise<{ bytes: Uint8Array; contentType: string; ext: string }> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
-    const res = await fetch(url, { signal: controller.signal, redirect: 'follow', headers: { Accept: 'image/*' } })
+    const headers: Record<string, string> = { Accept: 'image/*' }
+    const pollinationsToken = process.env.POLLINATIONS_TOKEN?.trim()
+    if (pollinationsToken && url.startsWith('https://image.pollinations.ai/')) {
+      headers.Authorization = `Bearer ${pollinationsToken}`
+    }
+    const res = await fetch(url, { signal: controller.signal, redirect: 'follow', headers })
     if (!res.ok) throw new Error(`image download failed: HTTP ${res.status}`)
     const contentType = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()
     const ext = ALLOWED_TYPES[contentType]
@@ -76,7 +90,9 @@ export function registerImageTools(server: McpServer) {
           .string()
           .max(400)
           .optional()
-          .describe('Optional English description of the dish for the generated image (used only when image_url is omitted).'),
+          .describe(
+            'ENGLISH visual description of the dish for the generated image, e.g. "a blueberry and walnut smoothie in a tall glass topped with crushed nuts". Always provide it when image_url is omitted: the generator does not understand Polish names. Photography style is added automatically.'
+          ),
       },
       annotations: WRITE,
     },
@@ -92,7 +108,7 @@ export function registerImageTools(server: McpServer) {
           source = image_url
         } else {
           const ingredients = detail.base_items.map((i) => i.product_name)
-          const text = prompt?.trim() || buildFoodPrompt(detail.name, ingredients)
+          const text = prompt?.trim() ? `${prompt.trim()}${FOOD_PROMPT_SUFFIX}` : buildFoodPrompt(detail.name, ingredients)
           const seed = Math.floor(Math.random() * 1_000_000)
           source = freeImageUrl(text, seed)
           generated = true
@@ -149,6 +165,43 @@ export function registerImageTools(server: McpServer) {
           .order('uploaded_at', { ascending: false })
         if (error) throw new Error(`meal_images: ${error.message}`)
         return ok({ meal_id, meal_name: detail.name, images: data ?? [] })
+      })
+  )
+
+  server.registerTool(
+    'remove_meal_image',
+    {
+      title: 'Remove a picture from a meal',
+      description:
+        'Deletes one picture of a meal (by image id from get_meal_images) from the gallery and from storage. Use when the user dislikes a generated picture; you can then call set_meal_image again with a better prompt.',
+      inputSchema: { image_id: z.string().describe('Id of the meal_images row.') },
+      annotations: DESTRUCTIVE,
+    },
+    async ({ image_id }) =>
+      run(async () => {
+        const ctx = await loadContext()
+        const { data, error } = await ctx.db
+          .from('meal_images')
+          .select('id, meal_id, image_url')
+          .eq('id', image_id)
+          .maybeSingle()
+        if (error) throw new Error(`meal_images: ${error.message}`)
+        if (!data) throw new Error(`Image ${image_id} not found`)
+        const row = data as { id: string; meal_id: string; image_url: string }
+        await requireOwnMeal(ctx, row.meal_id)
+
+        // Storage path is everything after ".../object/public/meal-images/"
+        const marker = '/object/public/meal-images/'
+        const idx = row.image_url.indexOf(marker)
+        if (idx >= 0) {
+          const path = decodeURIComponent(row.image_url.slice(idx + marker.length).split('?')[0])
+          const { error: storageError } = await ctx.db.storage.from('meal-images').remove([path])
+          if (storageError) console.warn('meal-images: could not delete file', path, storageError.message)
+        }
+
+        const { error: deleteError } = await ctx.db.from('meal_images').delete().eq('id', image_id)
+        if (deleteError) throw new Error(`meal_images: ${deleteError.message}`)
+        return ok({ deleted: true, image_id, meal_id: row.meal_id })
       })
   )
 }
