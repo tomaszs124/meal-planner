@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 const DEFAULT_COLORS = [
   { bg: '#3B82F6', text: '#FFFFFF', label: 'Niebieski' },
@@ -17,6 +18,7 @@ const DEFAULT_COLORS = [
 
 export default function TagManagement() {
   const { household } = useCurrentUser()
+  const { toast, confirm } = useFeedback()
   const [tags, setTags] = useState<Tag[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -106,7 +108,7 @@ export default function TagManagement() {
       setNewTagTextColor('#FFFFFF')
       setShowAddForm(false)
     } else {
-      alert('Błąd: ' + error.message)
+      toast('Błąd: ' + error.message, { type: 'error' })
     }
 
     setIsAdding(false)
@@ -144,18 +146,18 @@ export default function TagManagement() {
     if (!error) {
       setEditingId(null)
     } else {
-      alert('Błąd: ' + error.message)
+      toast('Błąd: ' + error.message, { type: 'error' })
     }
   }
 
   // Delete tag
   async function deleteTag(tagId: string) {
-    if (!confirm('Czy na pewno chcesz usunąć ten tag? Zostanie usunięty ze wszystkich posiłków.')) return
+    if (!(await confirm({ message: 'Czy na pewno chcesz usunąć ten tag? Zostanie usunięty ze wszystkich posiłków.', danger: true, confirmLabel: 'Usuń' }))) return
 
     const { error } = await supabase.from('tags').delete().eq('id', tagId)
 
     if (error) {
-      alert('Nie udało się usunąć tagu: ' + error.message)
+      toast('Nie udało się usunąć tagu: ' + error.message, { type: 'error' })
     }
   }
 

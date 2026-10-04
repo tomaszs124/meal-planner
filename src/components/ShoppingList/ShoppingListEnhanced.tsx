@@ -5,6 +5,7 @@ import { format, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSa
 import { pl } from 'date-fns/locale'
 import { supabase, ShoppingListItem, Product, Profile, UserSettings, Meal, MealImage, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
 import CustomLists from '@/components/ShoppingList/CustomLists'
 import { formatAmount } from '@/lib/nutrition'
@@ -257,6 +258,7 @@ function DateRangePicker({
 
 export default function ShoppingListEnhanced() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
+  const { toast, confirm } = useFeedback()
   const [items, setItems] = useState<ShoppingListItemWithProduct[]>([])
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
@@ -437,7 +439,7 @@ export default function ShoppingListEnhanced() {
         .lte('date', endDate)
 
       if (!mealPlansData || mealPlansData.length === 0) {
-        alert('Brak zaplanowanych posiłków w wybranym okresie')
+        toast('Brak zaplanowanych posiłków w wybranym okresie', { type: 'info' })
         setIsGenerating(false)
         return
       }
@@ -470,14 +472,14 @@ export default function ShoppingListEnhanced() {
       )
 
       if (aggregatedItems.length === 0) {
-        alert('Brak składników w zaplanowanych posiłkach')
+        toast('Brak składników w zaplanowanych posiłkach', { type: 'info' })
         setIsGenerating(false)
         return
       }
 
       // Clear existing items (optional - you might want to ask user)
       if (items.length > 0) {
-        const confirmClear = confirm('Czy chcesz wyczyścić istniejącą listę zakupów przed wygenerowaniem nowej?')
+        const confirmClear = await confirm({ message: 'Czy chcesz wyczyścić istniejącą listę zakupów przed wygenerowaniem nowej?', danger: true, confirmLabel: 'Wyczyść', cancelLabel: 'Zachowaj' })
         if (confirmClear) {
           await supabase
             .from('shopping_list_items')
@@ -494,7 +496,7 @@ export default function ShoppingListEnhanced() {
         .insert(itemsToInsert)
 
       if (error) {
-        alert('Błąd podczas generowania listy: ' + error.message)
+        toast('Błąd podczas generowania listy: ' + error.message, { type: 'error' })
       } else {
         const nextGeneratedRange = { startDate, endDate }
         const { error: stateError } = await supabase
@@ -530,7 +532,7 @@ export default function ShoppingListEnhanced() {
       }
     } catch (error) {
       console.error('Error generating shopping list:', error)
-      alert('Wystąpił błąd podczas generowania listy')
+      toast('Wystąpił błąd podczas generowania listy', { type: 'error' })
     }
 
     setIsGenerating(false)
@@ -701,7 +703,7 @@ export default function ShoppingListEnhanced() {
     const checkedIds = items.filter(i => i.is_checked).map(i => i.id)
     if (checkedIds.length === 0) return
 
-    if (!confirm(`Czy chcesz usunąć ${checkedIds.length} zaznaczonych elementów?`)) return
+    if (!(await confirm({ message: `Czy chcesz usunąć ${checkedIds.length} zaznaczonych elementów?`, danger: true, confirmLabel: 'Usuń' }))) return
 
     const { error } = await supabase
       .from('shopping_list_items')
@@ -709,7 +711,7 @@ export default function ShoppingListEnhanced() {
       .in('id', checkedIds)
 
     if (error) {
-      alert('Błąd podczas usuwania elementów')
+      toast('Błąd podczas usuwania elementów', { type: 'error' })
     }
   }
 
@@ -777,7 +779,7 @@ export default function ShoppingListEnhanced() {
       .in('id', itemIds)
 
     if (error) {
-      alert('Błąd podczas usuwania dania')
+      toast('Błąd podczas usuwania dania', { type: 'error' })
       return
     }
 
@@ -854,7 +856,7 @@ export default function ShoppingListEnhanced() {
         })
 
       if (stateError) {
-        alert('Błąd podczas zmiany ilości dania')
+        toast('Błąd podczas zmiany ilości dania', { type: 'error' })
         return
       }
 
@@ -869,7 +871,7 @@ export default function ShoppingListEnhanced() {
       )
 
       if (results.some((result) => result.error)) {
-        alert('Błąd podczas zmiany ilości dania')
+        toast('Błąd podczas zmiany ilości dania', { type: 'error' })
         return
       }
 

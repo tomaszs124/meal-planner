@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
 import { supabase, Product, MealCategory, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 import TagManagement from './TagManagement'
 import MealDetailsModal from '../MealPlanner/MealDetailsModal'
 import { calculateNutrition, formatAmount, sumNutrition } from '@/lib/nutrition'
@@ -246,6 +247,7 @@ function MealAccordionList({
 
 export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
+  const { toast, confirm } = useFeedback()
   const [meals, setMeals] = useState<MealWithItems[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [tags, setTags] = useState<Tag[]>([])
@@ -608,13 +610,13 @@ export default function Meals() {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
     if (!validTypes.includes(file.type)) {
-      alert('Nieprawidłowy format pliku. Dozwolone: JPG, PNG, WebP, GIF')
+      toast('Nieprawidłowy format pliku. Dozwolone: JPG, PNG, WebP, GIF', { type: 'error' })
       return
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Plik jest za duży. Maksymalny rozmiar: 5MB')
+      toast('Plik jest za duży. Maksymalny rozmiar: 5MB', { type: 'error' })
       return
     }
 
@@ -658,7 +660,7 @@ export default function Meals() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError)
-        alert('Błąd podczas przesyłania zdjęcia: ' + uploadError.message)
+        toast('Błąd podczas przesyłania zdjęcia: ' + uploadError.message, { type: 'error' })
         return null
       }
 
@@ -670,7 +672,7 @@ export default function Meals() {
       return publicUrl
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Błąd podczas przesyłania zdjęcia')
+      toast('Błąd podczas przesyłania zdjęcia', { type: 'error' })
       return null
     } finally {
       setIsUploadingImage(false)
@@ -710,7 +712,7 @@ export default function Meals() {
       .single()
 
     if (mealError || !mealData) {
-      alert('Nie udało się utworzyć posiłku')
+      toast('Nie udało się utworzyć posiłku', { type: 'error' })
       setIsAdding(false)
       return
     }
@@ -774,7 +776,7 @@ export default function Meals() {
           .insert(overrideRecords)
 
         if (overrideInsertError) {
-          alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+          toast('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message, { type: 'error' })
         } else {
           overridesSaved = true
         }
@@ -960,7 +962,7 @@ export default function Meals() {
         .insert(overrideRecords)
 
       if (overrideInsertError) {
-        alert('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message)
+        toast('Nie udało się zapisać wariantów dla domowników: ' + overrideInsertError.message, { type: 'error' })
       } else {
         overridesSaved = true
       }
@@ -1007,7 +1009,7 @@ export default function Meals() {
   async function deleteMeal(mealId: string) {
     if (!user?.id) return
 
-    if (!confirm('Czy na pewno chcesz usunąć ten posiłek?')) return
+    if (!(await confirm({ message: 'Czy na pewno chcesz usunąć ten posiłek?', danger: true, confirmLabel: 'Usuń' }))) return
 
     // Optimistic update
     const previousMeals = [...meals]
@@ -1020,7 +1022,7 @@ export default function Meals() {
       .select('id')
 
     if (error || !data || data.length === 0) {
-      alert('Nie udało się usunąć posiłku')
+      toast('Nie udało się usunąć posiłku', { type: 'error' })
       setMeals(previousMeals)
     }
   }

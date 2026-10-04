@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
 import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
+import { useFeedback } from '@/components/ui/Feedback'
 
 type PlannedMeal = {
   id: string
@@ -37,6 +38,7 @@ const CATEGORY_LABELS: Record<MealCategory, string> = {
 
 export default function MealPlanner() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
+  const { toast, confirm } = useFeedback()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
   const [plannedMeals, setPlannedMeals] = useState<PlannedMeal[]>([])
@@ -309,7 +311,7 @@ export default function MealPlanner() {
       .eq('date', previousDateStr)
 
     if (!previousMeals || previousMeals.length === 0) {
-      alert('Brak posiłków z poprzedniego dnia')
+      toast('Brak posiłków z poprzedniego dnia', { type: 'info' })
       return
     }
 
@@ -332,7 +334,11 @@ export default function MealPlanner() {
 
     if (mealsToAdd.length === 0) {
       // All slots are filled - ask for confirmation
-      const confirmed = confirm('Wszystkie kategorie posiłków są już zaplanowane. Czy chcesz je zastąpić posiłkami z wczoraj?')
+      const confirmed = await confirm({
+        message: 'Wszystkie kategorie posiłków są już zaplanowane. Czy chcesz je zastąpić posiłkami z wczoraj?',
+        danger: true,
+        confirmLabel: 'Zastąp',
+      })
       if (!confirmed) return
       
       // Delete all current meals for today and add previous day's meals
@@ -341,7 +347,7 @@ export default function MealPlanner() {
       
       const { error } = await supabase.from('meal_plan').insert(newMealPlans)
       if (error) {
-        alert('Błąd podczas duplikowania posiłków')
+        toast('Błąd podczas duplikowania posiłków', { type: 'error' })
         console.error(error)
         return
       }
@@ -350,7 +356,7 @@ export default function MealPlanner() {
       const { error } = await supabase.from('meal_plan').insert(mealsToAdd)
 
       if (error) {
-        alert('Błąd podczas duplikowania posiłków')
+        toast('Błąd podczas duplikowania posiłków', { type: 'error' })
         console.error(error)
         return
       }
@@ -391,7 +397,7 @@ export default function MealPlanner() {
       .eq('date', dateStr)
 
     if (!sourceMeals || sourceMeals.length === 0) {
-      alert('Brak posiłków u wybranego domownika na ten dzień')
+      toast('Brak posiłków u wybranego domownika na ten dzień', { type: 'info' })
       return
     }
 
@@ -411,7 +417,11 @@ export default function MealPlanner() {
     const mealsToAdd = newMealPlans.filter(plan => !existingMealTypes.includes(plan.meal_type))
 
     if (mealsToAdd.length === 0) {
-      const confirmed = confirm('Wszystkie kategorie posiłków są już zaplanowane. Czy chcesz je zastąpić planem domownika?')
+      const confirmed = await confirm({
+        message: 'Wszystkie kategorie posiłków są już zaplanowane. Czy chcesz je zastąpić planem domownika?',
+        danger: true,
+        confirmLabel: 'Zastąp',
+      })
       if (!confirmed) return
 
       const existingPlanIds = plannedMeals.map(p => p.id)
@@ -419,14 +429,14 @@ export default function MealPlanner() {
 
       const { error } = await supabase.from('meal_plan').insert(newMealPlans)
       if (error) {
-        alert('Błąd podczas kopiowania dnia domownika')
+        toast('Błąd podczas kopiowania dnia domownika', { type: 'error' })
         console.error(error)
         return
       }
     } else {
       const { error } = await supabase.from('meal_plan').insert(mealsToAdd)
       if (error) {
-        alert('Błąd podczas kopiowania dnia domownika')
+        toast('Błąd podczas kopiowania dnia domownika', { type: 'error' })
         console.error(error)
         return
       }
@@ -468,7 +478,7 @@ export default function MealPlanner() {
       .eq('date', dateStr)
 
     if (!sourceMeals || sourceMeals.length === 0) {
-      alert('Brak posiłków do wysłania na ten dzień')
+      toast('Brak posiłków do wysłania na ten dzień', { type: 'info' })
       return
     }
 
@@ -492,7 +502,11 @@ export default function MealPlanner() {
       .eq('date', dateStr)
 
     if (existingPlans && existingPlans.length > 0) {
-      const confirmed = confirm('Domownik ma już zaplanowane posiłki na ten dzień. Czy chcesz je zastąpić?')
+      const confirmed = await confirm({
+        message: 'Domownik ma już zaplanowane posiłki na ten dzień. Czy chcesz je zastąpić?',
+        danger: true,
+        confirmLabel: 'Zastąp',
+      })
       if (!confirmed) return
 
       const existingPlanIds = existingPlans.map((p) => p.id)
@@ -501,7 +515,7 @@ export default function MealPlanner() {
 
     const { error } = await supabase.from('meal_plan').insert(newMealPlans)
     if (error) {
-      alert('Błąd podczas wysyłania dnia do domownika')
+      toast('Błąd podczas wysyłania dnia do domownika', { type: 'error' })
       console.error(error)
       return
     }
@@ -548,7 +562,7 @@ export default function MealPlanner() {
 
       if (error) {
         console.error('Error updating meal plan:', error)
-        alert('Błąd podczas aktualizacji posiłku: ' + error.message)
+        toast('Błąd podczas aktualizacji posiłku: ' + error.message, { type: 'error' })
         return
       }
 
@@ -575,7 +589,7 @@ export default function MealPlanner() {
 
       if (error) {
         console.error('Error inserting meal plan:', error)
-        alert('Błąd podczas zapisywania posiłku: ' + error.message)
+        toast('Błąd podczas zapisywania posiłku: ' + error.message, { type: 'error' })
         return
       }
 

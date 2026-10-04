@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 export default function UserSettingsForm() {
   const router = useRouter()
   const { user, isLoading: userLoading } = useCurrentUser()
+  const { toast } = useFeedback()
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -119,11 +121,11 @@ export default function UserSettingsForm() {
     }
 
     if (result.error) {
-      alert('Nie udało się zapisać ustawień')
+      toast('Nie udało się zapisać ustawień', { type: 'error' })
       console.error(result.error)
     } else {
       setSettings(result.data)
-      alert('Ustawienia zapisane!')
+      toast('Ustawienia zapisane', { type: 'success' })
     }
 
     setIsSaving(false)

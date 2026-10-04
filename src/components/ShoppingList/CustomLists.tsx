@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 type HouseholdMember = {
   user_id: string
@@ -31,6 +32,7 @@ type CustomList = {
 
 export default function CustomLists() {
   const { user, household } = useCurrentUser()
+  const { confirm } = useFeedback()
   const [lists, setLists] = useState<CustomList[]>([])
   const [members, setMembers] = useState<HouseholdMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -140,7 +142,7 @@ export default function CustomLists() {
   }
 
   async function deleteList(listId: string) {
-    if (!confirm('Usunąć tę listę wraz ze wszystkimi pozycjami?')) return
+    if (!(await confirm({ message: 'Usunąć tę listę wraz ze wszystkimi pozycjami?', danger: true, confirmLabel: 'Usuń' }))) return
     await supabase.from('custom_lists').delete().eq('id', listId)
     setLists((prev) => prev.filter((l) => l.id !== listId))
     if (expandedListId === listId) setExpandedListId(null)

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase, Product, ProductCategory, ProductCategoryRecord } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useFeedback } from '@/components/ui/Feedback'
 
 type UnitType = '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'
 
@@ -19,6 +20,7 @@ const UNITS: { value: UnitType; label: string }[] = [
 const DEFAULT_CATEGORY_NAME = 'Pozostałe'
 
 export default function Products() {
+  const { toast, confirm } = useFeedback()
   const { user, household, isLoading: userLoading } = useCurrentUser()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -178,7 +180,7 @@ export default function Products() {
     const normalizedName = newCategoryName.trim()
     const isDuplicate = categories.some((category) => category.name.toLowerCase() === normalizedName.toLowerCase())
     if (isDuplicate) {
-      alert('Kategoria o tej nazwie już istnieje')
+      toast('Kategoria o tej nazwie już istnieje', { type: 'error' })
       return
     }
 
@@ -195,7 +197,7 @@ export default function Products() {
       .single()
 
     if (error || !data) {
-      alert('Nie udało się dodać kategorii')
+      toast('Nie udało się dodać kategorii', { type: 'error' })
       setIsAddingCategory(false)
       return
     }
@@ -226,7 +228,7 @@ export default function Products() {
         currentCategory.id !== category.id && currentCategory.name.toLowerCase() === normalizedName.toLowerCase()
     )
     if (isDuplicate) {
-      alert('Kategoria o tej nazwie już istnieje')
+      toast('Kategoria o tej nazwie już istnieje', { type: 'error' })
       return
     }
 
@@ -239,7 +241,7 @@ export default function Products() {
       .eq('category', previousName)
 
     if (productsUpdateError) {
-      alert('Nie udało się zaktualizować produktów dla tej kategorii')
+      toast('Nie udało się zaktualizować produktów dla tej kategorii', { type: 'error' })
       return
     }
 
@@ -249,7 +251,7 @@ export default function Products() {
       .eq('id', category.id)
 
     if (categoryUpdateError) {
-      alert('Nie udało się zaktualizować kategorii')
+      toast('Nie udało się zaktualizować kategorii', { type: 'error' })
       return
     }
 
@@ -278,11 +280,11 @@ export default function Products() {
   }
 
   async function deleteCategory(category: ProductCategoryRecord) {
-    if (!confirm(`Usunąć kategorię "${category.name}"?`)) return
+    if (!(await confirm({ message: `Usunąć kategorię "${category.name}"?`, danger: true, confirmLabel: 'Usuń' }))) return
 
     const isUsedByProducts = products.some((product) => product.category === category.name)
     if (isUsedByProducts) {
-      alert('Nie można usunąć kategorii, która jest przypisana do produktów')
+      toast('Nie można usunąć kategorii, która jest przypisana do produktów', { type: 'error' })
       return
     }
 
@@ -292,7 +294,7 @@ export default function Products() {
       .eq('id', category.id)
 
     if (error) {
-      alert('Nie udało się usunąć kategorii')
+      toast('Nie udało się usunąć kategorii', { type: 'error' })
       return
     }
 
@@ -396,7 +398,7 @@ export default function Products() {
 
   // Delete product
   async function deleteProduct(productId: string) {
-    if (!confirm('Czy na pewno chcesz usunąć ten produkt?')) return
+    if (!(await confirm({ message: 'Czy na pewno chcesz usunąć ten produkt?', danger: true, confirmLabel: 'Usuń' }))) return
 
     // Optimistic update - remove from list immediately
     const previousProducts = [...products]
@@ -405,7 +407,7 @@ export default function Products() {
     const { error } = await supabase.from('products').delete().eq('id', productId)
 
     if (error) {
-      alert('Nie udało się usunąć produktu')
+      toast('Nie udało się usunąć produktu', { type: 'error' })
       // Rollback on error
       setProducts(previousProducts)
     }
