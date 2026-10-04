@@ -50,6 +50,7 @@ export type Product = {
   kcal_per_unit: number  // Calories per 100g
   unit_type: '100g' | 'piece' | 'tablespoon' | 'teaspoon' | 'leaf' | 'cube' | 'slice'  // Preferred unit
   unit_weight_grams: number | null  // Weight of one preferred unit in grams (e.g., 1 piece = 300g)
+  package_size: number | null  // Amount in one retail package, in preferred unit (e.g., 180 for 180g tofu, 10 for 10 eggs)
   category: ProductCategory
   image_url: string | null
   protein: number | null  // Protein per 100g

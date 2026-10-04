@@ -18,6 +18,17 @@ const UNITS: { value: UnitType; label: string }[] = [
 
 const DEFAULT_CATEGORY_NAME = 'Pozostałe'
 
+// Short unit label used when displaying package size (e.g. "opak. 180 g", "opak. 10 szt.")
+const PACKAGE_UNIT_LABEL: Record<UnitType, string> = {
+  '100g': 'g',
+  piece: 'szt.',
+  tablespoon: 'łyżek',
+  teaspoon: 'łyżeczek',
+  leaf: 'liści',
+  cube: 'kostek',
+  slice: 'plastrów',
+}
+
 export default function Products() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
   const [products, setProducts] = useState<Product[]>([])
@@ -28,6 +39,7 @@ export default function Products() {
   const [newKcal, setNewKcal] = useState('')
   const [newUnit, setNewUnit] = useState<UnitType>('100g')
   const [newUnitWeight, setNewUnitWeight] = useState('1')
+  const [newPackageSize, setNewPackageSize] = useState('')
   const [newCategory, setNewCategory] = useState<ProductCategory>('')
   const [newProtein, setNewProtein] = useState('')
   const [newFat, setNewFat] = useState('')
@@ -48,6 +60,7 @@ export default function Products() {
   const [editKcal, setEditKcal] = useState('')
   const [editUnit, setEditUnit] = useState<UnitType>('100g')
   const [editUnitWeight, setEditUnitWeight] = useState('1')
+  const [editPackageSize, setEditPackageSize] = useState('')
   const [editCategory, setEditCategory] = useState<ProductCategory>('')
   const [editProtein, setEditProtein] = useState('')
   const [editFat, setEditFat] = useState('')
@@ -145,6 +158,7 @@ export default function Products() {
       kcal_per_unit: parseFloat(newKcal),
       unit_type: newUnit,
       unit_weight_grams: parseFloat(newUnitWeight),
+      package_size: newPackageSize ? parseFloat(newPackageSize) : null,
       category: newCategory,
       protein: newProtein ? parseFloat(newProtein) : null,
       fat: newFat ? parseFloat(newFat) : null,
@@ -160,6 +174,7 @@ export default function Products() {
       setNewKcal('')
       setNewUnit('100g')
       setNewUnitWeight('1')
+      setNewPackageSize('')
       const fallback = categories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || categories[0]?.name || ''
       setNewCategory(fallback)
       setNewProtein('')
@@ -329,6 +344,7 @@ export default function Products() {
       : product.unit_type === 'slice' ? '30'
       : '100'
     setEditUnitWeight(product.unit_weight_grams?.toString() || defaultWeight)
+    setEditPackageSize(product.package_size?.toString() || '')
     setEditCategory(product.category)
     setEditProtein(product.protein?.toString() || '')
     setEditFat(product.fat?.toString() || '')
@@ -343,6 +359,7 @@ export default function Products() {
     setEditKcal('')
     setEditUnit('100g')
     setEditUnitWeight('1')
+    setEditPackageSize('')
     setEditCategory(categories.find((c) => c.name === DEFAULT_CATEGORY_NAME)?.name || categories[0]?.name || '')
     setEditProtein('')
     setEditFat('')
@@ -360,6 +377,7 @@ export default function Products() {
       kcal_per_unit: parseFloat(editKcal),
       unit_type: editUnit,
       unit_weight_grams: parseFloat(editUnitWeight),
+      package_size: editPackageSize ? parseFloat(editPackageSize) : null,
       category: editCategory,
       protein: editProtein ? parseFloat(editProtein) : null,
       fat: editFat ? parseFloat(editFat) : null,
@@ -642,6 +660,22 @@ export default function Products() {
             />
           </div>
           <div>
+            <label htmlFor="product-package-size" className="block text-sm font-medium text-gray-700 mb-1">
+              Opakowanie ({PACKAGE_UNIT_LABEL[newUnit]})
+            </label>
+            <input
+              id="product-package-size"
+              type="number"
+              step="0.01"
+              min="0"
+              value={newPackageSize}
+              onChange={(e) => setNewPackageSize(e.target.value)}
+              placeholder={newUnit === '100g' ? 'np. 180 (g w opakowaniu)' : newUnit === 'piece' ? 'np. 10 (szt. w opakowaniu)' : 'ile jednostek w opakowaniu'}
+              disabled={isAdding}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            />
+          </div>
+          <div>
             <label htmlFor="product-category" className="block text-sm font-medium text-gray-700 mb-1">
               Kategoria
             </label>
@@ -841,6 +875,18 @@ export default function Products() {
                       />
                     </div>
                     <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Opakowanie ({PACKAGE_UNIT_LABEL[editUnit]})</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editPackageSize}
+                        onChange={(e) => setEditPackageSize(e.target.value)}
+                        placeholder={editUnit === '100g' ? 'np. 180 (g w opakowaniu)' : editUnit === 'piece' ? 'np. 10 (szt. w opakowaniu)' : 'ile jednostek w opakowaniu'}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-600 mb-1">Kategoria</label>
                       <select
                         value={editCategory}
@@ -898,6 +944,9 @@ export default function Products() {
                         • {UNITS.find((u) => u.value === product.unit_type)?.label || product.unit_type}
                         {product.unit_weight_grams && ` (${product.unit_weight_grams}g)`}
                       </span>
+                      {product.package_size && (
+                        <span>• opak. {product.package_size} {PACKAGE_UNIT_LABEL[product.unit_type as UnitType] || product.unit_type}</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 items-center">

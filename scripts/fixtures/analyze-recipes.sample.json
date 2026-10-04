@@ -1,0 +1,59 @@
+{
+  "households": [
+    { "id": "11111111-1111-4111-8111-111111111111", "name": "Dom testowy", "created_by": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "created_at": "2025-01-01T10:00:00Z", "updated_at": "2025-01-01T10:00:00Z" }
+  ],
+  "household_users": [
+    { "id": "hu-1", "household_id": "11111111-1111-4111-8111-111111111111", "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "role": "owner", "joined_at": "2025-01-01T10:00:00Z" },
+    { "id": "hu-2", "household_id": "11111111-1111-4111-8111-111111111111", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "role": "member", "joined_at": "2025-01-02T10:00:00Z" }
+  ],
+  "user_settings": [
+    { "id": "us-1", "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "name": "Tomek", "snack_enabled": false, "second_breakfast_enabled": true, "lunch_enabled": true, "dinner_enabled": true },
+    { "id": "us-2", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "name": "Ola", "snack_enabled": true, "second_breakfast_enabled": false, "lunch_enabled": true, "dinner_enabled": true }
+  ],
+  "products": [
+    { "id": "p-tofu", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Tofu naturalne", "kcal_per_unit": 145, "unit_type": "100g", "unit_weight_grams": null, "package_size": 180, "category": "Białko roślinne", "protein": 15, "fat": 8.5, "carbs": 1.5 },
+    { "id": "p-rice", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Ryż basmati", "kcal_per_unit": 350, "unit_type": "100g", "unit_weight_grams": null, "package_size": 400, "category": "Zboża", "protein": 7.5, "fat": 0.6, "carbs": 78 },
+    { "id": "p-egg", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Jajko", "kcal_per_unit": 140, "unit_type": "piece", "unit_weight_grams": 60, "package_size": 10, "category": "Nabiał", "protein": 12.5, "fat": 9.7, "carbs": 0.7 },
+    { "id": "p-broccoli", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Brokuł mrożony", "kcal_per_unit": 34, "unit_type": "100g", "unit_weight_grams": null, "package_size": null, "category": "Warzywa", "protein": 2.8, "fat": 0.4, "carbs": 7 },
+    { "id": "p-oats", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Płatki owsiane", "kcal_per_unit": 370, "unit_type": "100g", "unit_weight_grams": null, "package_size": 500, "category": "Zboża", "protein": 13, "fat": 7, "carbs": 60 },
+    { "id": "p-cheese", "household_id": "11111111-1111-4111-8111-111111111111", "name": "Ser żółty gouda", "kcal_per_unit": 356, "unit_type": "slice", "unit_weight_grams": 20, "package_size": null, "category": "Nabiał", "protein": 25, "fat": 27, "carbs": 2 }
+  ],
+  "meals": [
+    { "id": "m-tofu", "name": "Tofu z ryżem i brokułem", "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "is_shared": true, "description": "Na 1 dzień.", "primary_category": "lunch", "alternative_categories": ["dinner"] },
+    { "id": "m-scrambled", "name": "Jajecznica z brokułem i serem", "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "is_shared": true, "description": null, "primary_category": "breakfast", "alternative_categories": ["dinner"] },
+    { "id": "m-oats", "name": "Owsianka z serem", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "household_id": "11111111-1111-4111-8111-111111111111", "is_shared": true, "description": null, "primary_category": "breakfast", "alternative_categories": [] }
+  ],
+  "meal_items": [
+    { "id": "mi-1", "meal_id": "m-tofu", "product_id": "p-tofu", "amount": 90, "unit_type": "100g" },
+    { "id": "mi-2", "meal_id": "m-tofu", "product_id": "p-rice", "amount": 50, "unit_type": "100g" },
+    { "id": "mi-3", "meal_id": "m-tofu", "product_id": "p-broccoli", "amount": 150, "unit_type": "100g" },
+    { "id": "mi-4", "meal_id": "m-scrambled", "product_id": "p-egg", "amount": 3, "unit_type": "piece" },
+    { "id": "mi-5", "meal_id": "m-scrambled", "product_id": "p-broccoli", "amount": 100, "unit_type": "100g" },
+    { "id": "mi-6", "meal_id": "m-scrambled", "product_id": "p-cheese", "amount": 2, "unit_type": "slice" },
+    { "id": "mi-7", "meal_id": "m-oats", "product_id": "p-oats", "amount": 60, "unit_type": "100g" },
+    { "id": "mi-8", "meal_id": "m-oats", "product_id": "p-cheese", "amount": 1, "unit_type": "slice" }
+  ],
+  "meal_item_overrides": [
+    { "id": "mo-1", "meal_id": "m-tofu", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "product_id": "p-tofu", "amount": 90, "unit_type": "100g" },
+    { "id": "mo-2", "meal_id": "m-tofu", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "product_id": "p-rice", "amount": 80, "unit_type": "100g" },
+    { "id": "mo-3", "meal_id": "m-tofu", "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "product_id": "p-broccoli", "amount": 150, "unit_type": "100g" }
+  ],
+  "meal_plan": [
+    { "id": "mp-1", "date": "2026-09-28", "meal_type": "lunch", "is_consumed": true, "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-tofu" },
+    { "id": "mp-2", "date": "2026-09-29", "meal_type": "lunch", "is_consumed": true, "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-tofu" },
+    { "id": "mp-3", "date": "2026-09-28", "meal_type": "lunch", "is_consumed": true, "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-tofu" },
+    { "id": "mp-4", "date": "2026-09-29", "meal_type": "lunch", "is_consumed": false, "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-tofu" },
+    { "id": "mp-5", "date": "2026-09-28", "meal_type": "breakfast", "is_consumed": true, "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-scrambled" },
+    { "id": "mp-6", "date": "2026-09-29", "meal_type": "breakfast", "is_consumed": true, "user_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-oats" },
+    { "id": "mp-7", "date": "2026-09-30", "meal_type": "breakfast", "is_consumed": false, "user_id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "household_id": "11111111-1111-4111-8111-111111111111", "meal_id": "m-oats" }
+  ],
+  "tags": [
+    { "id": "t-vege", "household_id": "11111111-1111-4111-8111-111111111111", "name": "wege", "color": "#22C55E", "text_color": "#FFFFFF" },
+    { "id": "t-quick", "household_id": "11111111-1111-4111-8111-111111111111", "name": "szybkie", "color": "#3B82F6", "text_color": "#FFFFFF" }
+  ],
+  "meal_tags": [
+    { "id": "mt-1", "meal_id": "m-tofu", "tag_id": "t-vege" },
+    { "id": "mt-2", "meal_id": "m-scrambled", "tag_id": "t-quick" },
+    { "id": "mt-3", "meal_id": "m-oats", "tag_id": "t-quick" }
+  ]
+}
