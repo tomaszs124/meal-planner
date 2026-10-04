@@ -55,7 +55,8 @@ co na telefonie przez LTE jest odczuwalne (sekundy ładowania).
 - [x] **P1 Brak manifestu PWA**: dokument założeń mówi o instalacji jak aplikacja, ale w `public/` nie ma `manifest.json` ani ikon, a `layout.tsx` go nie linkuje. Bez tego nie ma "Dodaj do ekranu głównego" z pełnym ekranem.
 - [x] **P2 Stany ładowania i błędów**: szkielety dopasowane do układu w 6 ekranach (`src/components/ui/Skeleton.tsx`), granice błędów `src/app/error.tsx` i `global-error.tsx`, strona 404. Zostało: obsługa utraty sieci (lista zakupów w sklepie bez zasięgu) → patrz tryb offline poniżej.
 - [x] **P2 Obrazki**: `<img>` zamienione na `next/image` (MealSlot); zdjęcia są kompresowane w przeglądarce przed uploadem (`src/lib/image.ts`: max 1600 px, JPEG 0.82, GIF bez zmian, PNG/WebP zachowane tylko przy przezroczystości). Ścieżka przeglądarkowa do sprawdzenia na telefonie.
-- [ ] **P3 Tryb offline** dla listy zakupów (service worker + kolejka zmian), realny scenariusz w sklepie.
+- [x] **P3 Tryb offline (odczyt)**: service worker `public/sw.js` (tylko produkcja): statyczne pliki i zdjęcia cache-first, nawigacje i odczyty z Supabase network-first z 4 s limitem i zapasem z cache, baner "Brak połączenia". Opis i instrukcja testu: [`offline.md`](./offline.md). **Do sprawdzenia na telefonie** (instalacja SW, lista zakupów offline po pełnym przeładowaniu). Zostało: kolejka zmian offline (zapisy w sklepie bez zasięgu).
+- [ ] **P3 Zagnieżdżone kontrolki w wierszach**: wiersze listy zakupów i karty mają `role="button"` z checkboxem i przyciskami w środku (czytniki ekranu mogą je spłaszczać). Docelowo klik na obszar tekstu zamiast całego wiersza albo checkbox jako jedyny element aktywny.
 
 ## E. Inżynieria
 
