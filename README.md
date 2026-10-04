@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meal Planner
 
-## Getting Started
+Mobile-first web app for a small household to plan meals, keep a shared product base with
+nutrition data, and shop from a real-time synchronised list. Built with Next.js (App Router),
+TypeScript, Tailwind CSS v4 and Supabase (Postgres, Auth, Realtime, Storage).
 
-First, run the development server:
+## Features
+
+- **Products** with kcal / protein / fat / carbs per 100 g, preferred unit and unit weight,
+  categories, notes.
+- **Meals** composed of products, with per-member ingredient variants
+  (`meal_item_overrides`), tags, categories (breakfast … snack) and photos.
+- **Meal plan** per day and per member: pick, randomise, mark eaten / skipped, copy a day
+  from yesterday or from another member, weekly progress.
+- **Shopping list** generated from the plan for a date range and selected members, grouped by
+  dish or by category, servings scaling, real-time sync between phones, custom side lists.
+- **PWA**: installable on the home screen.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # fill in Supabase URL and publishable key
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Database schema and migrations live as SQL files in `docs/` (run them in the Supabase SQL
+editor; see `docs/rls-audit.md` for the recommended order and security notes).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command           | What it does                                   |
+| ----------------- | ---------------------------------------------- |
+| `npm run dev`     | development server                             |
+| `npm run build`   | production build (also runs type checks)       |
+| `npm run lint`    | ESLint (CI runs it with `--max-warnings=0`)    |
+| `npm test`        | unit tests (Vitest)                            |
+| `npm run test:watch` | tests in watch mode                         |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app/            routes (App Router), error boundaries, manifest
+src/components/     feature folders: Meals, MealPlanner, ShoppingList, Products, Settings, ui
+src/hooks/          shared hooks (useCurrentUser, useProducts cache)
+src/lib/            pure logic: nutrition, meals-data loader, shopping aggregation, plan helpers
+src/proxy.ts        auth gate (redirects anonymous users to /login)
+docs/               SQL migrations, backlog (improvements.md), RLS audit
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Pure logic in `src/lib/` and the helpers next to components are unit-tested; UI components
+are kept thin (data hooks + presentational pieces).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `docs/improvements.md`: backlog and what was done when.
+- `docs/rls-audit.md`, `docs/rls-hardening.sql`: row-level-security review and proposed fixes.
+- `docs/overview.md`: original product brief (Polish).
