@@ -78,7 +78,7 @@ potrzebne są rzeczy, których nie da się dorobić na końcu bez przepisywania:
 6. **Asystent AI jako funkcja produktu**: dzisiejszy konektor MCP działa z zewnętrznym ChatGPT. W produkcie asystent powinien być w aplikacji (Claude API po stronie serwera), per użytkownik, z OAuth zamiast współdzielonego tokenu, z limitami użycia i logiem zmian ("co AI zmieniło").
 7. **Prawo i zaufanie**: regulamin, polityka prywatności, zgody na cookies, informacja, że kalorie są szacunkowe (nie porada medyczna). Dane zdrowotne z sekcji 2.6 założeń (masa, wypróżnienia) to dane wrażliwe: albo wyraźna zgoda i szyfrowanie, albo rezygnacja z tej części w wersji publicznej.
 8. **Operacje**: kopie zapasowe i test odtwarzania, środowisko staging, monitoring, limit zapytań na publicznych endpointach, polityka wersjonowania migracji, koszty Supabase/Vercel przy 1k gospodarstw.
-9. **Jakość produktu**: i18n (dziś polskie teksty na sztywno w JSX), dostępność (etykiety, kontrast), onboarding w aplikacji, strona marketingowa.
+9. **Jakość produktu**: i18n (dziś polskie teksty na sztywno w JSX), dostępność (etykiety, kontrast), onboarding w aplikacji, strona marketingowa. Postęp 2026-10-04: dwa przejścia a11y (etykiety, role dialogów, Escape, klawiatura w wierszach, pułapka fokusu); zostaje kontrast i audyt czytnikiem ekranu.
 10. **Metryki**: analityka zdarzeń (ile osób planuje tydzień, ile generuje zakupy), żeby decyzje o funkcjach były oparte na danych.
 
 ## G. Pomysły produktowe

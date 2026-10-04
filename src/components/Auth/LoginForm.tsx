@@ -22,7 +22,7 @@ export default function LoginForm() {
       }
       // Jeśli nie ma błędu, redirect z Server Action zadziała
     } catch {
-      setError('Failed to login')
+      setError('Nie udało się zalogować. Spróbuj ponownie.')
       setIsLoading(false)
     }
   }
