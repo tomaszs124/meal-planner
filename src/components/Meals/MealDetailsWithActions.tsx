@@ -34,6 +34,9 @@ export default function MealDetailsWithActions({
         } : null}
         userId={userId}
         householdId={householdId}
+        // Same "Mój przepis / <domownik>" switch as in the day plan, so variants can be compared from the meals list too
+        showVariantSelector={true}
+        initialVariantUserId={userId}
         // The Edit/Delete footer below lives outside the dialog, so it must stay reachable for screen readers
         ariaModal={false}
       />
