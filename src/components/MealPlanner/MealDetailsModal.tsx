@@ -290,7 +290,7 @@ export default function MealDetailsModal({
           </button>
         </div>
 
-        <div className="px-4 py-5 sm:px-6 space-y-5">
+        <div className="px-4 py-5 sm:px-6 space-y-4">
           {/* 1. Photo (compact) + summary strip */}
           {hasImage && (
             <div className="relative -mx-4 -mt-5 sm:-mx-6">
@@ -321,7 +321,7 @@ export default function MealDetailsModal({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="-my-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex flex-wrap items-center gap-1.5 text-sm" aria-label="Wartości odżywcze">
               <span className="rounded bg-brand-100 dark:bg-brand-900 px-2.5 py-1 font-semibold text-brand-800 dark:text-brand-200 tabular-nums">
                 {Math.round(displayKcal * servings)} kcal
@@ -348,7 +348,7 @@ export default function MealDetailsModal({
 
           {/* 2. Ingredients, with the variant switch right above them */}
           <div>
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Składniki</h3>
               {showVariantSelector && householdMembers.length > 1 && (
@@ -460,7 +460,7 @@ export default function MealDetailsModal({
           {/* 3. Recipe */}
           {meal.description && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Przepis</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Przepis</h3>
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed border-t border-gray-200 dark:border-gray-700 pt-3">
                 {meal.description}
               </p>
