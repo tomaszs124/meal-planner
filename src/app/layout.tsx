@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
 import { FeedbackProvider } from "@/components/ui/Feedback";
@@ -8,23 +8,14 @@ import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration
 import OfflineBanner from "@/components/ui/OfflineBanner";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
-// Body face: a humanist sans with some character (not Inter / system)
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument-sans",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin", "latin-ext"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// Display face for headings and the kcal numbers (see globals.css): a high-contrast editorial serif
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin", "latin-ext"],
-  weight: "400",
-  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -60,7 +51,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
-        className={`${instrumentSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased pb-28 text-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-28 text-gray-900 dark:text-gray-100`}
       >
         <FeedbackProvider>
           <CurrentUserProvider>

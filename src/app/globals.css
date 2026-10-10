@@ -5,8 +5,7 @@
 
 /*
  * Design language: "warm pantry, editorial". Paper-like warm neutrals with a fine grain,
- * ink-dark text, one spice accent (saffron) and a high-contrast serif for headings and
- * the numbers that matter (kcal). Everything is decided here:
+ * ink-dark text and one spice accent (saffron). Everything is decided here:
  *  - `brand`: saffron. Primary buttons are saffron with INK text (white on yellow fails
  *    contrast); 600+ shades are dark enough for links on paper.
  *  - `gray`: overridden with Tailwind's warm stone scale, so every `gray-*` utility in
@@ -56,14 +55,13 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-instrument-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-instrument-serif);
 }
 
 @layer base {
   body {
-    font-family: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     /* warm paper, a saffron glow in the top-right corner */
     background-color: #f6f3ec;
     background-image: radial-gradient(40rem 28rem at 100% -6rem, color-mix(in oklab, var(--color-brand-200) 55%, transparent), transparent 70%);
@@ -85,27 +83,25 @@
   }
   .dark body::before { opacity: 0.07; }
 
-  /* Headings carry the display face: a high-contrast editorial serif */
+  /* Headings: the body sans, bold and slightly tightened */
   h1, h2, h3 {
-    font-family: var(--font-instrument-serif), Georgia, serif;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
+/* Display text (titles, meal names): the body sans, semibold, tightened */
 @utility font-display {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
-/* The number that matters (kcal) is set in the serif, slightly larger than the text around it */
+/* The number that matters (kcal): a touch larger, bold, tabular */
 @utility num-display {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-weight: 400;
-  font-size: 1.3em;
+  font-weight: 700;
+  font-size: 1.15em;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   font-variant-numeric: lining-nums tabular-nums;
 }
 

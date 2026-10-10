@@ -110,7 +110,7 @@ export default function DayMealRow({
             <Thumbnail meal={selectedMeal} />
             <div className="min-w-0 flex-1">
               {caption}
-              <div className={`line-clamp-2 font-display text-[1.05rem] leading-snug text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
+              <div className={`line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
                 {selectedMeal.name}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">

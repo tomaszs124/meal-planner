@@ -76,14 +76,14 @@ export default function WeekNavigator({
               className={`
                 flex flex-col items-center p-1 md:p-2 rounded-lg transition-all border-2
                 ${isSelected
-                  ? 'border-gray-900 bg-gray-900 shadow-md shadow-gray-900/25 dark:border-brand-400 dark:bg-brand-400'
+                  ? 'border-brand-400 bg-brand-400 shadow-md shadow-brand-500/30'
                   : isCurrentDay
                   ? 'border-brand-400 hover:border-brand-500'
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
             >
-              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-brand-300 dark:text-gray-900' : 'text-gray-600 dark:text-gray-400'}`}>
+              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-gray-900' : 'text-gray-600 dark:text-gray-400'}`}>
                 {format(day, 'EEE', { locale: pl })}
               </span>
               
@@ -119,7 +119,7 @@ export default function WeekNavigator({
                 </svg>
                 
                 {/* Day number */}
-                <span className={`relative z-10 font-display text-lg md:text-xl ${isSelected ? 'text-white dark:text-gray-900' : 'text-gray-900 dark:text-gray-100'}`}>
+                <span className={`relative z-10 text-base font-bold md:text-lg ${isSelected ? 'text-gray-900' : 'text-gray-900 dark:text-gray-100'}`}>
                   {format(day, 'd')}
                 </span>
               </div>
