@@ -4,6 +4,7 @@ import { createContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef
 import { usePathname } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { supabase, type Household } from '@/lib/supabase/client'
+import { clearServiceWorkerUserCaches, warmServiceWorkerRoutes } from '@/components/ui/ServiceWorkerRegistration'
 
 // Routes that render without a session (must match src/proxy.ts)
 const PUBLIC_ROUTES = ['/login', '/signup', '/reset-password']
@@ -95,6 +96,9 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
       setIsLoading(true)
       householdRef.current = null
       setHousehold(null)
+      // Offline caches hold per-user data: drop the previous user's, then warm the main routes
+      if (userRef.current) clearServiceWorkerUserCaches()
+      warmServiceWorkerRoutes()
     }
     userRef.current = nextUser
     setUser(nextUser)
@@ -113,6 +117,8 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_OUT') {
         // Only clear state on an explicit sign-out, never on a transient null session
         initializedRef.current = true
+        // Covers sign-outs that never hit /auth/v1/logout (other tab, expired session)
+        clearServiceWorkerUserCaches()
         userRef.current = null
         householdRef.current = null
         requestIdRef.current++ // drop any in-flight household lookup

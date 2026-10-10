@@ -9,7 +9,7 @@ zapamiętuje to, co użytkownik już raz pobrał, i podaje to, gdy sieć nie odp
 | Plik | Rola |
 |---|---|
 | [`public/sw.js`](../public/sw.js) | Service worker (czysty JS, bez bibliotek). |
-| [`src/components/ui/ServiceWorkerRegistration.tsx`](../src/components/ui/ServiceWorkerRegistration.tsx) | Rejestracja SW (tylko produkcja); w dev wyrejestrowuje stare SW. |
+| [`src/components/ui/ServiceWorkerRegistration.tsx`](../src/components/ui/ServiceWorkerRegistration.tsx) | Rejestracja SW (tylko produkcja); w dev wyrejestrowuje stare SW. Eksportuje `clearServiceWorkerUserCaches` / `warmServiceWorkerRoutes` używane przez `CurrentUserProvider`. |
 | [`src/components/ui/OfflineBanner.tsx`](../src/components/ui/OfflineBanner.tsx) | Pasek „Brak połączenia…” nad dolną nawigacją (`role="status"`). |
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | Montuje oba komponenty obok `<BottomNav />`. |
 | [`src/proxy.ts`](../src/proxy.ts) | Matcher wyklucza `/sw.js` (inaczej anonimowy użytkownik dostałby redirect na `/login` zamiast skryptu). |
@@ -20,7 +20,7 @@ zapamiętuje to, co użytkownik już raz pobrał, i podaje to, gdy sieć nie odp
 |---|---|---|---|
 | `/_next/static/**` (pliki z hashem) | cache-first | `mp-static-<wersja>` | 300 |
 | Nawigacje HTML (`request.mode === 'navigate'`) | network-first, timeout 4 s → ostatnia zapisana wersja tej samej ścieżki (bez query) | `mp-pages-<wersja>` | 30 |
-| Supabase REST `GET /rest/v1/...` | network-first, timeout 4 s → ostatnia odpowiedź 200 dla tego samego URL | `mp-rest-<wersja>` | 200 |
+| Supabase REST `GET /rest/v1/...` | network-first bez limitu czasu → cache tylko przy błędzie sieci lub offline | `mp-rest-<wersja>` | 200 |
 | Obrazy Supabase `/storage/v1/object/public/...` oraz `/_next/image?url=<ten storage>` | cache-first | `mp-images-<wersja>` | 100 |
 
 Szczegóły:
@@ -87,30 +87,26 @@ SW działa tylko w buildzie produkcyjnym: `npx next build && npx next start`.
   cache'ujemy — mogą się nie udać; pełne przeładowanie strony zadziała z cache.
 - **Dane z cache mogą być nieaktualne** aż do następnego udanego pobrania; dotyczy to też
   zmian uprawnień (RLS) — odpowiedź zapisana przed zmianą może być pokazana offline.
-- Wolna sieć (> 4 s) również skutkuje pokazaniem danych z cache.
+- Wolna sieć (> 4 s) skutkuje pokazaniem powłoki strony z cache; dane z bazy czekają na sieć.
 
-## Do poprawienia przed scaleniem (wynik recenzji z 2026-10-04)
+## Poprawki z recenzji (wdrożone 2026-10-11, `CACHE_VERSION` v2)
 
-Recenzja kodu service workera wskazała dwa problemy, których nie zdążono naprawić:
-
-1. **Stare dane przy wolnej, ale żywej sieci.** Odczyty z Supabase mają limit 4 s, po którym
-   strona dostaje kopię z cache, choć `navigator.onLine` jest `true`. Operacje typu
-   "odczytaj, przelicz, zapisz" (skalowanie porcji na liście zakupów, kopiowanie dnia w planerze)
-   mogą wtedy zapisać złe wartości. Poprawka: dla `/rest/v1/` nie używać limitu czasu; cache
-   tylko gdy `fetch` zakończy się błędem albo `!navigator.onLine`.
-2. **Czyszczenie cache przy wylogowaniu jest zawodne.** Czyszczenie startuje w momencie
-   `POST /auth/v1/logout`, a spóźnione odpowiedzi REST z tokenem poprzedniego użytkownika
-   mogą ponownie zapisać cache; wylogowanie przez wygaśnięcie sesji lub w innej karcie nie
-   wywołuje czyszczenia wcale. Poprawka: licznik "epoki" w SW (odpowiedzi rozpoczęte przed
-   czyszczeniem nie trafiają do cache) oraz komunikat `{ type: 'clear-user-caches' }` wysyłany
-   z `CurrentUserProvider` przy `SIGNED_OUT` i przy zmianie użytkownika; czyścić też cache zdjęć.
-
-Mniejsze: strony otwierane nawigacją kliencką nie trafiają do cache (warto "rozgrzać" główne
-trasy po `activate`), baner offline jest przykrywany przez toasty (`bottom-20`), limit wpisów
-działa jak FIFO, nie LRU.
+1. **Odczyty REST bez limitu czasu.** `/rest/v1/` czeka na sieć tak długo, jak odpowiada;
+   kopia z cache jest podawana tylko, gdy `fetch` się nie powiedzie albo `navigator.onLine`
+   jest `false`. Dzięki temu operacje „odczytaj, przelicz, zapisz” nigdy nie liczą na starych
+   danych. Limit 4 s został wyłącznie dla nawigacji HTML (powłoka strony jest statyczna).
+2. **Pewne czyszczenie per-user.** SW ma licznik „epoki”: każde czyszczenie go podbija, a
+   odpowiedź, której żądanie wystartowało w starszej epoce, nie trafia do cache. Aplikacja
+   wysyła `{ type: 'clear-user-caches' }` z `CurrentUserProvider` przy `SIGNED_OUT` i przy
+   zmianie użytkownika (oprócz obserwacji `POST /auth/v1/logout`). Czyszczony jest też cache
+   zdjęć.
+3. **Rozgrzewanie tras.** Po `activate` i po zalogowaniu (`{ type: 'warm-routes' }`) SW
+   pobiera `/dashboard`, `/meals`, `/shopping-list`, `/products`, `/settings` do cache stron,
+   więc działają offline nawet bez wcześniejszego wejścia w tej sesji. Przekierowanie na
+   `/login` (brak sesji) niczego nie zapisuje.
 
 ## Włączanie w produkcji
 
-Do czasu naprawienia punktów powyżej service worker rejestruje się tylko, gdy w środowisku
-produkcyjnym ustawiona jest zmienna `NEXT_PUBLIC_ENABLE_SW=1`. Bez niej aplikacja działa jak
-dotąd (online), a baner "Brak połączenia" nadal się pokazuje.
+Service worker rejestruje się w każdym buildzie produkcyjnym (brak flagi). W `next dev`
+jest wyrejestrowywany. Wyłączenie: usunąć `<ServiceWorkerRegistration />` z `layout.tsx`
+albo podbić wersję i zwrócić pusty worker.
