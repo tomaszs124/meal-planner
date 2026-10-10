@@ -6,6 +6,7 @@ import { FeedbackProvider } from "@/components/ui/Feedback";
 import { CurrentUserProvider } from "@/components/Auth/CurrentUserProvider";
 import ServiceWorkerRegistration from "@/components/ui/ServiceWorkerRegistration";
 import OfflineBanner from "@/components/ui/OfflineBanner";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,9 +45,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl">
+    // suppressHydrationWarning: the inline script may add the `dark` class before React hydrates
+    <html lang="pl" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 bg-white`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100`}
       >
         <FeedbackProvider>
           <CurrentUserProvider>
