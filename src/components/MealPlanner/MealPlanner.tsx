@@ -25,7 +25,7 @@ export default function MealPlanner() {
     setSelectedDate,
     userSettings,
     plannedMeals,
-    allMeals,
+    mealsForPicker,
     weekProgress,
     isLoading,
     householdMembers,
@@ -60,7 +60,7 @@ export default function MealPlanner() {
   function slotProps(category: MealCategory) {
     const plan = plannedMeals.find((p) => p.meal_type === category)
     return {
-      meals: allMeals,
+      meals: mealsForPicker,
       category,
       categoryLabel: CATEGORY_LABELS[category],
       selectedMeal: plan?.meal ?? null,

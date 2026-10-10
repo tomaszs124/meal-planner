@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { format, startOfWeek, addDays } from 'date-fns'
 import { supabase, Meal, MealCategory } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUserSettings } from '@/hooks/useUserSettings'
-import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
+import { fetchMealsWithDetails, type MealPickCountRow, type MealWithDetails } from '@/lib/meals-data'
 import { useFeedback } from '@/components/ui/Feedback'
 import {
   buildWeekProgress,
@@ -54,6 +54,9 @@ export function useMealPlan() {
   const { settings: userSettings } = useUserSettings(user?.id)
   const [plannedMeals, setPlannedMeals] = useState<PlannedMeal[]>([])
   const [allMeals, setAllMeals] = useState<MealWithDetails[]>([])
+  // Pick counts (view meal_pick_counts) refreshed after every plan change, so the picker's
+  // "Najczęściej wybierane" order reflects what was just planned without a reload.
+  const [pickCounts, setPickCounts] = useState<Map<string, number> | null>(null)
   // true once the meals query finished (even with zero meals), so the day plan can stop loading
   const [mealsLoaded, setMealsLoaded] = useState(false)
   const [weekProgress, setWeekProgress] = useState<DayProgress[]>([])
@@ -516,7 +519,32 @@ export function useMealPlan() {
     )
   }
 
+  // Refresh pick counts whenever the day's plan changes (insert / update / copy / random)
+  const householdIdForCounts = household?.id
+  useEffect(() => {
+    if (!householdIdForCounts) return
+    let cancelled = false
+    supabase
+      .from('meal_pick_counts')
+      .select('meal_id, picks')
+      .eq('household_id', householdIdForCounts)
+      .then(({ data, error }) => {
+        if (cancelled || error) return
+        setPickCounts(new Map(((data || []) as MealPickCountRow[]).map((row) => [row.meal_id, row.picks])))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [householdIdForCounts, plannedMeals])
+
+  // allMeals with up-to-date pick counts merged in (what the picker sorts by)
+  const mealsForPicker = useMemo(
+    () => (pickCounts ? allMeals.map((m) => ({ ...m, pickCount: pickCounts.get(m.id) ?? 0 })) : allMeals),
+    [allMeals, pickCounts]
+  )
+
   return {
+    mealsForPicker,
     household,
     userLoading,
     selectedDate,

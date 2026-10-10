@@ -321,7 +321,7 @@ export default function MealDetailsModal({
             </div>
           )}
 
-          <div className="-my-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="-mt-1 mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex flex-wrap items-center gap-1.5 text-sm" aria-label="Wartości odżywcze">
               <span className="rounded bg-brand-100 dark:bg-brand-900 px-2.5 py-1 font-semibold text-brand-800 dark:text-brand-200 tabular-nums">
                 {Math.round(displayKcal * servings)} kcal
@@ -468,13 +468,20 @@ export default function MealDetailsModal({
           )}
         </div>
 
-        <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
-          <div className="flex gap-2">{actions}</div>
-          {onSelectMeal ? (
-            <div className="flex gap-2">
-              <Button onClick={onClose}>Anuluj</Button>
+        {(onSelectMeal || actions) && (
+          <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+            {actions && (
+              <>
+                <div className="flex gap-2">{actions}</div>
+                <Button variant="primary" onClick={onClose}>
+                  Zamknij
+                </Button>
+              </>
+            )}
+            {onSelectMeal && (
               <Button
                 variant="primary"
+                fullWidth
                 onClick={() => {
                   onSelectMeal(meal)
                   onClose()
@@ -482,13 +489,9 @@ export default function MealDetailsModal({
               >
                 Wybierz ten posiłek
               </Button>
-            </div>
-          ) : (
-            <Button variant="primary" onClick={onClose}>
-              Zamknij
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
