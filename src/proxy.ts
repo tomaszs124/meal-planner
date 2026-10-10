@@ -92,8 +92,9 @@ export const config = {
      * - favicon.ico (favicon file)
      * - manifest / icons / public assets
      * - api/mcp (MCP connector endpoint, authenticated by its own token)
+     * - api/keep-alive (Vercel Cron endpoint, authenticated by CRON_SECRET)
      * - sw.js (service worker script; must never be redirected to /login)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|\\.well-known/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw\\.js$|icon-|api/mcp|api/keep-alive|\\.well-known/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
