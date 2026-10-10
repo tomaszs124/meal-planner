@@ -1,0 +1,27 @@
+name: Supabase keep-alive (backup)
+
+# Backup for the Vercel Cron in vercel.json: calls the same endpoint every 3 days.
+# Needs repository secrets KEEP_ALIVE_URL (https://<host>/api/keep-alive) and CRON_SECRET.
+# Note: GitHub disables scheduled workflows after 60 days without commits; Vercel Cron is primary.
+
+on:
+  schedule:
+    - cron: '30 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write and delete a keep-alive row
+        env:
+          KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$KEEP_ALIVE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Missing KEEP_ALIVE_URL or CRON_SECRET secret"; exit 1
+          fi
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$KEEP_ALIVE_URL"
