@@ -51,7 +51,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-28 text-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 text-gray-900 dark:text-gray-100`}
       >
         <FeedbackProvider>
           <CurrentUserProvider>

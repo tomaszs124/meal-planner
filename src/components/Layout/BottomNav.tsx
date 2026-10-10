@@ -61,9 +61,9 @@ export default function BottomNav() {
   }
 
   return (
-    <nav aria-label="Nawigacja główna" className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 safe-area-bottom pointer-events-none">
-      <div className="pointer-events-auto mx-auto max-w-md rounded-2xl border border-gray-200/80 bg-white/90 shadow-lg backdrop-blur-md dark:border-gray-700/80 dark:bg-gray-900/90 dark:shadow-black/40">
-        <div className="flex items-center justify-around px-1 py-1.5">
+    <nav aria-label="Nawigacja główna" className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-200/80 bg-white/90 shadow-[0_-4px_16px_-8px_rgb(60_40_20/0.15)] backdrop-blur-md safe-area-bottom dark:border-gray-700/80 dark:bg-gray-900/90">
+      <div className="mx-auto max-w-screen-xl px-2">
+        <div className="flex items-center justify-around gap-1 py-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
             

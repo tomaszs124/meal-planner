@@ -114,7 +114,7 @@ function ToastViewport({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: 
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-24 z-[110] flex flex-col items-center gap-2 px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-20 z-[110] flex flex-col items-center gap-2 px-4"
     >
       {toasts.map((t) => (
         <Toast key={t.id} item={t} onDismiss={onDismiss} />
