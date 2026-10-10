@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode is opt-in via the `dark` class on <html> (set from Ustawienia), not the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -15,7 +18,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Safe area for mobile devices with notch */
