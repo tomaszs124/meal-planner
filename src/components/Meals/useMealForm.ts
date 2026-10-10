@@ -24,6 +24,8 @@ export function useMealFormState() {
   const [tags, setTags] = useState<string[]>([])
   const [primaryCategory, setPrimaryCategory] = useState<MealCategory | ''>('')
   const [alternativeCategories, setAlternativeCategories] = useState<MealCategory[]>([])
+  // Edit mode: true while the base recipe and member variants are being fetched for the opened meal
+  const [isLoadingItems, setIsLoadingItems] = useState(false)
   // Incremented by every loadMealIntoForm call so a slow response for meal A cannot
   // overwrite the form after the user already opened meal B (or cancelled).
   const loadSeq = useRef(0)
@@ -40,6 +42,7 @@ export function useMealFormState() {
     setTags([])
     setPrimaryCategory('')
     setAlternativeCategories([])
+    setIsLoadingItems(false)
   }
 
   return {
@@ -54,6 +57,7 @@ export function useMealFormState() {
     tags, setTags,
     primaryCategory, setPrimaryCategory,
     alternativeCategories, setAlternativeCategories,
+    isLoadingItems, setIsLoadingItems,
     reset,
   }
 }
@@ -76,10 +80,19 @@ export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems)
   form.setTags(meal.tags?.map(t => t.id) || [])
   form.setPrimaryCategory(meal.primary_category || '')
   form.setAlternativeCategories(meal.alternative_categories || [])
+  form.setSelectedProducts([])
+  form.setMemberOverrides({})
+  form.setIsLoadingItems(true)
 
   // Always fetch base meal_items from DB so the form always reflects the base recipe,
   // regardless of whether the current user has an override (meal.items may contain overrides).
-  const baseMealItems = await fetchBaseMealItems(meal.id)
+  let baseMealItems: Awaited<ReturnType<typeof fetchBaseMealItems>>
+  try {
+    baseMealItems = await fetchBaseMealItems(meal.id)
+  } catch (error) {
+    if (!isStale()) form.setIsLoadingItems(false)
+    throw error
+  }
   if (isStale()) return
 
   form.setSelectedProducts(
@@ -90,7 +103,13 @@ export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems)
   )
 
   // Load existing member overrides
-  const overridesData = await fetchMealItemOverrides(meal.id)
+  let overridesData: Awaited<ReturnType<typeof fetchMealItemOverrides>>
+  try {
+    overridesData = await fetchMealItemOverrides(meal.id)
+  } catch (error) {
+    if (!isStale()) form.setIsLoadingItems(false)
+    throw error
+  }
   if (isStale()) return
 
   if (overridesData) {
@@ -108,6 +127,7 @@ export async function loadMealIntoForm(form: MealFormState, meal: MealWithItems)
   } else {
     form.setMemberOverrides({})
   }
+  form.setIsLoadingItems(false)
 }
 
 // Handle image file selection
@@ -144,89 +164,6 @@ export function handleImageChange(file: File | null, form: MealFormState, toast:
   void compressImage(file).then((compressed) => {
     if (compressed === file) return
     form.setImageFile(current => (current === file ? compressed : current))
-  })
-}
-
-// Add product to selection
-export function addProductToSelection(
-  products: Product[],
-  list: ProductSelection[],
-  setList: (list: ProductSelection[]) => void
-) {
-  if (products.length === 0) return
-  setList([...list, { product_id: products[0].id, amount: 1 }])
-}
-
-// Remove product from selection
-export function removeProductFromSelection(index: number, list: ProductSelection[], setList: (list: ProductSelection[]) => void) {
-  setList(list.filter((_, i) => i !== index))
-}
-
-// Update product selection
-export function updateProductSelection(
-  index: number,
-  field: 'product_id' | 'amount',
-  value: string | number,
-  list: ProductSelection[],
-  setList: (list: ProductSelection[]) => void
-) {
-  const updated = [...list]
-  if (field === 'amount') {
-    updated[index].amount = parseFloat(value as string) || 0
-  } else {
-    updated[index].product_id = value as string
-  }
-  setList(updated)
-}
-
-// Add product to member override
-export function addProductToMemberOverride(
-  products: Product[],
-  userId: string,
-  overrides: MemberOverrides,
-  setOverrides: (overrides: MemberOverrides) => void
-) {
-  if (products.length === 0) return
-  const current = overrides[userId] || []
-  setOverrides({
-    ...overrides,
-    [userId]: [...current, { product_id: products[0].id, amount: 1 }],
-  })
-}
-
-// Remove product from member override
-export function removeProductFromMemberOverride(
-  userId: string,
-  index: number,
-  overrides: MemberOverrides,
-  setOverrides: (overrides: MemberOverrides) => void
-) {
-  const current = overrides[userId] || []
-  setOverrides({
-    ...overrides,
-    [userId]: current.filter((_, i) => i !== index),
-  })
-}
-
-// Update product in member override
-export function updateMemberOverrideProduct(
-  userId: string,
-  index: number,
-  field: 'product_id' | 'amount',
-  value: string | number,
-  overrides: MemberOverrides,
-  setOverrides: (overrides: MemberOverrides) => void
-) {
-  const current = overrides[userId] || []
-  const updated = [...current]
-  if (field === 'amount') {
-    updated[index].amount = parseFloat(value as string) || 0
-  } else {
-    updated[index].product_id = value as string
-  }
-  setOverrides({
-    ...overrides,
-    [userId]: updated,
   })
 }
 

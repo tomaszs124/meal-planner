@@ -1,18 +1,19 @@
 'use client'
 
+import { useRef, type ReactNode } from 'react'
 import Image from 'next/image'
 import type { MealCategory, Product, Tag } from '@/lib/supabase/client'
 import { useFeedback } from '@/components/ui/Feedback'
 import { MEAL_CATEGORIES } from './mealHelpers'
-import { handleImageChange, type MealFormState } from './useMealForm'
+import { handleImageChange, selectionTotals, type MealFormState } from './useMealForm'
 import ProductSelectionList from './ProductSelectionList'
 import MemberOverridesEditor from './MemberOverridesEditor'
 import type { HouseholdMember, MealFormMode } from './types'
 
 /**
- * Meal form shared by "add" (inline card) and "edit" (inside EditMealModal).
- * The two modes keep their historical differences: field ids, disabled states,
- * image hints / remove button, category block (position and markup), tag hint and footer.
+ * Meal form shared by "add" (inline card on the Meals page) and "edit" (inside EditMealModal).
+ * Sections: basics, photo, categories & tags, ingredients, member variants.
+ * The footer is sticky in the modal so "Zapisz" is always within reach.
  */
 export default function MealForm({
   mode,
@@ -39,288 +40,329 @@ export default function MealForm({
 }) {
   const { toast } = useFeedback()
   const isAdd = mode === 'add'
+  const idPrefix = isAdd ? 'meal' : 'edit-meal'
+  const busy = isAdding || isUploadingImage
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const totals = selectionTotals(form.selectedProducts, products)
+  const canSubmit = !busy && !form.isLoadingItems && form.name.trim() !== '' && form.selectedProducts.length > 0
+  const alternativeOptions = MEAL_CATEGORIES.filter((cat) => cat.value !== form.primaryCategory)
+
+  function choosePrimary(value: MealCategory) {
+    const next = form.primaryCategory === value ? '' : value
+    form.setPrimaryCategory(next)
+    if (next) form.setAlternativeCategories(form.alternativeCategories.filter((c) => c !== next))
+  }
+
+  function toggleAlternative(value: MealCategory) {
+    form.setAlternativeCategories(
+      form.alternativeCategories.includes(value)
+        ? form.alternativeCategories.filter((c) => c !== value)
+        : [...form.alternativeCategories, value]
+    )
+  }
+
+  const inputClass =
+    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100'
 
   return (
     <form
       onSubmit={onSubmit}
-      className={isAdd ? 'bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4' : 'p-6 space-y-4'}
+      className={isAdd ? 'overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm' : 'flex min-h-0 flex-1 flex-col'}
     >
-      <div>
-        <label htmlFor={isAdd ? 'meal-name' : 'edit-meal-name'} className="block text-sm font-medium text-gray-700 mb-1">
-          Nazwa posiłku
-        </label>
-        <input
-          id={isAdd ? 'meal-name' : 'edit-meal-name'}
-          type="text"
-          value={form.name}
-          onChange={(e) => form.setName(e.target.value)}
-          placeholder={isAdd ? 'Nazwa posiłku' : undefined}
-          disabled={isAdd ? isAdding : undefined}
-          className={isAdd
-            ? 'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100'
-            : 'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
-          required
-        />
-      </div>
+      <div className={isAdd ? 'p-4 space-y-6' : 'min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 space-y-6'}>
+        {/* 1. Photo (hero) */}
+        <div className={isAdd ? '-mx-4 -mt-4' : '-mx-4 -mt-5 sm:-mx-6'}>
+          <input
+            ref={fileInputRef}
+            id={`${idPrefix}-image`}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+            onChange={(e) => {
+              handleImageChange(e.target.files?.[0] || null, form, toast)
+              e.target.value = ''
+            }}
+            disabled={busy}
+            className="sr-only"
+            aria-label="Zdjęcie posiłku"
+          />
+          {form.imagePreview ? (
+            <div className="relative overflow-hidden border-b border-gray-200">
+              <Image
+                src={form.imagePreview}
+                alt="Podgląd zdjęcia posiłku"
+                width={800}
+                height={320}
+                className="h-48 w-full object-cover sm:h-60"
+              />
+              <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent px-3 pb-3 pt-8">
+                <span className="text-xs text-white/90">
+                  {form.imageFile ? 'Nowe zdjęcie (zapisze się z posiłkiem)' : isAdd ? '' : 'Obecne zdjęcie'}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={busy}
+                    className="rounded-md bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-white disabled:opacity-50"
+                  >
+                    Zmień
+                  </button>
+                  {(isAdd || form.imageFile) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        form.setImageFile(null)
+                        form.setImagePreview(isAdd ? null : form.imageOriginalUrl)
+                      }}
+                      disabled={busy}
+                      className="rounded-md bg-white/90 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-white disabled:opacity-50"
+                    >
+                      {isAdd ? 'Usuń' : 'Cofnij'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={busy}
+              className="flex w-full flex-col items-center justify-center gap-1 border-b-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-sm text-gray-600 hover:border-blue-400 hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M16.5 7.5L12 3m0 0L7.5 7.5M12 3v13.5" />
+              </svg>
+              <span className="font-medium">Dodaj zdjęcie</span>
+              <span className="text-xs text-gray-500">JPG, PNG, WebP lub GIF, do 5 MB</span>
+            </button>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor={isAdd ? 'meal-description' : 'edit-meal-description'} className="block text-sm font-medium text-gray-700 mb-1">
-          Opis / Przepis
-        </label>
-        <textarea
-          id={isAdd ? 'meal-description' : 'edit-meal-description'}
-          value={form.description}
-          onChange={(e) => form.setDescription(e.target.value)}
-          placeholder="Przepis krok po kroku..."
-          rows={4}
-          disabled={isAdd ? isAdding : undefined}
-          className={isAdd
-            ? 'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-vertical'
-            : 'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical'}
-        />
-      </div>
-
-      <div>
-        <label htmlFor={isAdd ? 'meal-image' : 'edit-meal-image'} className="block text-sm font-medium text-gray-700 mb-1">
-          Zdjęcie posiłku
-        </label>
-        <input
-          id={isAdd ? 'meal-image' : 'edit-meal-image'}
-          type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-          onChange={(e) => handleImageChange(e.target.files?.[0] || null, form, toast)}
-          disabled={isAdd ? isAdding || isUploadingImage : isUploadingImage}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          {isAdd ? 'Maksymalny rozmiar: 5MB. Formaty: JPG, PNG, WebP, GIF' : 'Jeśli nie wybierzesz nowego zdjęcia, pozostanie obecne.'}
-        </p>
-        {form.imagePreview && (
-          <div className="mt-2 relative">
-            <Image
-              src={form.imagePreview}
-              alt="Podgląd zdjęcia posiłku"
-              width={800}
-              height={320}
-              className="w-full h-48 object-cover rounded-lg border border-gray-200"
+        {/* 2. Basics */}
+        <Section title="Podstawowe">
+          <div>
+            <label htmlFor={`${idPrefix}-name`} className="block text-sm font-medium text-gray-700 mb-1">
+              Nazwa posiłku
+            </label>
+            <input
+              id={`${idPrefix}-name`}
+              type="text"
+              value={form.name}
+              onChange={(e) => form.setName(e.target.value)}
+              placeholder="np. Owsianka z bananem"
+              disabled={busy}
+              className={inputClass}
+              required
             />
-            {isAdd ? (
-              <button
-                type="button"
-                onClick={() => {
-                  form.setImageFile(null)
-                  form.setImagePreview(null)
-                }}
-                disabled={isAdding}
-                aria-label="Usuń zdjęcie"
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            ) : form.imageFile && (
-              <button
-                type="button"
-                onClick={() => {
-                  form.setImageFile(null)
-                  form.setImagePreview(form.imageOriginalUrl)
-                }}
-                aria-label="Cofnij wybór nowego zdjęcia"
-                className="absolute top-2 right-2 bg-gray-800/80 text-white rounded-full p-1 hover:bg-gray-900 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          </div>
+          <div>
+            <label htmlFor={`${idPrefix}-description`} className="block text-sm font-medium text-gray-700 mb-1">
+              Opis / przepis
+            </label>
+            <textarea
+              id={`${idPrefix}-description`}
+              value={form.description}
+              onChange={(e) => form.setDescription(e.target.value)}
+              placeholder="Przepis krok po kroku..."
+              rows={4}
+              disabled={busy}
+              className={`${inputClass} resize-y`}
+            />
+          </div>
+        </Section>
+
+        {/* 3. Ingredients */}
+        <Section
+          title="Składniki"
+          hint="Przepis bazowy, wspólny dla całego gospodarstwa."
+        >
+          <ProductSelectionList
+            products={products}
+            selectedProducts={form.selectedProducts}
+            setSelectedProducts={form.setSelectedProducts}
+            disabled={busy}
+            isLoading={form.isLoadingItems}
+          />
+        </Section>
+
+        {/* 4. Member variants */}
+        <Section
+          title="Warianty domowników"
+          hint="Włącz, gdy ktoś je inną wersję tego posiłku. Wariant nie zmienia przepisu bazowego."
+        >
+          <MemberOverridesEditor
+            products={products}
+            householdMembers={householdMembers}
+            currentUserId={currentUserId}
+            baseProducts={form.selectedProducts}
+            overrides={form.memberOverrides}
+            setOverrides={form.setMemberOverrides}
+            disabled={busy}
+            isLoading={form.isLoadingItems}
+          />
+        </Section>
+        {/* 5. Categories & tags */}
+        <Section title="Kategorie i tagi">
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Kategoria główna</p>
+            <div role="group" aria-label="Kategoria główna" className="flex flex-wrap gap-2">
+              {MEAL_CATEGORIES.map((cat) => {
+                const active = form.primaryCategory === cat.value
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => choosePrimary(cat.value)}
+                    aria-pressed={active}
+                    disabled={busy}
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
+                      active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Pasuje też jako <span className="font-normal text-gray-500">(opcjonalnie)</span>
+            </p>
+            <div role="group" aria-label="Kategorie alternatywne" className="flex flex-wrap gap-2">
+              {alternativeOptions.map((cat) => {
+                const active = form.alternativeCategories.includes(cat.value)
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => toggleAlternative(cat.value)}
+                    aria-pressed={active}
+                    disabled={busy}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
+                      active
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Tagi</p>
+            {tags.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                {isAdd ? 'Brak tagów. Dodaj je przyciskiem „Zarządzaj tagami”.' : 'Brak dostępnych tagów.'}
+              </p>
+            ) : (
+              <div role="group" aria-label="Tagi" className="flex flex-wrap gap-2">
+                {tags.map((tag) => {
+                  const active = form.tags.includes(tag.id)
+                  return (
+                    <label
+                      key={tag.id}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium cursor-pointer transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-1 ${
+                        active ? 'ring-2 ring-offset-1 ring-blue-500' : 'opacity-60 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: tag.color, color: tag.text_color }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={(e) =>
+                          form.setTags(e.target.checked ? [...form.tags, tag.id] : form.tags.filter((id) => id !== tag.id))
+                        }
+                        disabled={busy}
+                        className="sr-only"
+                      />
+                      {tag.name}
+                    </label>
+                  )
+                })}
+              </div>
             )}
           </div>
-        )}
+        </Section>
+
       </div>
 
-      {/* Edit mode: categories come right after the image */}
-      {!isAdd && (
-        <>
-          <div>
-            <label htmlFor="edit-primary-category" className="block text-sm font-medium text-gray-700 mb-2">Kategoria główna</label>
-            <select
-              id="edit-primary-category"
-              value={form.primaryCategory}
-              onChange={(e) => form.setPrimaryCategory((e.target.value as MealCategory) || '')}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">Wybierz kategorię...</option>
-              {MEAL_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kategorie alternatywne</label>
-            <div role="group" aria-label="Kategorie alternatywne" className="space-y-2">
-              {MEAL_CATEGORIES.map((cat) => (
-                <label key={cat.value} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.alternativeCategories.includes(cat.value)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        form.setAlternativeCategories([...form.alternativeCategories, cat.value])
-                      } else {
-                        form.setAlternativeCategories(form.alternativeCategories.filter((c) => c !== cat.value))
-                      }
-                    }}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-                  />
-                  <span className="text-sm text-gray-700">{cat.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Tagi</label>
-        {tags.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            {isAdd ? 'Brak dostępnych tagów. Dodaj nowe w sekcji zarządzania tagami poniżej.' : 'Brak dostępnych tagów.'}
-          </p>
-        ) : (
-          <div role="group" aria-label="Tagi" className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <label
-                key={tag.id}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all ${
-                  form.tags.includes(tag.id)
-                    ? 'ring-2 ring-offset-2 ring-blue-500'
-                    : 'opacity-60 hover:opacity-100'
-                }`}
-                style={{
-                  backgroundColor: tag.color,
-                  color: tag.text_color
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.tags.includes(tag.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      form.setTags([...form.tags, tag.id])
-                    } else {
-                      form.setTags(form.tags.filter((id) => id !== tag.id))
-                    }
-                  }}
-                  disabled={isAdd ? isAdding : undefined}
-                  className="sr-only"
-                />
-                {tag.name}
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <ProductSelectionList
-        products={products}
-        selectedProducts={form.selectedProducts}
-        setSelectedProducts={form.setSelectedProducts}
-      />
-
-      {/* Add mode: categories come after the products, in their own section */}
-      {isAdd && (
-        <div className="space-y-4 border-t border-gray-200 pt-4">
-          <h3 className="text-sm font-semibold text-gray-900">Kategorie posiłku</h3>
-
-          {/* Primary category */}
-          <div>
-            <label htmlFor="primary-category" className="block text-sm font-medium text-gray-700 mb-2">
-              Kategoria główna
-            </label>
-            <select
-              id="primary-category"
-              value={form.primaryCategory}
-              onChange={(e) => form.setPrimaryCategory(e.target.value as MealCategory | '')}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Brak kategorii</option>
-              {MEAL_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Alternative categories */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kategorie alternatywne
-            </label>
-            <div role="group" aria-label="Kategorie alternatywne" className="space-y-2">
-              {MEAL_CATEGORIES.map((cat) => (
-                <label key={cat.value} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={form.alternativeCategories.includes(cat.value)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        form.setAlternativeCategories([...form.alternativeCategories, cat.value])
-                      } else {
-                        form.setAlternativeCategories(form.alternativeCategories.filter(c => c !== cat.value))
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{cat.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+      {/* Footer */}
+      <div
+        className={
+          isAdd
+            ? 'border-t border-gray-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3'
+            : 'sticky bottom-0 shrink-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3'
+        }
+      >
+        <div className="text-sm text-gray-600">
+          {form.selectedProducts.length > 0 ? (
+            <>
+              <span className="font-semibold text-gray-900 tabular-nums">{Math.round(totals.kcal)} kcal</span>
+              <span className="text-gray-400"> · </span>
+              {form.selectedProducts.length} {pluralIngredients(form.selectedProducts.length)}
+            </>
+          ) : (
+            <span>Dodaj co najmniej jeden składnik</span>
+          )}
         </div>
-      )}
-
-      {/* Member-specific overrides */}
-      <MemberOverridesEditor
-        products={products}
-        householdMembers={householdMembers}
-        currentUserId={currentUserId}
-        baseProducts={form.selectedProducts}
-        overrides={form.memberOverrides}
-        setOverrides={form.setMemberOverrides}
-        isAdding={isAdding}
-        addButtonDisabled={isAdd ? isAdding : undefined}
-      />
-
-      {isAdd ? (
-        <button
-          type="submit"
-          disabled={isAdding || !form.name.trim() || form.selectedProducts.length === 0}
-          className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {isAdding ? 'Zapisywanie...' : 'Zapisz posiłek'}
-        </button>
-      ) : (
-        <div className="flex gap-2 pt-4 border-t border-gray-200">
+        <div className="flex w-full gap-2 sm:w-auto">
+          {!isAdd && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
+            >
+              Anuluj
+            </button>
+          )}
           <button
             type="submit"
-            disabled={!form.name.trim() || form.selectedProducts.length === 0}
-            className="flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            disabled={!canSubmit}
+            className="flex-1 sm:flex-none rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
-            Zapisz posiłek
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
-          >
-            Anuluj
+            {busy ? 'Zapisywanie...' : isAdd ? 'Dodaj posiłek' : 'Zapisz zmiany'}
           </button>
         </div>
-      )}
+      </div>
     </form>
   )
+}
+
+function Section({
+  title,
+  hint,
+  aside,
+  children,
+}: {
+  title: string
+  hint?: string
+  aside?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{title}</h3>
+          {hint && <p className="text-xs text-gray-500 mt-0.5">{hint}</p>}
+        </div>
+        {aside}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function pluralIngredients(n: number): string {
+  if (n === 1) return 'składnik'
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) return 'składniki'
+  return 'składników'
 }

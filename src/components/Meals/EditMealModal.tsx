@@ -4,7 +4,11 @@ import { useId, useRef, type ComponentProps } from 'react'
 import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import MealForm from './MealForm'
 
-// Modal shell around the edit-mode MealForm
+/**
+ * Modal shell around the edit-mode MealForm. Full-screen sheet on phones, centered
+ * dialog from `sm` up. Header stays on top; the form owns the scroll area and the
+ * sticky footer with the Save / Cancel buttons.
+ */
 export default function EditMealModal({
   onCancel,
   ...formProps
@@ -16,31 +20,37 @@ export default function EditMealModal({
   useFocusTrap(dialogRef, { active: true, onEscape: onCancel })
 
   return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[100] pt-8 pb-6">
+    <div
+      className="fixed inset-0 z-[100] flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={onCancel}
+    >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        className="flex h-full w-full max-w-3xl flex-col bg-white shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 id={titleId} className="text-2xl font-bold text-gray-900">Edytuj posiłek</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6">
+          <div className="min-w-0">
+            <h2 id={titleId} className="text-lg font-bold text-gray-900 sm:text-xl">Edytuj posiłek</h2>
+            {formProps.form.name && (
+              <p className="truncate text-sm text-gray-500">{formProps.form.name}</p>
+            )}
+          </div>
           <button
             type="button"
             onClick={onCancel}
             aria-label="Zamknij"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Content */}
         <MealForm mode="edit" onCancel={onCancel} {...formProps} />
       </div>
     </div>
