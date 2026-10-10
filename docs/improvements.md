@@ -123,3 +123,32 @@ powstały zanim ruszę większe refaktory.
 8. [x] Typ `MealPlan` z `is_skipped`.
 9. [x] Manifest PWA + ikony.
 10. [x] Toast i modal potwierdzenia zamiast `alert`/`confirm` (największa zmiana, na końcu).
+
+---
+
+## Do zrobienia (stan 2026-10-11, po sesji UI)
+
+Ustalone z Tomaszem 2026-10-11. Kolejność według jego priorytetów.
+
+### Teraz / następna sesja
+- [ ] **Motyw „jak system”** w Ustawieniach (Jasny / Ciemny / Systemowy), domyślnie systemowy. Plan: `src/lib/theme.ts` dostaje `Theme = 'light'|'dark'|'system'`, `resolveTheme()` z `matchMedia('(prefers-color-scheme: dark)')`, nasłuch zmiany OS, `THEME_INIT_SCRIPT` w `layout.tsx` uwzględnia brak zapisu = system; karta `ThemeCard` w `UserSettingsForm.tsx` z trzecią opcją. (Rozpoczęte, nic nie zapisane.)
+- [ ] **Picker posiłków: sekcja „Ulubione”** nad resztą (serduszka z `useFavoriteIds`), usunięte z pozostałych sekcji; **nowe nazwy sekcji**: zamiast „Polecane / Alternatywne / Pozostałe” → „Ulubione”, „Na śniadanie / Na drugie śniadanie / Na obiad / Na kolację / Na przekąskę” (kategoria slotu), „Pasuje też”, „Inne dania”. Plik: `src/components/MealPlanner/MealPickerModal.tsx`.
+- [ ] **Kolejka zapisów offline** dla listy zakupów (odhaczanie, dodawanie pozycji, porcje): zapis lokalny (IndexedDB/localStorage) z optymistycznym UI, wysyłka po `online`, oznaczenie „oczekuje na synchronizację”. Powiązane: `docs/offline.md`, `src/components/ShoppingList/useShoppingList.ts`.
+- [ ] **Dokumentacja feature'ów** w `docs/features/` (szablon `_TEMPLATE.md`, wpisy w `CLAUDE.md`): formularz posiłku (modal add/edit, wyszukiwarka produktów), modal szczegółów (tagi na zdjęciu, kółka T/D, serduszko), ekran główny (kompaktowa lista dnia, pasek postępu, karta „Dzień”), sortowanie + liczniki wyborów (`meal_pick_counts`), ulubione (`meal_favorites`), tryb ciemny, język wizualny (brand/stone/Geist, `globals.css`), tryb offline v2, lista posiłków (sticky pasek kategorii).
+- [ ] **Podgląd tygodnia** w panelu (pyt. 5, do omówienia): propozycja to zwijany blok pod nawigatorem tygodnia: 7 wierszy (dni) × ikony kategorii z nazwami dań skróconymi i kcal dnia; tap w dzień przełącza wybrany dzień; brak dania = kropka „–”. Alternatywa: pozioma tabela 7 kolumn na desktopie.
+
+### Później (zaakceptowane, nie teraz)
+- [ ] **Co mogę ugotować z tego, co mam** (pkt 8): zaznaczanie produktów w lodówce → dania z największym pokryciem składników; wymaga zaplanowania (gdzie trzymać „mam w domu”, jak liczyć pokrycie z nadpisaniami domowników).
+- [ ] **Statystyki tygodnia** (pkt 9): średnie kcal/makra, dni zaplanowane, najczęściej jedzone, per domownik.
+- [ ] **Promocje Lidla** (pkt 11): opis w sekcji G powyżej.
+- [ ] **RLS hardening** (pkt 12): uruchomić `docs/rls-hardening.sql`, przeklikać logowanie, listę posiłków, kopiowanie dnia, generowanie zakupów. Luka krytyczna z audytu nadal otwarta.
+- [ ] **Migracje w Supabase CLI + typy z bazy** (pkt 13): do sprawdzenia, które z 36 plików w `docs/*.sql` weszły na produkcję; potem `supabase/migrations`.
+
+### Odrzucone 2026-10-11
+- Tryb „w sklepie” (większe pola, Wake Lock) — nie.
+- „Gotuję na 2 dni” (`servings_days`) — nie.
+- Tryb gotowania krok po kroku, przypomnienia push — ciekawe, ale nie teraz.
+
+### Migracje do uruchomienia przez Tomasza (jeśli jeszcze nie)
+- `docs/add-meal-favorites.sql` (serduszka).
+- `docs/add-meal-pick-counts.sql` ponownie (wersja licząca od 2026-10-10).
