@@ -233,6 +233,8 @@ export default function MealDetailsModal({
 
   if (!isOpen || !meal) return null
 
+  const hasImage = !!meal.images && meal.images.length > 0
+
   const macros = displayItems?.reduce(
     (acc, item) => {
       const product = item.product
@@ -290,14 +292,33 @@ export default function MealDetailsModal({
 
         <div className="px-4 py-5 sm:px-6 space-y-5">
           {/* 1. Photo (compact) + summary strip */}
-          {meal.images && meal.images.length > 0 && (
-            <Image
-              src={meal.images[0].image_url}
-              alt={meal.name}
-              width={800}
-              height={224}
-              className="-mx-4 -mt-5 h-40 w-[calc(100%+2rem)] max-w-none object-cover sm:-mx-6 sm:h-56 sm:w-[calc(100%+3rem)]"
-            />
+          {hasImage && (
+            <div className="relative -mx-4 -mt-5 sm:-mx-6">
+              <Image
+                src={meal.images![0].image_url}
+                alt={meal.name}
+                width={800}
+                height={224}
+                className="h-40 w-full object-cover sm:h-56"
+              />
+              {/* tags sit on the photo, over a soft gradient so they stay readable on any picture */}
+              {meal.tags && meal.tags.length > 0 && (
+                <div
+                  className="absolute inset-x-0 bottom-0 flex flex-wrap gap-1.5 bg-gradient-to-t from-black/55 to-transparent px-4 pb-3 pt-8 sm:px-6"
+                  aria-label="Tagi"
+                >
+                  {meal.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm"
+                      style={{ backgroundColor: tag.color, color: tag.text_color }}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -310,7 +331,7 @@ export default function MealDetailsModal({
               <span className="rounded bg-purple-100 dark:bg-purple-900 px-2 py-1 text-purple-800 dark:text-purple-200 tabular-nums">W: {(macros.carbs * servings).toFixed(1)} g</span>
               {servings !== 1 && <span className="text-xs text-gray-500 dark:text-gray-400">({formatAmount(servings)} porcji)</span>}
             </div>
-            {meal.tags && meal.tags.length > 0 && (
+            {!hasImage && meal.tags && meal.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5" aria-label="Tagi">
                 {meal.tags.map((tag) => (
                   <span
