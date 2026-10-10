@@ -282,43 +282,80 @@ export default function MealDetailsModal({
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="px-4 py-5 sm:px-6 space-y-6">
+          {/* 1. Photo (compact) + summary strip */}
           {meal.images && meal.images.length > 0 && (
-            <div className="w-full">
-              <Image
-                src={meal.images[0].image_url}
-                alt={meal.name}
-                width={800}
-                height={256}
-                className="w-full h-64 rounded-lg border border-gray-200 object-cover"
-              />
-            </div>
+            <Image
+              src={meal.images[0].image_url}
+              alt={meal.name}
+              width={800}
+              height={224}
+              className="-mx-4 -mt-5 h-44 w-[calc(100%+2rem)] max-w-none object-cover sm:-mx-6 sm:h-56 sm:w-[calc(100%+3rem)]"
+            />
           )}
 
-          <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex flex-wrap items-center gap-1.5 text-sm" aria-label="Wartości odżywcze">
+              <span className="rounded bg-blue-100 px-2.5 py-1 font-semibold text-blue-800 tabular-nums">
+                {Math.round(displayKcal * servings)} kcal
+              </span>
+              <span className="rounded bg-green-100 px-2 py-1 text-green-800 tabular-nums">B: {(macros.protein * servings).toFixed(1)} g</span>
+              <span className="rounded bg-yellow-100 px-2 py-1 text-yellow-800 tabular-nums">T: {(macros.fat * servings).toFixed(1)} g</span>
+              <span className="rounded bg-purple-100 px-2 py-1 text-purple-800 tabular-nums">W: {(macros.carbs * servings).toFixed(1)} g</span>
+              {servings !== 1 && <span className="text-xs text-gray-500">({formatAmount(servings)} porcji)</span>}
+            </div>
             {meal.tags && meal.tags.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Tagi</h3>
-                <div className="flex flex-wrap gap-2">
-                  {meal.tags.map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="px-3 py-1.5 rounded-full text-sm font-medium"
-                      style={{
-                        backgroundColor: tag.color,
-                        color: tag.text_color,
-                      }}
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-1.5" aria-label="Tagi">
+                {meal.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="rounded-full px-2.5 py-1 text-xs font-medium"
+                    style={{ backgroundColor: tag.color, color: tag.text_color }}
+                  >
+                    {tag.name}
+                  </span>
+                ))}
               </div>
             )}
+          </div>
+
+          {/* 2. Ingredients, with the variant switch right above them */}
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Składniki</h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setServings(Math.max(0.5, servings - 0.5))}
+                    aria-label="Zmniejsz liczbę porcji"
+                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    aria-label="Liczba porcji"
+                    value={servings}
+                    onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 1))}
+                    step="0.5"
+                    min="0.5"
+                    className="w-14 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setServings(servings + 0.5)}
+                    aria-label="Zwiększ liczbę porcji"
+                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                  >
+                    +
+                  </button>
+                </div>
+            </div>
 
             {showVariantSelector && householdMembers.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Warianty dla domowników</h3>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Wersja</span>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedVariantUserId(userId ?? null)}
@@ -348,63 +385,16 @@ export default function MealDetailsModal({
                 </div>
               </div>
             )}
-          </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Wartości odżywcze</h3>
-            <div className="flex flex-wrap gap-2">
-              <div className="px-3 py-1.5 rounded-lg border border-gray-200">
-                <div className="text-lg font-bold text-blue-600">{Math.round(displayKcal * servings)}</div>
-                <div className="text-[10px] text-gray-600">kcal</div>
-              </div>
-              <div className="px-3 py-1.5 rounded-lg border border-gray-200">
-                <div className="text-base font-bold text-green-600">{(macros.protein * servings).toFixed(1)}g</div>
-                <div className="text-[10px] text-gray-600">Białko</div>
-              </div>
-              <div className="px-3 py-1.5 rounded-lg border border-gray-200">
-                <div className="text-base font-bold text-yellow-600">{(macros.fat * servings).toFixed(1)}g</div>
-                <div className="text-[10px] text-gray-600">Tłuszcze</div>
-              </div>
-              <div className="px-3 py-1.5 rounded-lg border border-gray-200">
-                <div className="text-base font-bold text-purple-600">{(macros.carbs * servings).toFixed(1)}g</div>
-                <div className="text-[10px] text-gray-600">Węglowodany</div>
-              </div>
-            </div>
-          </div>
-
-          {displayItems && displayItems.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">Składniki</h3>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setServings(Math.max(0.5, servings - 0.5))}
-                    aria-label="Zmniejsz liczbę porcji"
-                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    aria-label="Liczba porcji"
-                    value={servings}
-                    onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 1))}
-                    step="0.5"
-                    min="0.5"
-                    className="w-14 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setServings(servings + 0.5)}
-                    aria-label="Zwiększ liczbę porcji"
-                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+            {displayItems === undefined ? (
+              <ul className="space-y-2 border-t border-gray-200 pt-3" aria-busy="true" aria-label="Ładowanie składników">
+                {[0, 1, 2, 3].map((i) => (
+                  <li key={i} className="h-5 animate-pulse rounded bg-gray-100" />
+                ))}
+              </ul>
+            ) : displayItems.length === 0 ? (
+              <p className="border-t border-gray-200 pt-3 text-sm text-gray-500">Brak składników.</p>
+            ) : (
               <ul className="space-y-2 border-t border-gray-200 pt-3">
                 {displayItems.map((item, index) => {
                   const totalWeight = item.product ? Math.round(item.amount * servings * (item.product.unit_weight_grams || 1)) : 0
@@ -443,9 +433,10 @@ export default function MealDetailsModal({
                   )
                 })}
               </ul>
-            </div>
-          )}
+            )}
+          </div>
 
+          {/* 3. Recipe */}
           {meal.description && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Przepis</h3>
