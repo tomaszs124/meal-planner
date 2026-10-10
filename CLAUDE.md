@@ -16,3 +16,4 @@ Szablon: `docs/features/_TEMPLATE.md`. Jeden feature = jeden plik.
 | Feature | Plik |
 | --- | --- |
 | Przełącznik wariantów domowników na liście posiłków | `docs/features/household-variant-switch-in-meals-list.md` |
+| Keep-alive bazy Supabase (cron, zapis + usunięcie) | `docs/features/supabase-keep-alive.md` |
