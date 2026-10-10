@@ -1,7 +1,7 @@
 import MealDetailsModal from '../MealPlanner/MealDetailsModal'
 import type { MealWithItems } from './types'
 
-// Shared MealDetailsModal plus the floating Edit / Delete footer shown on the Meals page
+// Shared MealDetailsModal with Edytuj / Usuń placed in its footer (Meals page only)
 export default function MealDetailsWithActions({
   isOpen,
   meal,
@@ -20,49 +20,39 @@ export default function MealDetailsWithActions({
   onDelete: (meal: MealWithItems) => void
 }) {
   return (
-    <>
-      {/* Detail Modal */}
-      <MealDetailsModal
-        isOpen={isOpen}
-        onClose={onClose}
-        meal={meal ? {
-          ...meal,
-          items: meal.items.map(item => ({
-            ...item,
-            unit_type: item.unit_type
-          }))
-        } : null}
-        userId={userId}
-        householdId={householdId}
-        // Same "Mój przepis / <domownik>" switch as in the day plan, so variants can be compared from the meals list too
-        showVariantSelector={true}
-        initialVariantUserId={userId}
-        // The Edit/Delete footer below lives outside the dialog, so it must stay reachable for screen readers
-        ariaModal={false}
-      />
-
-      {/* Modal Footer with Edit/Delete */}
-      {isOpen && meal && (
-        <div className="fixed inset-0 z-[61] pointer-events-none flex items-end justify-center pb-8">
-          <div
-            className="pointer-events-auto bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex gap-2"
-            onClick={(e) => e.stopPropagation()}
+    <MealDetailsModal
+      isOpen={isOpen}
+      onClose={onClose}
+      meal={meal ? {
+        ...meal,
+        items: meal.items.map(item => ({
+          ...item,
+          unit_type: item.unit_type
+        }))
+      } : null}
+      userId={userId}
+      householdId={householdId}
+      // Same "Mój przepis / <domownik>" switch as in the day plan, so variants can be compared from the meals list too
+      showVariantSelector={true}
+      initialVariantUserId={userId}
+      actions={meal && (
+        <>
+          <button
+            type="button"
+            onClick={() => onEdit(meal)}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <button
-              onClick={() => onEdit(meal)}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium px-4 py-2 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-            >
-              Edytuj
-            </button>
-            <button
-              onClick={() => onDelete(meal)}
-              className="text-red-600 hover:text-red-700 text-sm font-medium px-4 py-2 bg-red-50 rounded hover:bg-red-100 transition-colors"
-            >
-              Usuń
-            </button>
-          </div>
-        </div>
+            Edytuj
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(meal)}
+            className="rounded-lg bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors"
+          >
+            Usuń
+          </button>
+        </>
       )}
-    </>
+    />
   )
 }

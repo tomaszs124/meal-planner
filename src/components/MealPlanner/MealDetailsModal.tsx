@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import Image from 'next/image'
 import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
@@ -43,7 +43,9 @@ type MealDetailsModalProps = {
   householdId?: string
   showVariantSelector?: boolean
   initialVariantUserId?: string | null
-  /** Set to false when related controls are rendered outside the dialog (e.g. a floating footer). */
+  /** Extra buttons (e.g. Edytuj / Usuń) rendered in the footer next to "Zamknij". */
+  actions?: ReactNode
+  /** Set to false when related controls are rendered outside the dialog. */
   ariaModal?: boolean
 }
 
@@ -69,6 +71,7 @@ export default function MealDetailsModal({
   householdId,
   showVariantSelector,
   initialVariantUserId,
+  actions,
   ariaModal = true,
 }: MealDetailsModalProps) {
   const titleId = useId()
@@ -470,6 +473,16 @@ export default function MealDetailsModal({
                 className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 Wybierz ten posiłek
+              </button>
+            </div>
+          ) : actions ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex gap-2">{actions}</div>
+              <button
+                onClick={onClose}
+                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                Zamknij
               </button>
             </div>
           ) : (
