@@ -4,24 +4,25 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Palette. Change the look of the whole app here:
- *  - `brand`: the accent (buttons, links, selected states, progress). A sea-green teal,
- *    deliberately not the default Tailwind blue. Used in code as `brand-*` utilities.
- *  - `gray`: overridden with Tailwind's slate scale for cooler, more modern neutrals,
- *    so every existing `gray-*` utility picks it up without touching components.
+ * Design tokens. The look of the whole app is decided here:
+ *  - `brand`: the accent (buttons, links, selected states, progress). A deep plum / blackberry: uncommon in diet apps, premium next to the slate neutrals.
+ *  - `gray`: overridden with Tailwind's slate scale for cooler neutrals.
+ *  - radii: rounder than Tailwind defaults (cards 1.25rem, controls 0.875rem) so
+ *    every `rounded-*` utility in the app gets the softer shape language.
+ *  - shadows: layered, low-contrast "elevation" instead of the default hard drop.
  */
 @theme {
-  --color-brand-50: #effaf6;
-  --color-brand-100: #d6f4e8;
-  --color-brand-200: #afe8d3;
-  --color-brand-300: #79d4b7;
-  --color-brand-400: #40ba97;
-  --color-brand-500: #1d9e7e;
-  --color-brand-600: #138066;
-  --color-brand-700: #126653;
-  --color-brand-800: #125143;
-  --color-brand-900: #104338;
-  --color-brand-950: #072620;
+  --color-brand-50: #fbf4f9;
+  --color-brand-100: #f6e7f2;
+  --color-brand-200: #efcfe6;
+  --color-brand-300: #e3a9d1;
+  --color-brand-400: #d277b4;
+  --color-brand-500: #bf4f98;
+  --color-brand-600: #a7337a;
+  --color-brand-700: #8a2763;
+  --color-brand-800: #722251;
+  --color-brand-900: #5f2045;
+  --color-brand-950: #3a0c27;
 
   --color-gray-50: oklch(98.4% 0.003 247.858);
   --color-gray-100: oklch(96.8% 0.007 247.896);
@@ -34,15 +35,46 @@
   --color-gray-800: oklch(27.9% 0.041 260.031);
   --color-gray-900: oklch(20.8% 0.042 265.755);
   --color-gray-950: oklch(12.9% 0.042 264.695);
+
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
+  --shadow-md: 0 2px 4px rgb(15 23 42 / 0.04), 0 12px 28px -16px rgb(15 23 42 / 0.18);
+  --shadow-lg: 0 4px 8px rgb(15 23 42 / 0.05), 0 24px 48px -20px rgb(15 23 42 / 0.25);
+  --shadow-xl: 0 8px 16px rgb(15 23 42 / 0.06), 0 32px 64px -24px rgb(15 23 42 / 0.3);
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
 }
 
-body {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+@layer base {
+  body {
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    /* a faint brand glow on every screen; the page itself stays neutral */
+    background-color: var(--color-gray-50);
+    /* the glow sits in the top-right corner, off-centre on purpose */
+    background-image: radial-gradient(42rem 30rem at 100% -6rem, color-mix(in oklab, var(--color-brand-200) 60%, transparent), transparent 70%);
+    background-repeat: no-repeat;
+  }
+  .dark body {
+    background-color: var(--color-gray-900);
+    background-image: radial-gradient(42rem 30rem at 100% -6rem, color-mix(in oklab, var(--color-brand-900) 70%, transparent), transparent 70%);
+  }
+  /* Headings carry the display face: a soft serif that gives the app its own voice */
+  h1, h2, h3 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-variation-settings: "SOFT" 60, "WONK" 0;
+    letter-spacing: -0.015em;
+  }
+  h1 { font-weight: 600; }
+  h2 { font-weight: 600; }
+  h3 { font-weight: 600; }
 }
 
 /* Safe area for mobile devices with notch */

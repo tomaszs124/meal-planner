@@ -198,7 +198,7 @@ export default function ShoppingListEnhanced() {
             )}
 
             {/* Progress + "Usuń kupione": sticks above the bottom navigation while the list scrolls */}
-            <div className="sticky bottom-20 z-30 flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 px-4 py-2.5 shadow-md backdrop-blur-sm">
+            <div className="sticky bottom-24 z-30 flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 px-4 py-2.5 shadow-md backdrop-blur-sm">
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 Kupione{' '}
                 <span className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">

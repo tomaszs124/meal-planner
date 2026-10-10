@@ -16,7 +16,7 @@ export function PageShell({
   wide?: boolean
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       <div className={`${wide ? 'max-w-4xl lg:max-w-6xl' : 'max-w-4xl'} mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8 space-y-4 sm:space-y-6`}>
         {children}
       </div>

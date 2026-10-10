@@ -61,9 +61,9 @@ export default function BottomNav() {
   }
 
   return (
-    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50 safe-area-bottom">
-      <div className="max-w-screen-xl mx-auto px-2">
-        <div className="flex justify-around items-center py-2">
+    <nav aria-label="Nawigacja główna" className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 safe-area-bottom pointer-events-none">
+      <div className="pointer-events-auto mx-auto max-w-md rounded-2xl border border-gray-200/80 bg-white/90 shadow-lg backdrop-blur-md dark:border-gray-700/80 dark:bg-gray-900/90 dark:shadow-black/40">
+        <div className="flex items-center justify-around px-1 py-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
             
@@ -72,19 +72,14 @@ export default function BottomNav() {
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-colors ${
+                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-colors ${
                   isActive
-                    ? 'text-brand-600 dark:text-brand-400'
-                    : 'text-gray-600 hover:text-brand-500 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-brand-300 dark:hover:bg-gray-800'
+                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/70 dark:text-brand-300'
+                    : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
                 }`}
               >
-                <div className="relative">
-                  {item.icon}
-                  {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-brand-600 dark:bg-brand-400 rounded-full"></div>
-                  )}
-                </div>
-                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-gray-200'}`}>
+                {item.icon}
+                <span className={`mt-0.5 text-[11px] font-medium ${isActive ? 'text-brand-700 dark:text-brand-300' : ''}`}>
                   {item.label}
                 </span>
               </Link>

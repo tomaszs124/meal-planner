@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/Layout/BottomNav";
 import { FeedbackProvider } from "@/components/ui/Feedback";
@@ -18,6 +18,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Display face for headings (see globals.css): a soft, slightly wonky serif that gives the app its own voice
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin", "latin-ext"],
+  // variable font: weights come from the file; extra axes are opted in explicitly
+  axes: ["SOFT", "WONK", "opsz"],
+});
+
 export const metadata: Metadata = {
   title: "Meal Planner",
   description: "Aplikacja do planowania posiłków i zakupów",
@@ -33,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#138066",
+  themeColor: "#a7337a",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -51,7 +59,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased pb-28 text-gray-900 dark:text-gray-100`}
       >
         <FeedbackProvider>
           <CurrentUserProvider>

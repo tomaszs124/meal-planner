@@ -61,6 +61,16 @@ export default function MealAccordionList({
   const groupLabel = (key: string) =>
     key === '__other__' ? 'Pozostałe' : (MEAL_CATEGORIES.find(c => c.value === key)?.label ?? key)
 
+  // Same hues as the day list on the dashboard, so a category looks the same everywhere
+  const groupDot: Record<string, string> = {
+    breakfast: 'bg-yellow-400',
+    second_breakfast: 'bg-orange-400',
+    lunch: 'bg-sky-400',
+    dinner: 'bg-indigo-400',
+    snack: 'bg-green-400',
+    __other__: 'bg-gray-400',
+  }
+
   return (
     <div className="space-y-3">
       {nonEmptyKeys.map(key => {
@@ -74,7 +84,8 @@ export default function MealAccordionList({
               aria-expanded={isOpen}
               className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="font-semibold text-gray-800 dark:text-gray-200">
+              <span className="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200">
+                <span className={`h-2.5 w-2.5 rounded-full ${groupDot[key] ?? 'bg-gray-400'}`} aria-hidden="true" />
                 {groupLabel(key)}
                 <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({meals.length})</span>
               </span>

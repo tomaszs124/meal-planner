@@ -30,8 +30,8 @@ type DayMealRowProps = {
 const CATEGORY_ACCENT: Record<MealCategory, string> = {
   breakfast: 'border-l-yellow-400',
   second_breakfast: 'border-l-orange-400',
-  lunch: 'border-l-red-400',
-  dinner: 'border-l-purple-400',
+  lunch: 'border-l-sky-400',
+  dinner: 'border-l-indigo-400',
   snack: 'border-l-green-400',
 }
 
