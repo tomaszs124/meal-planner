@@ -334,7 +334,7 @@ export default function MealDetailsModal({
                     type="button"
                     onClick={() => setServings(Math.max(0.5, servings - 0.5))}
                     aria-label="Zmniejsz liczbę porcji"
-                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-base font-bold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                   >
                     -
                   </button>
@@ -346,13 +346,13 @@ export default function MealDetailsModal({
                     onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 1))}
                     step="0.5"
                     min="0.5"
-                    className="w-14 px-2 py-1 text-center border-2 border-indigo-300 dark:border-indigo-700 rounded-lg font-semibold text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-14 rounded-lg border border-gray-300 bg-white px-2 py-1 text-center text-sm font-semibold text-gray-900 tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   />
                   <button
                     type="button"
                     onClick={() => setServings(servings + 0.5)}
                     aria-label="Zwiększ liczbę porcji"
-                    className="w-7 h-7 flex items-center justify-center bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-bold text-base"
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-base font-bold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
                   >
                     +
                   </button>
