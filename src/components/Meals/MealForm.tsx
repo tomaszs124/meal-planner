@@ -11,9 +11,9 @@ import MemberOverridesEditor from './MemberOverridesEditor'
 import type { HouseholdMember, MealFormMode } from './types'
 
 /**
- * Meal form shared by "add" (inline card on the Meals page) and "edit" (inside EditMealModal).
- * Sections: basics, photo, categories & tags, ingredients, member variants.
- * The footer is sticky in the modal so "Zapisz" is always within reach.
+ * Meal form shared by "add" and "edit", always rendered inside MealFormModal.
+ * Sections: photo (hero), basics, ingredients, member variants, categories & tags.
+ * The footer is sticky so "Zapisz" is always within reach.
  */
 export default function MealForm({
   mode,
@@ -36,7 +36,7 @@ export default function MealForm({
   isAdding: boolean
   isUploadingImage: boolean
   onSubmit: (e: React.FormEvent) => void
-  onCancel?: () => void
+  onCancel: () => void
 }) {
   const { toast } = useFeedback()
   const isAdd = mode === 'add'
@@ -66,13 +66,10 @@ export default function MealForm({
     'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100'
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className={isAdd ? 'overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm' : 'flex min-h-0 flex-1 flex-col'}
-    >
-      <div className={isAdd ? 'p-4 space-y-6' : 'min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 space-y-6'}>
+    <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 space-y-6">
         {/* 1. Photo (hero) */}
-        <div className={isAdd ? '-mx-4 -mt-4' : '-mx-4 -mt-5 sm:-mx-6'}>
+        <div className="-mx-4 -mt-5 sm:-mx-6">
           <input
             ref={fileInputRef}
             id={`${idPrefix}-image`}
@@ -292,13 +289,7 @@ export default function MealForm({
       </div>
 
       {/* Footer */}
-      <div
-        className={
-          isAdd
-            ? 'border-t border-gray-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3'
-            : 'sticky bottom-0 shrink-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3'
-        }
-      >
+      <div className="sticky bottom-0 shrink-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-gray-600">
           {form.selectedProducts.length > 0 ? (
             <>
@@ -311,16 +302,14 @@ export default function MealForm({
           )}
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
-          {!isAdd && (
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={busy}
-              className="flex-1 sm:flex-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
-            >
-              Anuluj
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="flex-1 sm:flex-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
+          >
+            Anuluj
+          </button>
           <button
             type="submit"
             disabled={!canSubmit}

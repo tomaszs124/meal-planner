@@ -7,8 +7,7 @@ import TagManagement from './TagManagement'
 import MealAccordionList from './MealAccordionList'
 import MealDetailsWithActions from './MealDetailsWithActions'
 import MealFilters from './MealFilters'
-import MealForm from './MealForm'
-import EditMealModal from './EditMealModal'
+import MealFormModal from './MealFormModal'
 import { useMeals } from './useMeals'
 import { useMealFilters } from './useMealFilters'
 import { loadMealIntoForm, useMealFormState } from './useMealForm'
@@ -88,10 +87,10 @@ export default function Meals() {
             {showTagManagement ? 'Ukryj' : 'Zarządzaj tagami'}
           </button>
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => setShowAddForm(true)}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
           >
-            {showAddForm ? 'Anuluj' : 'Dodaj posiłek'}
+            Dodaj posiłek
           </button>
         </div>
       </div>
@@ -103,21 +102,6 @@ export default function Meals() {
 
       {/* Search and filter */}
       <MealFilters filters={filters} tags={tags} />
-
-      {/* Add meal form */}
-      {showAddForm && (
-        <MealForm
-          mode="add"
-          form={addForm}
-          products={products}
-          tags={tags}
-          householdMembers={householdMembers}
-          currentUserId={user?.id}
-          isAdding={isAdding}
-          isUploadingImage={isUploadingImage}
-          onSubmit={handleAddSubmit}
-        />
-      )}
 
       {/* Meals list - Grid view */}
       <div>
@@ -168,9 +152,28 @@ export default function Meals() {
         }}
       />
 
-      {/* Edit Modal - shown when editing */}
+      {/* Add modal */}
+      {showAddForm && (
+        <MealFormModal
+          mode="add"
+          title="Nowy posiłek"
+          form={addForm}
+          products={products}
+          tags={tags}
+          householdMembers={householdMembers}
+          currentUserId={user?.id}
+          isAdding={isAdding}
+          isUploadingImage={isUploadingImage}
+          onSubmit={handleAddSubmit}
+          onCancel={() => setShowAddForm(false)}
+        />
+      )}
+
+      {/* Edit modal */}
       {editingId && (
-        <EditMealModal
+        <MealFormModal
+          mode="edit"
+          title="Edytuj posiłek"
           form={editForm}
           products={products}
           tags={tags}

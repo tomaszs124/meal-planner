@@ -5,14 +5,15 @@ import { useFocusTrap } from '@/components/ui/useFocusTrap'
 import MealForm from './MealForm'
 
 /**
- * Modal shell around the edit-mode MealForm. Full-screen sheet on phones, centered
- * dialog from `sm` up. Header stays on top; the form owns the scroll area and the
- * sticky footer with the Save / Cancel buttons.
+ * Modal shell around MealForm, used for both "Nowy posiłek" and "Edytuj posiłek".
+ * Full-screen sheet on phones, centered dialog from `sm` up. Header stays on top;
+ * the form owns the scroll area and the sticky footer with the Save / Cancel buttons.
  */
-export default function EditMealModal({
+export default function MealFormModal({
+  title,
   onCancel,
   ...formProps
-}: Omit<ComponentProps<typeof MealForm>, 'mode' | 'onCancel'> & { onCancel: () => void }) {
+}: Omit<ComponentProps<typeof MealForm>, 'onCancel'> & { title: string; onCancel: () => void }) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
 
@@ -34,8 +35,8 @@ export default function EditMealModal({
       >
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-lg font-bold text-gray-900 sm:text-xl">Edytuj posiłek</h2>
-            {formProps.form.name && (
+            <h2 id={titleId} className="text-lg font-bold text-gray-900 sm:text-xl">{title}</h2>
+            {formProps.mode === 'edit' && formProps.form.name && (
               <p className="truncate text-sm text-gray-500">{formProps.form.name}</p>
             )}
           </div>
@@ -51,7 +52,7 @@ export default function EditMealModal({
           </button>
         </div>
 
-        <MealForm mode="edit" onCancel={onCancel} {...formProps} />
+        <MealForm onCancel={onCancel} {...formProps} />
       </div>
     </div>
   )
