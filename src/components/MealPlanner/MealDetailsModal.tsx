@@ -252,7 +252,7 @@ export default function MealDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6"
+      className="fixed inset-0 z-[60] flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
@@ -260,12 +260,12 @@ export default function MealDetailsModal({
         role="dialog"
         aria-modal={ariaModal ? 'true' : undefined}
         aria-labelledby={titleId}
-        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="h-full w-full max-w-2xl overflow-y-auto bg-white shadow-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
           <div>
-            <h2 id={titleId} className="text-2xl font-bold text-gray-900">{meal.name}</h2>
+            <h2 id={titleId} className="text-lg font-bold leading-snug text-gray-900 sm:text-2xl">{meal.name}</h2>
             {meal.isUserVariant && (
               <p className="text-xs text-indigo-600 font-semibold mt-1">→ Przepis dostosowany dla Ciebie</p>
             )}
@@ -274,7 +274,7 @@ export default function MealDetailsModal({
             type="button"
             onClick={onClose}
             aria-label="Zamknij"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="-mr-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -282,7 +282,7 @@ export default function MealDetailsModal({
           </button>
         </div>
 
-        <div className="px-4 py-5 sm:px-6 space-y-6">
+        <div className="px-4 py-5 sm:px-6 space-y-5">
           {/* 1. Photo (compact) + summary strip */}
           {meal.images && meal.images.length > 0 && (
             <Image
@@ -290,7 +290,7 @@ export default function MealDetailsModal({
               alt={meal.name}
               width={800}
               height={224}
-              className="-mx-4 -mt-5 h-44 w-[calc(100%+2rem)] max-w-none object-cover sm:-mx-6 sm:h-56 sm:w-[calc(100%+3rem)]"
+              className="-mx-4 -mt-5 h-40 w-[calc(100%+2rem)] max-w-none object-cover sm:-mx-6 sm:h-56 sm:w-[calc(100%+3rem)]"
             />
           )}
 
@@ -447,12 +447,12 @@ export default function MealDetailsModal({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4">
+        <div className="sticky bottom-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
           {onSelectMeal ? (
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                className="flex-1 rounded-lg bg-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
               >
                 Anuluj
               </button>
@@ -461,7 +461,7 @@ export default function MealDetailsModal({
                   onSelectMeal(meal)
                   onClose()
                 }}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
                 Wybierz ten posiłek
               </button>
@@ -471,7 +471,7 @@ export default function MealDetailsModal({
               <div className="flex gap-2">{actions}</div>
               <button
                 onClick={onClose}
-                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
                 Zamknij
               </button>
@@ -479,7 +479,7 @@ export default function MealDetailsModal({
           ) : (
             <button
               onClick={onClose}
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
             >
               Zamknij
             </button>
