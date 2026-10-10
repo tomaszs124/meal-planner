@@ -349,7 +349,34 @@ export default function MealDetailsModal({
           {/* 2. Ingredients, with the variant switch right above them */}
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Składniki</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Składniki</h3>
+              {showVariantSelector && householdMembers.length > 1 && (
+                <div role="group" aria-label="Wersja przepisu" className="flex items-center -space-x-1">
+                  {householdMembers.map((member) => {
+                    const name = member.display_name || (member.isMe ? 'Ja' : '?')
+                    const active = selectedVariantUserId === member.user_id
+                    return (
+                      <button
+                        key={member.user_id}
+                        type="button"
+                        onClick={() => setSelectedVariantUserId(member.user_id)}
+                        aria-pressed={active}
+                        aria-label={`Wersja: ${name}`}
+                        title={member.isMe ? `${name} (mój przepis)` : name}
+                        className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-sm font-bold transition-all dark:border-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                          active
+                            ? 'z-10 bg-brand-400 text-gray-900 shadow-md shadow-brand-500/30 scale-110'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {name.charAt(0).toUpperCase()}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -442,34 +469,7 @@ export default function MealDetailsModal({
         </div>
 
         <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            {showVariantSelector && householdMembers.length > 1 && (
-              <div role="group" aria-label="Wersja przepisu" className="flex items-center -space-x-1">
-                {householdMembers.map((member) => {
-                  const name = member.display_name || (member.isMe ? 'Ja' : '?')
-                  const active = selectedVariantUserId === member.user_id
-                  return (
-                    <button
-                      key={member.user_id}
-                      type="button"
-                      onClick={() => setSelectedVariantUserId(member.user_id)}
-                      aria-pressed={active}
-                      aria-label={`Wersja: ${name}`}
-                      title={member.isMe ? `${name} (mój przepis)` : name}
-                      className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-sm font-bold transition-all dark:border-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                        active
-                          ? 'z-10 bg-brand-400 text-gray-900 shadow-md shadow-brand-500/30 scale-110'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      {name.charAt(0).toUpperCase()}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-            {actions && <div className="flex gap-2">{actions}</div>}
-          </div>
+          <div className="flex gap-2">{actions}</div>
           {onSelectMeal ? (
             <div className="flex gap-2">
               <Button onClick={onClose}>Anuluj</Button>
