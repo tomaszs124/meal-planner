@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { MealCategory } from '@/lib/supabase/client'
 import { MEAL_CATEGORIES } from './mealHelpers'
 import MealCard from './MealCard'
@@ -59,13 +59,17 @@ export default function MealAccordionList({
     })
 
   // Jump bar: scroll a group into view (expanding it first when collapsed)
-  const sectionRefs = useRef(new Map<string, HTMLDivElement>())
+  const listId = useId()
+  const sectionId = (key: string) => `${listId}-group-${key}`
   function jumpTo(key: string) {
-    if (!isExpanded(key)) toggle(key)
-    // after the expand re-render the element is still the same node; scroll on the next frame
-    requestAnimationFrame(() => {
-      sectionRefs.current.get(key)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-    })
+    const scroll = () => document.getElementById(sectionId(key))?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    if (isExpanded(key)) {
+      scroll()
+    } else {
+      toggle(key)
+      // let the expanded rows render first, otherwise the card height is still collapsed
+      setTimeout(scroll, 0)
+    }
   }
 
   const groupLabel = (key: string) =>
@@ -82,12 +86,12 @@ export default function MealAccordionList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Sticky, compact category bar: stays at the top while scrolling, each chip jumps to its group */}
       {nonEmptyKeys.length > 1 && (
         <nav
           aria-label="Skocz do kategorii"
-          className="sticky top-0 z-20 -mx-4 overflow-x-auto px-4 py-2 scrollbar-hide bg-[#f6f3ec]/90 backdrop-blur-md dark:bg-[#161311]/90 sm:-mx-6 sm:px-6"
+          className="sticky top-0 z-20 -mx-4 flex h-10 items-center overflow-x-auto px-4 scrollbar-hide bg-[#f6f3ec]/95 backdrop-blur-md dark:bg-[#161311]/95 sm:-mx-6 sm:px-6"
         >
           <div className="flex w-max gap-1.5">
             {nonEmptyKeys.map(key => (
@@ -95,7 +99,7 @@ export default function MealAccordionList({
                 key={key}
                 type="button"
                 onClick={() => jumpTo(key)}
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-300"
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-300"
               >
                 <span className={`h-2 w-2 rounded-full ${groupDot[key] ?? 'bg-gray-400'}`} aria-hidden="true" />
                 {groupLabel(key)}
@@ -112,18 +116,15 @@ export default function MealAccordionList({
         return (
           <div
             key={key}
-            ref={(el) => {
-              if (el) sectionRefs.current.set(key, el)
-              else sectionRefs.current.delete(key)
-            }}
-            className="scroll-mt-14 rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            id={sectionId(key)}
+            className="scroll-mt-10 rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Sticky group header (below the jump bar): collapse the group from anywhere inside it */}
             <button
               type="button"
               onClick={() => toggle(key)}
               aria-expanded={isOpen}
-              className={`sticky top-12 z-10 flex w-full items-center justify-between rounded-t-lg border-b border-gray-200 bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 ${
+              className={`sticky top-10 z-10 flex w-full items-center justify-between rounded-t-lg border-b border-gray-200 bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 ${
                 isOpen ? '' : 'rounded-b-lg border-b-0'
               }`}
             >
