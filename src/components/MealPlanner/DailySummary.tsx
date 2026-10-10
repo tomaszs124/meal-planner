@@ -47,7 +47,7 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
         <div>
           Zjedzone{' '}
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{formatNumber(consumed.kcal)}</span>
+          <span className="num-display text-gray-900 dark:text-gray-100">{formatNumber(consumed.kcal)}</span>
           {' / '}
           <span className="tabular-nums">{formatNumber(planned.kcal)}</span> kcal
           <span className={`ml-1.5 font-semibold ${done ? 'text-green-700 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>{percent}%</span>
@@ -71,7 +71,7 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
         className="mt-1.5 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
       >
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-brand-600 to-brand-400'}`}
+          className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-brand-500 to-brand-300'}`}
           style={{ width: `${Math.min(100, percent)}%` }}
         />
       </div>

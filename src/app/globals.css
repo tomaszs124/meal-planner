@@ -4,77 +4,125 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design tokens. The look of the whole app is decided here:
- *  - `brand`: the accent (buttons, links, selected states, progress). A deep plum / blackberry: uncommon in diet apps, premium next to the slate neutrals.
- *  - `gray`: overridden with Tailwind's slate scale for cooler neutrals.
- *  - radii: rounder than Tailwind defaults (cards 1.25rem, controls 0.875rem) so
- *    every `rounded-*` utility in the app gets the softer shape language.
- *  - shadows: layered, low-contrast "elevation" instead of the default hard drop.
+ * Design language: "warm pantry, editorial". Paper-like warm neutrals with a fine grain,
+ * ink-dark text, one spice accent (saffron) and a high-contrast serif for headings and
+ * the numbers that matter (kcal). Everything is decided here:
+ *  - `brand`: saffron. Primary buttons are saffron with INK text (white on yellow fails
+ *    contrast); 600+ shades are dark enough for links on paper.
+ *  - `gray`: overridden with Tailwind's warm stone scale, so every `gray-*` utility in
+ *    the app turns warm without touching components.
+ *  - radii / shadows: soft, warm-tinted elevation instead of hard drops.
  */
 @theme {
-  --color-brand-50: #fbf4f9;
-  --color-brand-100: #f6e7f2;
-  --color-brand-200: #efcfe6;
-  --color-brand-300: #e3a9d1;
-  --color-brand-400: #d277b4;
-  --color-brand-500: #bf4f98;
-  --color-brand-600: #a7337a;
-  --color-brand-700: #8a2763;
-  --color-brand-800: #722251;
-  --color-brand-900: #5f2045;
-  --color-brand-950: #3a0c27;
+  --color-brand-50: #fff9e6;
+  --color-brand-100: #fff0bf;
+  --color-brand-200: #ffe08a;
+  --color-brand-300: #ffcc4d;
+  --color-brand-400: #f7b61e;
+  --color-brand-500: #e39d06;
+  --color-brand-600: #a86d00;
+  --color-brand-700: #85560a;
+  --color-brand-800: #6b4610;
+  --color-brand-900: #563a10;
+  --color-brand-950: #33210a;
 
-  --color-gray-50: oklch(98.4% 0.003 247.858);
-  --color-gray-100: oklch(96.8% 0.007 247.896);
-  --color-gray-200: oklch(92.9% 0.013 255.508);
-  --color-gray-300: oklch(86.9% 0.022 252.894);
-  --color-gray-400: oklch(70.4% 0.04 256.788);
-  --color-gray-500: oklch(55.4% 0.046 257.417);
-  --color-gray-600: oklch(44.6% 0.043 257.281);
-  --color-gray-700: oklch(37.2% 0.044 257.287);
-  --color-gray-800: oklch(27.9% 0.041 260.031);
-  --color-gray-900: oklch(20.8% 0.042 265.755);
-  --color-gray-950: oklch(12.9% 0.042 264.695);
+  --color-gray-50: oklch(98.5% 0.001 106.423);
+  --color-gray-100: oklch(97% 0.001 106.424);
+  --color-gray-200: oklch(92.3% 0.003 48.717);
+  --color-gray-300: oklch(86.9% 0.005 56.366);
+  --color-gray-400: oklch(70.9% 0.01 56.259);
+  --color-gray-500: oklch(55.3% 0.013 58.071);
+  --color-gray-600: oklch(44.4% 0.011 73.639);
+  --color-gray-700: oklch(37.4% 0.01 67.558);
+  --color-gray-800: oklch(26.8% 0.007 34.298);
+  --color-gray-900: oklch(21.6% 0.006 56.043);
+  --color-gray-950: oklch(14.7% 0.004 49.25);
 
   --radius-md: 0.625rem;
   --radius-lg: 0.875rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
 
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
-  --shadow-md: 0 2px 4px rgb(15 23 42 / 0.04), 0 12px 28px -16px rgb(15 23 42 / 0.18);
-  --shadow-lg: 0 4px 8px rgb(15 23 42 / 0.05), 0 24px 48px -20px rgb(15 23 42 / 0.25);
-  --shadow-xl: 0 8px 16px rgb(15 23 42 / 0.06), 0 32px 64px -24px rgb(15 23 42 / 0.3);
+  --shadow-sm: 0 1px 2px rgb(60 40 20 / 0.05), 0 1px 1px rgb(60 40 20 / 0.03);
+  --shadow-md: 0 2px 4px rgb(60 40 20 / 0.05), 0 12px 28px -16px rgb(60 40 20 / 0.22);
+  --shadow-lg: 0 4px 8px rgb(60 40 20 / 0.06), 0 24px 48px -20px rgb(60 40 20 / 0.28);
+  --shadow-xl: 0 8px 16px rgb(60 40 20 / 0.07), 0 32px 64px -24px rgb(60 40 20 / 0.32);
+
+  --animate-fade-up: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-instrument-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-instrument-serif);
 }
 
 @layer base {
   body {
-    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-    /* a faint brand glow on every screen; the page itself stays neutral */
-    background-color: var(--color-gray-50);
-    /* the glow sits in the top-right corner, off-centre on purpose */
-    background-image: radial-gradient(42rem 30rem at 100% -6rem, color-mix(in oklab, var(--color-brand-200) 60%, transparent), transparent 70%);
+    font-family: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+    /* warm paper, a saffron glow in the top-right corner */
+    background-color: #f6f3ec;
+    background-image: radial-gradient(40rem 28rem at 100% -6rem, color-mix(in oklab, var(--color-brand-200) 55%, transparent), transparent 70%);
     background-repeat: no-repeat;
   }
   .dark body {
-    background-color: var(--color-gray-900);
-    background-image: radial-gradient(42rem 30rem at 100% -6rem, color-mix(in oklab, var(--color-brand-900) 70%, transparent), transparent 70%);
+    background-color: #161311;
+    background-image: radial-gradient(40rem 28rem at 100% -6rem, color-mix(in oklab, var(--color-brand-900) 60%, transparent), transparent 70%);
   }
-  /* Headings carry the display face: a soft serif that gives the app its own voice */
+  /* paper grain: a fixed noise layer behind the content */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .dark body::before { opacity: 0.07; }
+
+  /* Headings carry the display face: a high-contrast editorial serif */
   h1, h2, h3 {
-    font-family: var(--font-fraunces), Georgia, serif;
-    font-variation-settings: "SOFT" 60, "WONK" 0;
-    letter-spacing: -0.015em;
+    font-family: var(--font-instrument-serif), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
-  h1 { font-weight: 600; }
-  h2 { font-weight: 600; }
-  h3 { font-weight: 600; }
+}
+
+@utility font-display {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* The number that matters (kcal) is set in the serif, slightly larger than the text around it */
+@utility num-display {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: 1.3em;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Staggered reveal for lists: children fade up one after another */
+@utility stagger-in {
+  > * { animation: var(--animate-fade-up); }
+  > :nth-child(1) { animation-delay: 0ms; }
+  > :nth-child(2) { animation-delay: 45ms; }
+  > :nth-child(3) { animation-delay: 90ms; }
+  > :nth-child(4) { animation-delay: 135ms; }
+  > :nth-child(5) { animation-delay: 180ms; }
+  > :nth-child(6) { animation-delay: 225ms; }
+  > :nth-child(n + 7) { animation-delay: 260ms; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-in > * { animation: none; }
 }
 
 /* Safe area for mobile devices with notch */

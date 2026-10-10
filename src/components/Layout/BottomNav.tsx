@@ -62,7 +62,7 @@ export default function BottomNav() {
 
   return (
     <nav aria-label="Nawigacja główna" className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 safe-area-bottom pointer-events-none">
-      <div className="pointer-events-auto mx-auto max-w-md rounded-2xl border border-gray-200/80 bg-white/90 shadow-lg backdrop-blur-md dark:border-gray-700/80 dark:bg-gray-900/90 dark:shadow-black/40">
+      <div className="pointer-events-auto mx-auto max-w-md rounded-2xl bg-gray-900/95 text-gray-300 shadow-lg shadow-gray-900/25 backdrop-blur-md dark:bg-gray-800/95 dark:shadow-black/40">
         <div className="flex items-center justify-around px-1 py-1.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
@@ -74,12 +74,12 @@ export default function BottomNav() {
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-1.5 transition-colors ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/70 dark:text-brand-300'
-                    : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                    ? 'bg-white/10 text-brand-300'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 {item.icon}
-                <span className={`mt-0.5 text-[11px] font-medium ${isActive ? 'text-brand-700 dark:text-brand-300' : ''}`}>
+                <span className={`mt-0.5 text-[11px] font-medium ${isActive ? 'text-brand-300' : ''}`}>
                   {item.label}
                 </span>
               </Link>

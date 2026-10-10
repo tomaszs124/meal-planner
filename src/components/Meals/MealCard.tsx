@@ -41,7 +41,7 @@ export default function MealCard({
       )}
       {/* Content */}
       <div className="p-3 flex flex-col flex-grow">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{meal.name}</h3>
+        <h3 className="font-display text-lg leading-snug text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{meal.name}</h3>
         {/* Tags */}
         {meal.tags && meal.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">

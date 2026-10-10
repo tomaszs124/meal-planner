@@ -41,7 +41,7 @@ type MealSlotProps = {
 }
 
 const CATEGORY_COLORS: Record<MealCategory, string> = {
-  breakfast: 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800',
+  breakfast: 'bg-rose-50 dark:bg-rose-950 border-rose-200 dark:border-rose-800',
   second_breakfast: 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800',
   lunch: 'bg-sky-50 dark:bg-sky-950 border-sky-200 dark:border-sky-800',
   dinner: 'bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800',

@@ -63,11 +63,11 @@ export default function MealAccordionList({
 
   // Same hues as the day list on the dashboard, so a category looks the same everywhere
   const groupDot: Record<string, string> = {
-    breakfast: 'bg-yellow-400',
-    second_breakfast: 'bg-orange-400',
-    lunch: 'bg-sky-400',
-    dinner: 'bg-indigo-400',
-    snack: 'bg-green-400',
+    breakfast: 'bg-rose-300',
+    second_breakfast: 'bg-orange-300',
+    lunch: 'bg-sky-300',
+    dinner: 'bg-indigo-300',
+    snack: 'bg-emerald-300',
     __other__: 'bg-gray-400',
   }
 
@@ -102,7 +102,7 @@ export default function MealAccordionList({
             {isOpen && (
               <>
                 {/* Phones: compact rows with the full name (same look as the day list) */}
-                <div className="divide-y divide-gray-100 dark:divide-gray-700 sm:hidden">
+                <div className="stagger-in divide-y divide-gray-100 dark:divide-gray-700 sm:hidden">
                   {meals.map(meal => (
                     <MealRow key={meal.id} meal={meal} onClick={onMealClick} />
                   ))}

@@ -90,7 +90,7 @@ export default function MealPlanner() {
           {plannedMeals.length > 0 && <DailySummary plannedMeals={plannedMeals} />}
 
           {/* Phones and tablets: compact list, one row per category */}
-          <div className="space-y-2 lg:hidden">
+          <div className="stagger-in space-y-2 lg:hidden">
             {categories.map((category) => (
               <DayMealRow key={category} {...slotProps(category)} />
             ))}

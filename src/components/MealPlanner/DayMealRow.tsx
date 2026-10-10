@@ -28,11 +28,11 @@ type DayMealRowProps = {
 
 /** Subtle 4 px left accent per category (same hues as MealSlot's card backgrounds). */
 const CATEGORY_ACCENT: Record<MealCategory, string> = {
-  breakfast: 'border-l-yellow-400',
-  second_breakfast: 'border-l-orange-400',
-  lunch: 'border-l-sky-400',
-  dinner: 'border-l-indigo-400',
-  snack: 'border-l-green-400',
+  breakfast: 'border-l-rose-300',
+  second_breakfast: 'border-l-orange-300',
+  lunch: 'border-l-sky-300',
+  dinner: 'border-l-indigo-300',
+  snack: 'border-l-emerald-300',
 }
 
 function Thumbnail({ meal }: { meal: MealWithDetails | null }) {
@@ -110,7 +110,7 @@ export default function DayMealRow({
             <Thumbnail meal={selectedMeal} />
             <div className="min-w-0 flex-1">
               {caption}
-              <div className={`line-clamp-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
+              <div className={`line-clamp-2 font-display text-[1.05rem] leading-snug text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
                 {selectedMeal.name}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">

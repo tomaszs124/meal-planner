@@ -43,7 +43,7 @@ export default function MealRow({
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100">{meal.name}</h3>
+        <h3 className="line-clamp-2 font-display text-[1.05rem] leading-snug text-gray-900 dark:text-gray-100">{meal.name}</h3>
         <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
           <span className="font-medium text-gray-700 dark:text-gray-300">{Math.round(meal.totalKcal)} kcal</span>
           {` · B ${Math.round(meal.totalProtein)} · T ${Math.round(meal.totalFat)} · W ${Math.round(meal.totalCarbs)} g`}
