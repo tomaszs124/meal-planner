@@ -9,7 +9,8 @@ import MealRow from '@/components/Meals/MealRow'
 import SortMenu from '@/components/ui/SortMenu'
 import { fetchMealsWithDetails, type MealWithDetails } from '@/lib/meals-data'
 import { sortMeals, type MealSort } from '@/lib/meal-sort'
-import { useDefaultMealSort } from '@/lib/preferences'
+import { useDefaultMealSort, useFavoritesFirst } from '@/lib/preferences'
+import { useFavoriteIds } from '@/lib/favorites'
 
 type MealPickerModalProps = {
   isOpen: boolean
@@ -45,6 +46,8 @@ export default function MealPickerModal({
   const [defaultSort] = useDefaultMealSort()
   const [sortOverride, setSortOverride] = useState<MealSort | null>(null)
   const sort = sortOverride ?? defaultSort
+  const [favoritesFirst, setFavoritesFirst] = useFavoritesFirst()
+  const favoriteIds = useFavoriteIds()
 
   // Fetch tags for household
   useEffect(() => {
@@ -113,7 +116,8 @@ export default function MealPickerModal({
       const tagMatch = selectedTags.length === 0 || selectedTags.every((tagId) => meal.tags?.some((mealTag) => mealTag.id === tagId))
       return textMatch && tagMatch
     }),
-    sort
+    sort,
+    { favoritesFirst, favoriteIds }
   )
 
   const sections: { key: string; label: string; meals: MealWithDetails[] }[] = [
@@ -172,7 +176,7 @@ export default function MealPickerModal({
               aria-label="Szukaj po nazwie lub składnikach"
               className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             />
-            <SortMenu value={sort} onChange={setSortOverride} />
+            <SortMenu value={sort} onChange={setSortOverride} favoritesFirst={favoritesFirst} onFavoritesFirstChange={setFavoritesFirst} />
           </div>
 
           {tags.length > 0 && (

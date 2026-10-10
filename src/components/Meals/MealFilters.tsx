@@ -17,6 +17,8 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
     toggleTagFilter,
     sort,
     setSort,
+    favoritesFirst,
+    setFavoritesFirst,
   } = filters
 
   return (
@@ -30,7 +32,7 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
           aria-label="Wyszukaj posiłek"
           className="min-w-0 flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
-        <SortMenu value={sort} onChange={setSort} />
+        <SortMenu value={sort} onChange={setSort} favoritesFirst={favoritesFirst} onFavoritesFirstChange={setFavoritesFirst} />
       </div>
 
       <div>

@@ -9,6 +9,7 @@ import { DEFAULT_MEAL_SORT, isMealSort, type MealSort } from './meal-sort'
  * Today: the default sort of meal lists, chosen in Ustawienia.
  */
 const MEAL_SORT_KEY = 'meal-planner-meal-sort'
+const FAVORITES_FIRST_KEY = 'meal-planner-favorites-first'
 const listeners = new Set<() => void>()
 
 export function readDefaultMealSort(): MealSort {
@@ -32,7 +33,7 @@ function writeDefaultMealSort(sort: MealSort) {
 function subscribe(listener: () => void) {
   listeners.add(listener)
   const onStorage = (e: StorageEvent) => {
-    if (e.key === MEAL_SORT_KEY) listener()
+    if (e.key === MEAL_SORT_KEY || e.key === FAVORITES_FIRST_KEY) listener()
   }
   window.addEventListener('storage', onStorage)
   return () => {
@@ -46,4 +47,28 @@ export function useDefaultMealSort(): [MealSort, (sort: MealSort) => void] {
   const sort = useSyncExternalStore(subscribe, readDefaultMealSort, () => DEFAULT_MEAL_SORT)
   const set = useCallback((next: MealSort) => writeDefaultMealSort(next), [])
   return [sort, set]
+}
+
+export function readFavoritesFirst(): boolean {
+  try {
+    return localStorage.getItem(FAVORITES_FIRST_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+
+function writeFavoritesFirst(on: boolean) {
+  try {
+    localStorage.setItem(FAVORITES_FIRST_KEY, on ? 'on' : 'off')
+  } catch {
+    // private mode
+  }
+  listeners.forEach((l) => l())
+}
+
+/** "Ulubione na początku": favourites (the heart) are listed before everything else. Default on. */
+export function useFavoritesFirst(): [boolean, (on: boolean) => void] {
+  const on = useSyncExternalStore(subscribe, readFavoritesFirst, () => true)
+  const set = useCallback((next: boolean) => writeFavoritesFirst(next), [])
+  return [on, set]
 }

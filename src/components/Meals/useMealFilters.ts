@@ -5,7 +5,8 @@ import type { MealCategory } from '@/lib/supabase/client'
 import type { MealWithItems } from './types'
 import { filterMeals } from './mealFilterUtils'
 import { sortMeals, type MealSort } from '@/lib/meal-sort'
-import { useDefaultMealSort } from '@/lib/preferences'
+import { useDefaultMealSort, useFavoritesFirst } from '@/lib/preferences'
+import { useFavoriteIds } from '@/lib/favorites'
 
 // Search / tag / category filter state of the meals list
 export function useMealFilters(meals: MealWithItems[]) {
@@ -16,11 +17,17 @@ export function useMealFilters(meals: MealWithItems[]) {
   const [defaultSort] = useDefaultMealSort()
   const [sortOverride, setSortOverride] = useState<MealSort | null>(null)
   const sort = sortOverride ?? defaultSort
+  const [favoritesFirst, setFavoritesFirst] = useFavoritesFirst()
+  const favoriteIds = useFavoriteIds()
 
-  // Filter meals by tags and search query, then sort
+  // Filter meals by tags and search query, then sort (favourites first when enabled)
   const filteredMeals = useMemo(
-    () => sortMeals(filterMeals(meals, { searchQuery, selectedTags, selectedCategories }), sort),
-    [meals, selectedTags, selectedCategories, searchQuery, sort]
+    () =>
+      sortMeals(filterMeals(meals, { searchQuery, selectedTags, selectedCategories }), sort, {
+        favoritesFirst,
+        favoriteIds,
+      }),
+    [meals, selectedTags, selectedCategories, searchQuery, sort, favoritesFirst, favoriteIds]
   )
 
   // Toggle tag filter
@@ -51,6 +58,8 @@ export function useMealFilters(meals: MealWithItems[]) {
     filteredMeals,
     sort,
     setSort: setSortOverride,
+    favoritesFirst,
+    setFavoritesFirst,
     toggleTagFilter,
     toggleCategoryFilter,
   }

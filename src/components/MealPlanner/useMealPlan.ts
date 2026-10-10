@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { fetchMealsWithDetails, type MealPickCountRow, type MealWithDetails } from '@/lib/meals-data'
 import { useFeedback } from '@/components/ui/Feedback'
+import { loadFavorites } from '@/lib/favorites'
 import {
   buildWeekProgress,
   filterMissingMealTypes,
@@ -72,6 +73,8 @@ export function useMealPlan() {
     if (!householdId || !userId) return
 
     let cancelled = false
+
+    void loadFavorites(supabase, userId)
 
     async function fetchMeals(householdId: string, userId: string) {
       try {

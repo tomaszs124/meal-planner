@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProducts } from '@/hooks/useProducts'
 import TagManagementModal from './TagManagementModal'
@@ -13,11 +13,17 @@ import { useMealFilters } from './useMealFilters'
 import { loadMealIntoForm, useMealFormState } from './useMealForm'
 import type { MealWithItems } from './types'
 import { MealsListSkeleton } from '@/components/ui/Skeleton'
+import { supabase } from '@/lib/supabase/client'
+import { loadFavorites } from '@/lib/favorites'
 import { PageHeader } from '@/components/Layout/PageShell'
 import Button from '@/components/ui/Button'
 
 export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
+  // The hearts: one shared store, loaded once per user
+  useEffect(() => {
+    if (user?.id) void loadFavorites(supabase, user.id)
+  }, [user?.id])
   const { products } = useProducts(household?.id)
   const { meals, tags, householdMembers, isLoading, isAdding, isUploadingImage, addMeal, updateMeal, deleteMeal } =
     useMeals(household?.id, user?.id, products)

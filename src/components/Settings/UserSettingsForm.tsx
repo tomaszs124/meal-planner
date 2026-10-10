@@ -10,7 +10,7 @@ import { useFeedback } from '@/components/ui/Feedback'
 import { PageHeader } from '@/components/Layout/PageShell'
 import Button from '@/components/ui/Button'
 import { useTheme, type Theme } from '@/lib/theme'
-import { useDefaultMealSort } from '@/lib/preferences'
+import { useDefaultMealSort, useFavoritesFirst } from '@/lib/preferences'
 import { MEAL_SORT_OPTIONS } from '@/lib/meal-sort'
 
 export default function UserSettingsForm() {
@@ -351,6 +351,7 @@ function ThemeCard() {
 
 function MealSortCard() {
   const [sort, setSort] = useDefaultMealSort()
+  const [favoritesFirst, setFavoritesFirst] = useFavoritesFirst()
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 mb-1 dark:text-gray-100">Sortowanie posiłków</h3>
@@ -383,6 +384,18 @@ function MealSortCard() {
           )
         })}
       </div>
+      <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+        <span>
+          <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Ulubione na początku</span>
+          <span className="block text-xs text-gray-500 dark:text-gray-400">Dania z serduszkiem zawsze na górze list, niezależnie od sortowania.</span>
+        </span>
+        <input
+          type="checkbox"
+          checked={favoritesFirst}
+          onChange={(e) => setFavoritesFirst(e.target.checked)}
+          className="h-5 w-5 rounded accent-rose-500"
+        />
+      </label>
     </div>
   )
 }

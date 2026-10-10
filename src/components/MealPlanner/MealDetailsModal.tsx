@@ -7,6 +7,7 @@ import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
 import { calculateNutrition, formatAmount } from '@/lib/nutrition'
 import Button from '@/components/ui/Button'
+import FavoriteButton from '@/components/ui/FavoriteButton'
 
 type MealItem = {
   product?: Product
@@ -278,16 +279,19 @@ export default function MealDetailsModal({
               <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-1">→ Przepis dostosowany dla Ciebie</p>
             )}
           </div>
+          <div className="-mr-1.5 -mt-1.5 flex shrink-0 items-center gap-1 sm:-mt-0.5">
+            <FavoriteButton mealId={meal.id} mealName={meal.name} size="md" />
           <button
             type="button"
             onClick={onClose}
             aria-label="Zamknij"
-            className="-mr-1.5 -mt-1.5 shrink-0 rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors sm:-mt-0.5"
+            className="shrink-0 rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          </div>
         </div>
 
         <div className="px-4 py-5 sm:px-6 space-y-4">

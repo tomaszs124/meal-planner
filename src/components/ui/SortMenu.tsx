@@ -10,10 +10,14 @@ import { MEAL_SORT_OPTIONS, type MealSort } from '@/lib/meal-sort'
 export default function SortMenu({
   value,
   onChange,
+  favoritesFirst,
+  onFavoritesFirstChange,
   align = 'right',
 }: {
   value: MealSort
   onChange: (sort: MealSort) => void
+  favoritesFirst?: boolean
+  onFavoritesFirstChange?: (on: boolean) => void
   align?: 'left' | 'right'
 }) {
   const [open, setOpen] = useState(false)
@@ -100,6 +104,25 @@ export default function SortMenu({
               </button>
             )
           })}
+          {onFavoritesFirstChange && (
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={!!favoritesFirst}
+              onClick={() => onFavoritesFirstChange(!favoritesFirst)}
+              className="mt-1 flex w-full items-center justify-between gap-3 rounded-lg border-t border-gray-100 px-3 py-2.5 text-left hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
+            >
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Ulubione na początku</span>
+              <span
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                  favoritesFirst ? 'bg-rose-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+                aria-hidden="true"
+              >
+                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${favoritesFirst ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </span>
+            </button>
+          )}
         </div>
       )}
     </div>

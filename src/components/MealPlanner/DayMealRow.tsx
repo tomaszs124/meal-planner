@@ -10,6 +10,8 @@ import MealPickerModal from './MealPickerModal'
 import MealDetailsModal from './MealDetailsModal'
 import { formatMealMacros } from './format'
 import { CheckIcon, DiceIcon, PlateIcon, PlusIcon, SkipIcon, SwapIcon } from './icons'
+import { HeartIcon } from '@/components/ui/FavoriteButton'
+import { useFavoriteIds } from '@/lib/favorites'
 
 type DayMealRowProps = {
   category: MealCategory
@@ -80,6 +82,7 @@ export default function DayMealRow({
   const { user } = useCurrentUser()
   const [showPicker, setShowPicker] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const favoriteIds = useFavoriteIds()
 
   const caption = (
     <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{categoryLabel}</div>
@@ -111,6 +114,11 @@ export default function DayMealRow({
             <div className="min-w-0 flex-1">
               {caption}
               <div className={`line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
+                {favoriteIds.has(selectedMeal.id) && (
+                  <span className="mr-1 inline-block align-[-2px] text-rose-500" title="Ulubione">
+                    <HeartIcon filled className="h-3.5 w-3.5" />
+                  </span>
+                )}
                 {selectedMeal.name}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">

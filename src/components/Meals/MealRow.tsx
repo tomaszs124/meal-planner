@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import type { MealWithItems } from './types'
+import { HeartIcon } from '@/components/ui/FavoriteButton'
+import { useFavoriteIds } from '@/lib/favorites'
 
 /**
  * Compact list row used on phones instead of the card grid: 56 px thumbnail, the full
@@ -13,6 +15,8 @@ export default function MealRow({
   meal: MealWithItems
   onClick: (meal: MealWithItems) => void
 }) {
+  const favorites = useFavoriteIds()
+  const isFavorite = favorites.has(meal.id)
   return (
     <div
       role="button"
@@ -27,21 +31,32 @@ export default function MealRow({
       }}
       className="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
     >
-      {meal.images && meal.images.length > 0 ? (
-        <Image
-          src={meal.images[0].image_url}
-          alt=""
-          width={112}
-          height={112}
-          className="h-14 w-14 shrink-0 rounded-lg object-cover"
-        />
-      ) : (
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-          <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-      )}
+      <div className="relative h-14 w-14 shrink-0">
+        {meal.images && meal.images.length > 0 ? (
+          <Image
+            src={meal.images[0].image_url}
+            alt=""
+            width={112}
+            height={112}
+            className="h-14 w-14 rounded-lg object-cover"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+            <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {/* favourite indicator on the thumbnail; toggling happens in the details modal */}
+        {isFavorite ? (
+          <span
+            className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
+            title="Ulubione"
+          >
+            <HeartIcon filled className="h-3 w-3" />
+          </span>
+        ) : null}
+      </div>
       <div className="min-w-0 flex-1">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100">{meal.name}</h3>
         <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">

@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import type { MealWithItems } from './types'
+import { HeartIcon } from '@/components/ui/FavoriteButton'
+import { useFavoriteIds } from '@/lib/favorites'
 
 // One meal tile in the accordion grid: image, name, tags and one line of nutrition totals
 export default function MealCard({
@@ -9,6 +11,7 @@ export default function MealCard({
   meal: MealWithItems
   onClick: (meal: MealWithItems) => void
 }) {
+  const isFavorite = useFavoriteIds().has(meal.id)
   return (
     <div
       role="button"
@@ -23,7 +26,16 @@ export default function MealCard({
       }}
       className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all duration-200 flex flex-col h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
-      {/* Image */}
+      {/* Image + favourite indicator (toggling happens in the details modal) */}
+      <div className="relative">
+        {isFavorite && (
+          <span
+            className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm backdrop-blur-sm dark:bg-gray-900/80"
+            title="Ulubione"
+          >
+            <HeartIcon filled className="h-4 w-4" />
+          </span>
+        )}
       {meal.images && meal.images.length > 0 ? (
         <Image
           src={meal.images[0].image_url}
@@ -39,6 +51,7 @@ export default function MealCard({
           </svg>
         </div>
       )}
+      </div>
       {/* Content */}
       <div className="p-3 flex flex-col flex-grow">
         <h3 className="font-semibold leading-snug text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{meal.name}</h3>
