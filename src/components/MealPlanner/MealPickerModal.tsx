@@ -127,7 +127,7 @@ export default function MealPickerModal({
   }
 
   return (
-    <div className="fixed inset-0 m-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6">
+    <div className="fixed inset-0 m-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[60] pt-8 pb-6">
       <div
         ref={dialogRef}
         role="dialog"
