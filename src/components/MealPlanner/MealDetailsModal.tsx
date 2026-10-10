@@ -250,9 +250,11 @@ export default function MealDetailsModal({
     return acc
   }, 0) || meal.totalKcal || 0
 
+  // m-0: overlays are rendered inside `space-y-*` containers, whose child margin would
+  // otherwise shrink a fixed inset-0 element and let the page show through at the bottom.
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[60] m-0 flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div

@@ -152,7 +152,7 @@ function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (valu
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[120] m-0 flex items-end sm:items-center justify-center bg-black/50 p-4"
       onClick={() => onClose(null)}
     >
       <div

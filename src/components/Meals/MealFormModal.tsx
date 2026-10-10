@@ -22,7 +22,7 @@ export default function MealFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] m-0 flex items-stretch justify-center bg-gray-900/40 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onCancel}
     >
       <div
