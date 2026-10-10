@@ -150,7 +150,7 @@ export default function Products() {
 
   if (!household) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+      <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
         Musisz najpierw dołączyć do gospodarstwa.
       </div>
     )
@@ -218,8 +218,8 @@ export default function Products() {
 
       {/* Stats */}
       {products.length > 0 && (
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 text-center text-sm text-gray-600">
-          Wszystkich produktów: <span className="font-semibold text-gray-900">{products.length}</span>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          Wszystkich produktów: <span className="font-semibold text-gray-900 dark:text-gray-100">{products.length}</span>
         </div>
       )}
     </div>

@@ -157,18 +157,18 @@ function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (valu
     >
       <div
         ref={panelRef}
-        className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+        className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-800 p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="confirm-title" className="text-base font-semibold text-gray-900">
+        <h2 id="confirm-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">
           {state.title || 'Potwierdź'}
         </h2>
-        <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">{state.message}</p>
+        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{state.message}</p>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={() => onClose(false)}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             {state.cancelLabel || 'Anuluj'}
           </button>

@@ -66,19 +66,19 @@ export default function MealAccordionList({
         const meals = groups.get(key)!
         const isOpen = isExpanded(key)
         return (
-          <div key={key} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <div key={key} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
             <button
               type="button"
               onClick={() => toggle(key)}
               aria-expanded={isOpen}
-              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="font-semibold text-gray-800">
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
                 {groupLabel(key)}
-                <span className="ml-2 text-sm font-normal text-gray-500">({meals.length})</span>
+                <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({meals.length})</span>
               </span>
               <svg
-                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

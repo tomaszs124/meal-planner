@@ -64,7 +64,7 @@ export default function MealForm({
   }
 
   const inputClass =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100'
+    'w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700'
 
   return (
     <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -85,7 +85,7 @@ export default function MealForm({
             aria-label="Zdjęcie posiłku"
           />
           {form.imagePreview ? (
-            <div className="relative overflow-hidden border-b border-gray-200">
+            <div className="relative overflow-hidden border-b border-gray-200 dark:border-gray-700">
               <Image
                 src={form.imagePreview}
                 alt="Podgląd zdjęcia posiłku"
@@ -122,13 +122,13 @@ export default function MealForm({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={busy}
-              className="flex w-full flex-col items-center justify-center gap-1 border-b-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-sm text-gray-600 hover:border-blue-400 hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="flex w-full flex-col items-center justify-center gap-1 border-b-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-8 text-sm text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M16.5 7.5L12 3m0 0L7.5 7.5M12 3v13.5" />
               </svg>
               <span className="font-medium">Dodaj zdjęcie</span>
-              <span className="text-xs text-gray-500">JPG, PNG, WebP lub GIF, do 5 MB</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG, WebP lub GIF, do 5 MB</span>
             </button>
           )}
         </div>
@@ -136,7 +136,7 @@ export default function MealForm({
         {/* 2. Basics */}
         <Section title="Podstawowe">
           <div>
-            <label htmlFor={`${idPrefix}-name`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`${idPrefix}-name`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nazwa posiłku
             </label>
             <input
@@ -151,7 +151,7 @@ export default function MealForm({
             />
           </div>
           <div>
-            <label htmlFor={`${idPrefix}-description`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`${idPrefix}-description`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Opis / przepis
             </label>
             <textarea
@@ -199,7 +199,7 @@ export default function MealForm({
         {/* 5. Categories & tags */}
         <Section title="Kategorie i tagi">
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Kategoria główna</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategoria główna</p>
             <div role="group" aria-label="Kategoria główna" className="flex flex-wrap gap-2">
               {MEAL_CATEGORIES.map((cat) => {
                 const active = form.primaryCategory === cat.value
@@ -211,7 +211,7 @@ export default function MealForm({
                     aria-pressed={active}
                     disabled={busy}
                     className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
-                      active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      active ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {cat.label}
@@ -221,8 +221,8 @@ export default function MealForm({
             </div>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Pasuje też jako <span className="font-normal text-gray-500">(opcjonalnie)</span>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Pasuje też jako <span className="font-normal text-gray-500 dark:text-gray-400">(opcjonalnie)</span>
             </p>
             <div role="group" aria-label="Kategorie alternatywne" className="flex flex-wrap gap-2">
               {alternativeOptions.map((cat) => {
@@ -236,8 +236,8 @@ export default function MealForm({
                     disabled={busy}
                     className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
                       active
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     {cat.label}
@@ -247,9 +247,9 @@ export default function MealForm({
             </div>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Tagi</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tagi</p>
             {tags.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {isAdd ? 'Brak tagów. Dodaj je przyciskiem „Zarządzaj tagami”.' : 'Brak dostępnych tagów.'}
               </p>
             ) : (
@@ -260,7 +260,7 @@ export default function MealForm({
                     <label
                       key={tag.id}
                       className={`rounded-full px-3 py-1.5 text-sm font-medium cursor-pointer transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-1 ${
-                        active ? 'ring-2 ring-offset-1 ring-blue-500' : 'opacity-60 hover:opacity-100'
+                        active ? 'ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-blue-500' : 'opacity-60 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: tag.color, color: tag.text_color }}
                     >
@@ -285,12 +285,12 @@ export default function MealForm({
       </div>
 
       {/* Footer */}
-      <div className="sticky bottom-0 shrink-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-gray-600">
+      <div className="sticky bottom-0 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {form.selectedProducts.length > 0 ? (
             <>
-              <span className="font-semibold text-gray-900 tabular-nums">{Math.round(totals.kcal)} kcal</span>
-              <span className="text-gray-400"> · </span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{Math.round(totals.kcal)} kcal</span>
+              <span className="text-gray-400 dark:text-gray-500"> · </span>
               {form.selectedProducts.length} {pluralIngredients(form.selectedProducts.length)}
             </>
           ) : (
@@ -325,8 +325,8 @@ function Section({
     <section className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{title}</h3>
-          {hint && <p className="text-xs text-gray-500 mt-0.5">{hint}</p>}
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{title}</h3>
+          {hint && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{hint}</p>}
         </div>
         {aside}
       </div>

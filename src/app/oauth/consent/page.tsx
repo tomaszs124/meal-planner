@@ -74,8 +74,8 @@ function ConsentContent() {
   if (error) {
     return (
       <Shell>
-        <p className="text-red-700">{error}</p>
-        <p className="mt-2 text-sm text-gray-500">Wróć do aplikacji, która prosiła o dostęp, i spróbuj ponownie.</p>
+        <p className="text-red-700 dark:text-red-300">{error}</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Wróć do aplikacji, która prosiła o dostęp, i spróbuj ponownie.</p>
       </Shell>
     )
   }
@@ -88,21 +88,21 @@ function ConsentContent() {
 
   return (
     <Shell>
-      <h1 className="text-lg font-semibold text-gray-900">Zezwolić na dostęp do Meal Plannera?</h1>
-      <p className="mt-2 text-sm text-gray-700">
+      <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Zezwolić na dostęp do Meal Plannera?</h1>
+      <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
         <span className="font-medium">{clientName}</span> prosi o dostęp do Twojego konta{' '}
         <span className="font-medium">{details.user?.email}</span>. Będzie mogła przeglądać i zmieniać produkty, posiłki,
         plan i listę zakupów w Twoim imieniu, w granicach Twojego gospodarstwa.
       </p>
       {scopes.length > 0 && (
-        <p className="mt-2 text-xs text-gray-500">Zakres: {scopes.join(', ')}</p>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Zakres: {scopes.join(', ')}</p>
       )}
       <div className="mt-6 flex gap-2 justify-end">
         <button
           type="button"
           disabled={busy}
           onClick={() => void decide(false)}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           Odmów
         </button>
@@ -121,8 +121,8 @@ function ConsentContent() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-sm border border-gray-200 text-sm text-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-sm border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
         {children}
       </div>
     </div>

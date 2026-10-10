@@ -52,16 +52,16 @@ export default function ProductList({
   let content: React.ReactNode
   if (products.length === 0) {
     content = (
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-        <p className="text-gray-500 text-sm">Brak produktów</p>
-        <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy produkt powyżej</p>
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Brak produktów</p>
+        <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Dodaj pierwszy produkt powyżej</p>
       </div>
     )
   } else if (filtered.length === 0) {
     content = (
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-        <p className="text-gray-500 text-sm">Brak wyników</p>
-        <p className="text-gray-400 text-xs mt-1">Spróbuj zmienić kryteria wyszukiwania</p>
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Brak wyników</p>
+        <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Spróbuj zmienić kryteria wyszukiwania</p>
       </div>
     )
   } else {

@@ -66,7 +66,7 @@ export default function ShoppingListEnhanced() {
 
   if (!household) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+      <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
         Musisz najpierw dołączyć do gospodarstwa.
       </div>
     )
@@ -106,7 +106,7 @@ export default function ShoppingListEnhanced() {
       />}
 
       {/* View options */}
-      <div role="group" aria-label="Widok listy" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1">
+      <div role="group" aria-label="Widok listy" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
         {([
           ['category', 'Kategorie'],
           ['dish', 'Dania'],
@@ -118,7 +118,7 @@ export default function ShoppingListEnhanced() {
             onClick={() => setGroupBy(value)}
             aria-pressed={groupBy === value}
             className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              groupBy === value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              groupBy === value ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
             }`}
           >
             {label}
@@ -129,9 +129,9 @@ export default function ShoppingListEnhanced() {
       {/* Shopping list items */}
       <div className="space-y-4">
         {items.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Brak produktów na liście zakupów</p>
-            <p className="text-gray-400 text-xs mt-1">Wygeneruj listę z planów posiłków lub dodaj produkty ręcznie</p>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Brak produktów na liście zakupów</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Wygeneruj listę z planów posiłków lub dodaj produkty ręcznie</p>
           </div>
         ) : (
           <>
@@ -198,10 +198,10 @@ export default function ShoppingListEnhanced() {
             )}
 
             {/* Progress + "Usuń kupione": sticks above the bottom navigation while the list scrolls */}
-            <div className="sticky bottom-20 z-30 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white/95 px-4 py-2.5 shadow-md backdrop-blur-sm">
-              <span className="text-sm text-gray-600">
+            <div className="sticky bottom-20 z-30 flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/95 px-4 py-2.5 shadow-md backdrop-blur-sm">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Kupione{' '}
-                <span className="font-semibold text-gray-900 tabular-nums">
+                <span className="font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
                   {progress.bought} / {progress.total}
                 </span>
               </span>
@@ -214,7 +214,7 @@ export default function ShoppingListEnhanced() {
       </div>
 
       {/* Custom Lists */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <CustomLists />
       </div>
 

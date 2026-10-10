@@ -226,7 +226,7 @@ export default function CustomLists() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">Moje listy</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Moje listy</h3>
         <Button size="sm" aria-expanded={showNewListForm} onClick={() => setShowNewListForm((v) => !v)}>
           {showNewListForm ? 'Anuluj' : '+ Nowa lista'}
         </Button>
@@ -234,22 +234,22 @@ export default function CustomLists() {
 
       {/* New list form */}
       {showNewListForm && (
-        <form onSubmit={createList} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+        <form onSubmit={createList} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
           <div>
-            <label htmlFor="new-custom-list-name" className="block text-xs font-medium text-gray-700 mb-1">Nazwa listy</label>
+            <label htmlFor="new-custom-list-name" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nazwa listy</label>
             <input
               id="new-custom-list-name"
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
               placeholder="Np. Rossmann, Castorama..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
           </div>
           {members.length > 1 && (
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Widoczna dla</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Widoczna dla</label>
               <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                 {members.map((m) => (
                   <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
@@ -262,9 +262,9 @@ export default function CustomLists() {
                           e.target.checked ? [...prev, m.user_id] : prev.filter((id) => id !== m.user_id)
                         )
                       }}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
                       {m.user_id === user?.id ? `${m.name || 'Ja'} (ja)` : m.name || 'Bez nazwy'}
                     </span>
                   </label>
@@ -279,7 +279,7 @@ export default function CustomLists() {
       )}
 
       {visibleLists.length === 0 && !showNewListForm && (
-        <p className="text-sm text-gray-500 text-center py-4">Brak list. Utwórz swoją pierwszą listę.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Brak list. Utwórz swoją pierwszą listę.</p>
       )}
 
       {/* Lists */}
@@ -289,9 +289,9 @@ export default function CustomLists() {
         const checkedCount = items.filter((i) => i.is_checked).length
 
         return (
-          <div key={list.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div key={list.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* List header */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
               {/* The rename input must not live inside the expand <button> (invalid HTML), so while
                   renaming the button shrinks to the chevron and the input/count are its siblings. */}
               <div className="flex-1 flex items-center gap-2 text-left min-w-0">
@@ -305,7 +305,7 @@ export default function CustomLists() {
                       className="flex items-center flex-shrink-0"
                     >
                       <svg
-                        className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                        className={`w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                         fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -321,9 +321,9 @@ export default function CustomLists() {
                         if (e.key === 'Escape') setEditingListId(null)
                       }}
                       autoFocus
-                      className="flex-1 rounded border border-blue-400 px-2 py-0.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+                      className="flex-1 rounded border border-blue-400 px-2 py-0.5 text-sm text-black dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
                     />
-                    <span className="text-xs text-gray-500 flex-shrink-0">{items.length} poz.</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{items.length} poz.</span>
                   </>
                 ) : (
                   <button
@@ -333,13 +333,13 @@ export default function CustomLists() {
                     className="flex-1 flex items-center gap-2 text-left min-w-0"
                   >
                     <svg
-                      className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      className={`w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                       fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                    <span className="font-semibold text-sm text-gray-900 truncate">{list.name}</span>
-                    <span className="text-xs text-gray-500 flex-shrink-0">{items.length} poz.</span>
+                    <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{list.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{items.length} poz.</span>
                   </button>
                 )}
               </div>
@@ -369,7 +369,7 @@ export default function CustomLists() {
                 {/* Visibility */}
                 {members.length > 1 && (
                   <div>
-                    <p className="text-xs font-medium text-gray-600 mb-2">Widoczna dla</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Widoczna dla</p>
                     <div role="group" aria-label="Widoczna dla" className="flex flex-wrap gap-3">
                       {members.map((m) => (
                         <label key={m.user_id} className="flex items-center gap-1.5 cursor-pointer select-none">
@@ -378,9 +378,9 @@ export default function CustomLists() {
                             onClick={(e) => e.stopPropagation()}
                             checked={list.visible_to.includes(m.user_id)}
                             onChange={(e) => updateVisibility(list, m.user_id, e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                           />
-                          <span className="text-xs text-gray-700">
+                          <span className="text-xs text-gray-700 dark:text-gray-300">
                             {m.user_id === user?.id ? `${m.name || 'Ja'} (ja)` : m.name || 'Bez nazwy'}
                           </span>
                         </label>
@@ -406,7 +406,7 @@ export default function CustomLists() {
                             toggleItem(list.id, item)
                           }
                         }}
-                        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
+                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
                       >
                         <input
                           type="checkbox"
@@ -414,14 +414,14 @@ export default function CustomLists() {
                           checked={item.is_checked}
                           aria-label={item.name}
                           onChange={(e) => { e.stopPropagation(); toggleItem(list.id, item) }}
-                          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${item.is_checked ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                          <p className={`text-sm font-medium ${item.is_checked ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
                             {item.name}
                           </p>
                           {item.quantity && (
-                            <p className="text-xs text-gray-500 mt-0.5">{item.quantity}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.quantity}</p>
                           )}
                         </div>
                         <Button
@@ -445,14 +445,14 @@ export default function CustomLists() {
                 )}
 
                 {/* Add item form */}
-                <form onSubmit={(e) => addItem(e, list.id)} className="flex gap-2 pt-1 border-t border-gray-100">
+                <form onSubmit={(e) => addItem(e, list.id)} className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
                   <input
                     type="text"
                     value={newItemName[list.id] || ''}
                     onChange={(e) => setNewItemName((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Nazwa produktu"
                     aria-label="Nazwa produktu"
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="text"
@@ -460,7 +460,7 @@ export default function CustomLists() {
                     onChange={(e) => setNewItemQty((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Ilość"
                     aria-label="Ilość"
-                    className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <Button type="submit" size="sm" disabled={isAddingItem[list.id] || !newItemName[list.id]?.trim()}>
                     Dodaj

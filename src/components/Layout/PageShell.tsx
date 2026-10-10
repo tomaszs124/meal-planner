@@ -16,7 +16,7 @@ export function PageShell({
   wide?: boolean
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className={`${wide ? 'max-w-4xl lg:max-w-6xl' : 'max-w-4xl'} mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6`}>
         {children}
       </div>
@@ -37,8 +37,8 @@ export function PageHeader({
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>

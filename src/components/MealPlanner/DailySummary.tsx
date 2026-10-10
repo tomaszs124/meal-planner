@@ -40,11 +40,11 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
   ]
 
   return (
-    <section aria-label="Podsumowanie dnia" className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <section aria-label="Podsumowanie dnia" className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           Zjedzone{' '}
-          <span className="font-semibold text-gray-900">{formatNumber(consumed.kcal)}</span>
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{formatNumber(consumed.kcal)}</span>
           {' / '}
           {formatNumber(planned.kcal)} kcal
         </div>
@@ -56,18 +56,18 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.min(100, percent)}
-        className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100"
+        className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
       >
         <div
           className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-green-500' : 'bg-blue-600'}`}
           style={{ width: `${Math.min(100, percent)}%` }}
         />
       </div>
-      <div className="mt-2 text-xs text-gray-500">
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
         {macros.map(([label, eaten, total], i) => (
           <span key={label}>
             {i > 0 && ' · '}
-            {label} <span className="font-medium text-gray-700">{formatNumber(eaten)}</span>/{formatNumber(total)} g
+            {label} <span className="font-medium text-gray-700 dark:text-gray-300">{formatNumber(eaten)}</span>/{formatNumber(total)} g
           </span>
         ))}
       </div>

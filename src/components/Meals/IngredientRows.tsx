@@ -41,12 +41,12 @@ export default function IngredientRows({
 }) {
   const suffix = scope ? ` (${scope})` : ''
   const totals = selectionTotals(rows, products)
-  const rowBorder = tone === 'variant' ? 'border-indigo-200' : 'border-gray-200'
+  const rowBorder = tone === 'variant' ? 'border-indigo-200 dark:border-indigo-800' : 'border-gray-200 dark:border-gray-700'
 
   return (
     <div className="space-y-2">
       {rows.length === 0 ? (
-        <p className="text-sm text-gray-500">{emptyText}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{emptyText}</p>
       ) : (
         <ul className="space-y-2">
           {rows.map((row, index) => {
@@ -56,7 +56,7 @@ export default function IngredientRows({
             const name = product?.name ?? `produkt ${index + 1}`
 
             return (
-              <li key={`${row.product_id}-${index}`} className={`rounded-lg border ${rowBorder} bg-white p-2`}>
+              <li key={`${row.product_id}-${index}`} className={`rounded-lg border ${rowBorder} bg-white dark:bg-gray-800 p-2`}>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="min-w-0 flex-1 basis-48">
                     <ProductPicker
@@ -74,18 +74,18 @@ export default function IngredientRows({
                       label={`Ilość: ${name}${suffix}`}
                       disabled={disabled}
                     />
-                    <span className="w-24 text-sm text-gray-600 tabular-nums" aria-live="polite">
+                    <span className="w-24 text-sm text-gray-600 dark:text-gray-400 tabular-nums" aria-live="polite">
                       {product?.unit_type === '100g'
                         ? `${grams} g`
                         : `${formatAmount(row.amount)} ${translateUnit(product?.unit_type || '')} · ${grams} g`}
                     </span>
-                    <span className="w-16 text-right text-sm font-medium text-gray-900 tabular-nums">{kcal} kcal</span>
+                    <span className="w-16 text-right text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums">{kcal} kcal</span>
                     <button
                       type="button"
                       onClick={() => onChange(removeRow(rows, index))}
                       disabled={disabled}
                       aria-label={`Usuń ${name}${suffix}`}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                      className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -124,10 +124,10 @@ export function NutritionSummary({
   const chip = size === 'md' ? 'px-2.5 py-1 text-sm' : 'px-2 py-0.5 text-xs'
   return (
     <div className="flex flex-wrap items-center gap-1.5" aria-label="Wartości odżywcze">
-      <span className={`rounded bg-blue-100 font-semibold text-blue-800 ${chip}`}>{Math.round(totals.kcal)} kcal</span>
-      {totals.protein > 0 && <span className={`rounded bg-green-100 text-green-800 ${chip}`}>B: {totals.protein.toFixed(1)} g</span>}
-      {totals.fat > 0 && <span className={`rounded bg-yellow-100 text-yellow-800 ${chip}`}>T: {totals.fat.toFixed(1)} g</span>}
-      {totals.carbs > 0 && <span className={`rounded bg-purple-100 text-purple-800 ${chip}`}>W: {totals.carbs.toFixed(1)} g</span>}
+      <span className={`rounded bg-blue-100 dark:bg-blue-900 font-semibold text-blue-800 dark:text-blue-200 ${chip}`}>{Math.round(totals.kcal)} kcal</span>
+      {totals.protein > 0 && <span className={`rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 ${chip}`}>B: {totals.protein.toFixed(1)} g</span>}
+      {totals.fat > 0 && <span className={`rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 ${chip}`}>T: {totals.fat.toFixed(1)} g</span>}
+      {totals.carbs > 0 && <span className={`rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 ${chip}`}>W: {totals.carbs.toFixed(1)} g</span>}
     </div>
   )
 }
@@ -170,7 +170,7 @@ function AmountInput({
       }}
       onBlur={() => setText(formatAmountInput(value))}
       onFocus={(e) => e.target.select()}
-      className="w-20 rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-right text-sm text-gray-900 tabular-nums focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+      className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2.5 py-2 text-right text-sm text-gray-900 dark:text-gray-100 tabular-nums focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
     />
   )
 }

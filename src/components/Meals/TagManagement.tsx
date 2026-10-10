@@ -176,7 +176,7 @@ export default function TagManagement() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-gray-500">Tagi pomagają filtrować posiłki.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Tagi pomagają filtrować posiłki.</p>
         <Button
           variant={showAddForm ? 'secondary' : 'primary'}
           aria-expanded={showAddForm}
@@ -188,9 +188,9 @@ export default function TagManagement() {
 
       {/* Add tag form */}
       {showAddForm && (
-        <form onSubmit={addTag} className="bg-gray-50 rounded-lg p-4 space-y-3">
+        <form onSubmit={addTag} className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-3">
           <div>
-            <label htmlFor="tag-name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="tag-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nazwa tagu
             </label>
             <input
@@ -200,14 +200,14 @@ export default function TagManagement() {
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder="np. Wegetariańskie, Szybkie, Dietetyczne"
               disabled={isAdding}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="tag-bg-color" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="tag-bg-color" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Kolor tła
               </label>
               <div className="flex gap-2">
@@ -216,20 +216,20 @@ export default function TagManagement() {
                   type="color"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
-                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+                  className="h-10 w-16 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                 />
                 <input
                   type="text"
                   value={newTagColor}
                   onChange={(e) => setNewTagColor(e.target.value)}
                   aria-label="Kolor tła (kod hex)"
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100"
                   placeholder="#3B82F6"
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="tag-text-color" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="tag-text-color" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Kolor tekstu
               </label>
               <div className="flex gap-2">
@@ -238,14 +238,14 @@ export default function TagManagement() {
                   type="color"
                   value={newTagTextColor}
                   onChange={(e) => setNewTagTextColor(e.target.value)}
-                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+                  className="h-10 w-16 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                 />
                 <input
                   type="text"
                   value={newTagTextColor}
                   onChange={(e) => setNewTagTextColor(e.target.value)}
                   aria-label="Kolor tekstu (kod hex)"
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100"
                   placeholder="#FFFFFF"
                 />
               </div>
@@ -253,7 +253,7 @@ export default function TagManagement() {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Szablony kolorów:</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Szablony kolorów:</p>
             <div className="flex flex-wrap gap-2">
               {DEFAULT_COLORS.map((preset) => (
                 <button
@@ -273,7 +273,7 @@ export default function TagManagement() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Podgląd:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Podgląd:</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-medium"
               style={{ backgroundColor: newTagColor, color: newTagTextColor }}
@@ -291,14 +291,14 @@ export default function TagManagement() {
       {/* Tags list */}
       <div className="space-y-2">
         {tags.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 text-sm">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
             Brak tagów. Dodaj pierwszy tag powyżej.
           </div>
         ) : (
           tags.map((tag) => (
             <div
               key={tag.id}
-              className="bg-gray-50 rounded-lg p-3 flex items-center justify-between gap-3"
+              className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 flex items-center justify-between gap-3"
             >
               {editingId === tag.id ? (
                 // Edit mode
@@ -308,7 +308,7 @@ export default function TagManagement() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     aria-label="Nazwa tagu"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100"
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex gap-2">
@@ -317,14 +317,14 @@ export default function TagManagement() {
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
                         aria-label="Kolor tła"
-                        className="h-10 w-16 rounded border border-gray-300"
+                        className="h-10 w-16 rounded border border-gray-300 dark:border-gray-600"
                       />
                       <input
                         type="text"
                         value={editColor}
                         onChange={(e) => setEditColor(e.target.value)}
                         aria-label="Kolor tła (kod hex)"
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -333,14 +333,14 @@ export default function TagManagement() {
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
                         aria-label="Kolor tekstu"
-                        className="h-10 w-16 rounded border border-gray-300"
+                        className="h-10 w-16 rounded border border-gray-300 dark:border-gray-600"
                       />
                       <input
                         type="text"
                         value={editTextColor}
                         onChange={(e) => setEditTextColor(e.target.value)}
                         aria-label="Kolor tekstu (kod hex)"
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-black"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100"
                       />
                     </div>
                   </div>

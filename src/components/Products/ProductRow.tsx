@@ -34,7 +34,7 @@ export default function ProductRow({
   onToggleNotes,
 }: ProductRowProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       {isEditing ? (
         // Edit mode
         <ProductForm
@@ -49,11 +49,11 @@ export default function ProductRow({
         // View mode
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 truncate">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
               {product.name}
             </h3>
-            <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-600">
-              <span className="bg-gray-100 px-2 py-0.5 rounded">
+            <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-600 dark:text-gray-400">
+              <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
                 {product.category}
               </span>
               <span>{product.kcal_per_unit} kcal</span>
@@ -77,7 +77,7 @@ export default function ProductRow({
                 <button
                   type="button"
                   onClick={onToggleNotes}
-                  className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-xs font-bold"
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-xs font-bold"
                   aria-label="Pokaż notatkę"
                   aria-expanded={isNotesOpen}
                 >

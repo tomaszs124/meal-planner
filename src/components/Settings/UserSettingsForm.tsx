@@ -9,6 +9,7 @@ import { useUserSettings } from '@/hooks/useUserSettings'
 import { useFeedback } from '@/components/ui/Feedback'
 import { PageHeader } from '@/components/Layout/PageShell'
 import Button from '@/components/ui/Button'
+import { useTheme, type Theme } from '@/lib/theme'
 
 export default function UserSettingsForm() {
   const { user, isLoading: userLoading } = useCurrentUser()
@@ -27,7 +28,7 @@ export default function UserSettingsForm() {
 
   if (!user) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+      <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
         Musisz być zalogowany.
       </div>
     )
@@ -35,7 +36,7 @@ export default function UserSettingsForm() {
 
   if (error && !settings) {
     return (
-      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700 space-y-3">
+      <div className="p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 text-sm text-red-700 dark:text-red-300 space-y-3">
         <p>Nie udało się wczytać ustawień. Sprawdź połączenie i spróbuj ponownie.</p>
         <Button onClick={() => void refresh()}>
           Spróbuj ponownie
@@ -157,10 +158,10 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
       <PageHeader title="Ustawienia konta" subtitle="Dostosuj plan żywieniowy do swoich potrzeb" />
 
       {/* Form */}
-      <form onSubmit={saveSettings} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 space-y-6">
+      <form onSubmit={saveSettings} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 space-y-6">
         {/* Name input */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
             Imię / Nazwa
           </label>
           <input
@@ -170,16 +171,16 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Twoje imię"
             maxLength={100}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             To imię będzie wyświetlane w wiadomościach powitalnych i na listach domowników
           </p>
         </div>
 
         {/* Personal dietary rules (read by the MCP assistant) */}
         <div>
-          <label htmlFor="dietary-rules" className="block text-sm font-medium text-gray-900 mb-2">
+          <label htmlFor="dietary-rules" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
             Moje zasady żywieniowe
           </label>
           <textarea
@@ -189,17 +190,17 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             rows={5}
             maxLength={2000}
             placeholder={'Np.\n- na śniadanie maks 2 jajka\n- bez laktozy\n- obiad do 600 kcal'}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Asystent AI (konektor MCP) bierze te zasady pod uwagę, gdy proponuje posiłki i plan dla Ciebie.
             Jedna zasada w linii. {dietaryRules.length}/2000
           </p>
         </div>
 
         {/* Kategorie posiłków */}
-        <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Kategorie posiłków w planie</h3>
+        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Kategorie posiłków w planie</h3>
           
           {/* Breakfast - always on */}
           <div className="flex items-center gap-3">
@@ -208,11 +209,11 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="breakfast"
               checked={true}
               disabled
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-not-allowed"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-not-allowed"
             />
-            <label htmlFor="breakfast" className="flex-1 text-sm font-medium text-gray-900">
+            <label htmlFor="breakfast" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">
               Śniadanie
-              <span className="text-xs text-gray-500 ml-2">(zawsze włączone)</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(zawsze włączone)</span>
             </label>
           </div>
 
@@ -223,9 +224,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="second-breakfast"
               checked={secondBreakfastEnabled}
               onChange={(e) => setSecondBreakfastEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
-            <label htmlFor="second-breakfast" className="flex-1 text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="second-breakfast" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Drugie śniadanie
             </label>
           </div>
@@ -237,9 +238,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="lunch"
               checked={lunchEnabled}
               onChange={(e) => setLunchEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
-            <label htmlFor="lunch" className="flex-1 text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="lunch" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Obiad
             </label>
           </div>
@@ -251,9 +252,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="dinner"
               checked={dinnerEnabled}
               onChange={(e) => setDinnerEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
-            <label htmlFor="dinner" className="flex-1 text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="dinner" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Kolacja
             </label>
           </div>
@@ -265,9 +266,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="snack"
               checked={snackEnabled}
               onChange={(e) => setSnackEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
-            <label htmlFor="snack" className="flex-1 text-sm font-medium text-gray-900 cursor-pointer">
+            <label htmlFor="snack" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Przekąska
             </label>
           </div>
@@ -280,9 +281,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             id="snack-enabled"
             checked={snackEnabled}
             onChange={(e) => setSnackEnabled(e.target.checked)}
-            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
           />
-          <label htmlFor="snack-enabled" className="flex-1 text-sm font-medium text-gray-900 cursor-pointer">
+          <label htmlFor="snack-enabled" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
             Aktywuj przekąskę w planie żywieniowym
           </label>
         </div>
@@ -293,12 +294,51 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
         </Button>
       </form>
 
+      {/* Appearance (stored per device in localStorage, see src/lib/theme.ts) */}
+      <ThemeCard />
+
       {/* Logout button */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Sesja</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Sesja</h3>
         <Button variant="danger" onClick={handleLogout} className="w-full sm:w-auto">
           Wyloguj się
         </Button>
+      </div>
+    </div>
+  )
+}
+
+function ThemeCard() {
+  const [theme, setTheme] = useTheme()
+  const options: { value: Theme; label: string; hint: string }[] = [
+    { value: 'light', label: 'Jasny', hint: 'Domyślny' },
+    { value: 'dark', label: 'Ciemny', hint: 'Mniej światła wieczorem' },
+  ]
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1 dark:text-gray-100">Wygląd</h3>
+      <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">Zapamiętywany na tym urządzeniu.</p>
+      <div role="radiogroup" aria-label="Motyw" className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-700">
+        {options.map((option) => {
+          const active = theme === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setTheme(option.value)}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-900 dark:text-gray-100'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }`}
+            >
+              {option.label}
+              <span className="block text-[11px] font-normal text-gray-500 dark:text-gray-400">{option.hint}</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

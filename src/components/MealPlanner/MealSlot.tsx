@@ -41,11 +41,11 @@ type MealSlotProps = {
 }
 
 const CATEGORY_COLORS: Record<MealCategory, string> = {
-  breakfast: 'bg-yellow-50 border-yellow-200',
-  second_breakfast: 'bg-orange-50 border-orange-200',
-  lunch: 'bg-red-50 border-red-200',
-  dinner: 'bg-purple-50 border-purple-200',
-  snack: 'bg-green-50 border-green-200',
+  breakfast: 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800',
+  second_breakfast: 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800',
+  lunch: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800',
+  dinner: 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800',
+  snack: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800',
 }
 
 export default function MealSlot({
@@ -65,20 +65,20 @@ export default function MealSlot({
   const [showPicker, setShowPicker] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
-  const colorClass = CATEGORY_COLORS[category] || 'bg-gray-50 border-gray-200'
+  const colorClass = CATEGORY_COLORS[category] || 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
 
   return (
     <>
       <div className={`rounded-lg border-2 p-4 ${colorClass}`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">{categoryLabel}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{categoryLabel}</h3>
         </div>
 
         {selectedMeal ? (
           <div
             role="button"
             tabIndex={0}
-            className="bg-white rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setShowDetailsModal(true)}
             onKeyDown={(e) => {
               // Only the card itself; Enter/Space on the nested action buttons keep their own click
@@ -91,7 +91,7 @@ export default function MealSlot({
           >
             {/* Meal image */}
             {selectedMeal.images && selectedMeal.images.length > 0 ? (
-              <div className="relative w-full h-32 bg-gray-100">
+              <div className="relative w-full h-32 bg-gray-100 dark:bg-gray-700">
                 <Image
                   src={selectedMeal.images[0].image_url}
                   alt={selectedMeal.name}
@@ -104,15 +104,15 @@ export default function MealSlot({
                 />
               </div>
             ) : (
-              <div className="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Brak zdjęcia</span>
+              <div className="w-full h-32 bg-gradient-to-br from-gray-100 dark:from-gray-700 to-gray-200 dark:to-gray-800 flex items-center justify-center">
+                <span className="text-gray-400 dark:text-gray-500 text-sm">Brak zdjęcia</span>
               </div>
             )}
 
             {/* Meal info */}
             <div className="p-3 space-y-2">
               {/* Meal name */}
-              <h4 className="font-semibold text-gray-900 text-sm">{selectedMeal.name}</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{selectedMeal.name}</h4>
 
               {/* Tags */}
               {selectedMeal.tags && selectedMeal.tags.length > 0 && (
@@ -133,7 +133,7 @@ export default function MealSlot({
               )}
 
               {/* Calories and Macros */}
-              <div className="text-xs text-gray-600">{formatMealMacros(selectedMeal)}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{formatMealMacros(selectedMeal)}</div>
 
               {/* Action buttons */}
               <div className="flex flex-wrap gap-2 pt-1 [&>button]:min-w-0 [&>button]:flex-1">

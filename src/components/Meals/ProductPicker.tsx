@@ -96,10 +96,10 @@ export default function ProductPicker({
           aria-label={label}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+          className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:text-gray-500"
         >
           <span className="truncate">{current?.name ?? 'Nieznany produkt'}</span>
-          <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -111,15 +111,15 @@ export default function ProductPicker({
           aria-label={label}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/60 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           {addLabel}
         </button>
       )}
 
       {open && (
-        <div className="absolute left-0 right-0 z-20 mt-1 min-w-[16rem] rounded-lg border border-gray-200 bg-white shadow-lg">
-          <div className="p-2 border-b border-gray-100">
+        <div className="absolute left-0 right-0 z-20 mt-1 min-w-[16rem] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <input
               ref={inputRef}
               type="text"
@@ -136,12 +136,12 @@ export default function ProductPicker({
               role="combobox"
               aria-expanded="true"
               autoComplete="off"
-              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <ul ref={listRef} id={listId} role="listbox" className="max-h-60 overflow-y-auto py-1">
             {matches.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-gray-500">Brak produktów dla „{query}”</li>
+              <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">Brak produktów dla „{query}”</li>
             ) : (
               matches.map((product, index) => {
                 const selected = product.id === value
@@ -156,11 +156,11 @@ export default function ProductPicker({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => choose(product)}
                     className={`flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ${
-                      active ? 'bg-blue-50 text-blue-900' : 'text-gray-900'
+                      active ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'
                     } ${selected ? 'font-semibold' : ''}`}
                   >
                     <span className="truncate">{product.name}</span>
-                    <span className="shrink-0 text-xs text-gray-500">
+                    <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
                       {product.kcal_per_unit} kcal/100g
                       {product.unit_type !== '100g' && ` · ${translateUnit(product.unit_type)}`}
                     </span>

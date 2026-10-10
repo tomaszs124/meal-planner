@@ -8,7 +8,7 @@
 
 type ClassNameProps = { className?: string }
 
-const BASE = 'animate-pulse bg-gray-200 rounded'
+const BASE = 'animate-pulse bg-gray-200 dark:bg-gray-600 rounded'
 
 export function Skeleton({ className = '' }: ClassNameProps) {
   return <div aria-hidden="true" className={`${BASE} ${className}`} />
@@ -26,7 +26,7 @@ export function SkeletonText({ lines = 2, className = '' }: { lines?: number } &
 
 export function SkeletonCard({ className = '' }: ClassNameProps) {
   return (
-    <div aria-hidden="true" className={`bg-white rounded-lg overflow-hidden border border-gray-200 ${className}`}>
+    <div aria-hidden="true" className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 ${className}`}>
       <Skeleton className="h-32 w-full rounded-none" />
       <div className="p-3">
         <SkeletonText lines={2} />
@@ -68,7 +68,7 @@ export function MealsListSkeleton() {
       <PageHeaderSkeleton withActions />
 
       {/* Filters bar */}
-      <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
+      <div aria-hidden="true" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <Skeleton className="h-10 w-full rounded-lg" />
         <div className="flex gap-2">
           <Skeleton className="h-7 w-20 rounded-full" />
@@ -79,8 +79,8 @@ export function MealsListSkeleton() {
 
       {/* Accordion groups */}
       <div aria-hidden="true" className="space-y-3">
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-5 w-5" />
           </div>
@@ -90,8 +90,8 @@ export function MealsListSkeleton() {
             ))}
           </div>
         </div>
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900">
             <Skeleton className="h-5 w-28" />
             <Skeleton className="h-5 w-5" />
           </div>
@@ -105,7 +105,7 @@ function SlotRows() {
   return (
     <div aria-hidden="true" className="space-y-2 lg:hidden">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="flex flex-col gap-3 rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center">
+        <div key={i} className="flex flex-col gap-3 rounded-lg border border-l-4 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 shadow-sm sm:flex-row sm:items-center">
           <div className="flex flex-1 items-start gap-3">
             <Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
             <div className="flex-1 space-y-2 pt-0.5">
@@ -129,7 +129,7 @@ function SlotCards() {
   return (
     <div aria-hidden="true" className="hidden lg:grid grid-cols-3 gap-4">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="rounded-lg border-2 border-gray-200 bg-white p-4">
+        <div key={i} className="rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-center justify-between mb-3">
             <Skeleton className="h-5 w-24" />
           </div>
@@ -159,7 +159,7 @@ export function PlannerSlotsSkeleton() {
 export function PlannerSkeleton() {
   return (
     <LoadingStatus className="space-y-6">
-      <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div aria-hidden="true" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center gap-2 mb-4">
           <Skeleton className="h-8 w-8 rounded-lg" />
           <div className="flex flex-1 justify-center">
@@ -192,7 +192,7 @@ export function ShoppingListSkeleton() {
       <PageHeaderSkeleton />
 
       {/* Generate panel */}
-      <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
+      <div aria-hidden="true" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <Skeleton className="h-5 w-48" />
         <div className="grid grid-cols-2 gap-3">
           <Skeleton className="h-10 rounded-lg" />
@@ -202,7 +202,7 @@ export function ShoppingListSkeleton() {
       </div>
 
       {/* View options */}
-      <div aria-hidden="true" className="flex gap-2 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div aria-hidden="true" className="flex gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <Skeleton className="h-9 w-24 rounded-lg" />
         <Skeleton className="h-9 w-20 rounded-lg" />
         <Skeleton className="h-9 w-24 rounded-lg" />
@@ -211,8 +211,8 @@ export function ShoppingListSkeleton() {
       {/* Groups */}
       <div aria-hidden="true" className="space-y-4">
         {Array.from({ length: 3 }, (_, g) => (
-          <div key={g} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div key={g} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
               <Skeleton className="h-5 w-32" />
             </div>
             <div className="divide-y divide-gray-100">
@@ -238,7 +238,7 @@ export function ProductsSkeleton() {
       <PageHeaderSkeleton />
 
       {/* Form block */}
-      <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
+      <div aria-hidden="true" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <Skeleton className="h-5 w-36" />
         <Skeleton className="h-10 w-full rounded-lg" />
         <div className="grid grid-cols-2 gap-3">
@@ -249,8 +249,8 @@ export function ProductsSkeleton() {
       </div>
 
       {/* List */}
-      <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+      <div aria-hidden="true" className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
         <div className="divide-y divide-gray-100">

@@ -38,9 +38,9 @@ const CATEGORY_ACCENT: Record<MealCategory, string> = {
 function Thumbnail({ meal }: { meal: MealWithDetails | null }) {
   const image = meal?.images?.[0]
   return (
-    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
       {/* Placeholder sits underneath; a broken image hides itself and reveals it */}
-      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+      <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
         <PlateIcon className="h-6 w-6" />
       </div>
       {image && meal && (
@@ -82,13 +82,13 @@ export default function DayMealRow({
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
   const caption = (
-    <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{categoryLabel}</div>
+    <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{categoryLabel}</div>
   )
 
   return (
     <>
       <div
-        className={`flex flex-col gap-3 rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center ${CATEGORY_ACCENT[category]} ${
+        className={`flex flex-col gap-3 rounded-lg border border-l-4 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 shadow-sm sm:flex-row sm:items-center ${CATEGORY_ACCENT[category]} ${
           isConsumed || isSkipped ? 'opacity-75' : ''
         }`}
       >
@@ -97,7 +97,7 @@ export default function DayMealRow({
             role="button"
             tabIndex={0}
             aria-label={`${categoryLabel}: ${selectedMeal.name}. Pokaż szczegóły`}
-            className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setShowDetailsModal(true)}
             onKeyDown={(e) => {
               if (e.repeat) return
@@ -110,19 +110,19 @@ export default function DayMealRow({
             <Thumbnail meal={selectedMeal} />
             <div className="min-w-0 flex-1">
               {caption}
-              <div className={`line-clamp-2 text-sm font-semibold text-gray-900 ${isSkipped ? 'line-through' : ''}`}>
+              <div className={`line-clamp-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
                 {selectedMeal.name}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="text-xs text-gray-500">{formatMealMacros(selectedMeal)}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{formatMealMacros(selectedMeal)}</span>
                 {isConsumed && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-800">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-green-100 dark:bg-green-900 px-2 py-0.5 text-[11px] font-medium text-green-800 dark:text-green-200">
                     <CheckIcon className="h-3 w-3" />
                     Zjedzony
                   </span>
                 )}
                 {isSkipped && (
-                  <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-800">
+                  <span className="inline-flex items-center rounded-full bg-orange-100 dark:bg-orange-900 px-2 py-0.5 text-[11px] font-medium text-orange-800 dark:text-orange-200">
                     Pominięty
                   </span>
                 )}
@@ -134,7 +134,7 @@ export default function DayMealRow({
             <Thumbnail meal={null} />
             <div className="min-w-0 flex-1">
               {caption}
-              <div className="text-sm text-gray-500">Nie zaplanowano</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Nie zaplanowano</div>
             </div>
           </div>
         )}

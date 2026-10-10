@@ -69,9 +69,9 @@ export default function DishView({
       {/* Custom items without meal */}
       {customItems.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             Pozostałe produkty
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
               ({customItems.length})
             </span>
           </h3>

@@ -262,21 +262,21 @@ export default function MealDetailsModal({
         role="dialog"
         aria-modal={ariaModal ? 'true' : undefined}
         aria-labelledby={titleId}
-        className="h-full w-full max-w-2xl overflow-y-auto bg-white shadow-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl"
+        className="h-full w-full max-w-2xl overflow-y-auto bg-white dark:bg-gray-800 shadow-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6 sm:py-4">
           <div>
-            <h2 id={titleId} className="text-lg font-bold leading-snug text-gray-900 sm:text-2xl">{meal.name}</h2>
+            <h2 id={titleId} className="text-lg font-bold leading-snug text-gray-900 dark:text-gray-100 sm:text-2xl">{meal.name}</h2>
             {meal.isUserVariant && (
-              <p className="text-xs text-indigo-600 font-semibold mt-1">→ Przepis dostosowany dla Ciebie</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-1">→ Przepis dostosowany dla Ciebie</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Zamknij"
-            className="-mr-1.5 -mt-1.5 shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors sm:-mt-0.5"
+            className="-mr-1.5 -mt-1.5 shrink-0 rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors sm:-mt-0.5"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -298,13 +298,13 @@ export default function MealDetailsModal({
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex flex-wrap items-center gap-1.5 text-sm" aria-label="Wartości odżywcze">
-              <span className="rounded bg-blue-100 px-2.5 py-1 font-semibold text-blue-800 tabular-nums">
+              <span className="rounded bg-blue-100 dark:bg-blue-900 px-2.5 py-1 font-semibold text-blue-800 dark:text-blue-200 tabular-nums">
                 {Math.round(displayKcal * servings)} kcal
               </span>
-              <span className="rounded bg-green-100 px-2 py-1 text-green-800 tabular-nums">B: {(macros.protein * servings).toFixed(1)} g</span>
-              <span className="rounded bg-yellow-100 px-2 py-1 text-yellow-800 tabular-nums">T: {(macros.fat * servings).toFixed(1)} g</span>
-              <span className="rounded bg-purple-100 px-2 py-1 text-purple-800 tabular-nums">W: {(macros.carbs * servings).toFixed(1)} g</span>
-              {servings !== 1 && <span className="text-xs text-gray-500">({formatAmount(servings)} porcji)</span>}
+              <span className="rounded bg-green-100 dark:bg-green-900 px-2 py-1 text-green-800 dark:text-green-200 tabular-nums">B: {(macros.protein * servings).toFixed(1)} g</span>
+              <span className="rounded bg-yellow-100 dark:bg-yellow-900 px-2 py-1 text-yellow-800 dark:text-yellow-200 tabular-nums">T: {(macros.fat * servings).toFixed(1)} g</span>
+              <span className="rounded bg-purple-100 dark:bg-purple-900 px-2 py-1 text-purple-800 dark:text-purple-200 tabular-nums">W: {(macros.carbs * servings).toFixed(1)} g</span>
+              {servings !== 1 && <span className="text-xs text-gray-500 dark:text-gray-400">({formatAmount(servings)} porcji)</span>}
             </div>
             {meal.tags && meal.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5" aria-label="Tagi">
@@ -324,7 +324,7 @@ export default function MealDetailsModal({
           {/* 2. Ingredients, with the variant switch right above them */}
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="text-lg font-semibold text-gray-900">Składniki</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Składniki</h3>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -342,7 +342,7 @@ export default function MealDetailsModal({
                     onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 1))}
                     step="0.5"
                     min="0.5"
-                    className="w-14 px-2 py-1 text-center border-2 border-indigo-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-14 px-2 py-1 text-center border-2 border-indigo-300 dark:border-indigo-700 rounded-lg font-semibold text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     type="button"
@@ -357,15 +357,15 @@ export default function MealDetailsModal({
 
             {showVariantSelector && householdMembers.length > 0 && (
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Wersja</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Wersja</span>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedVariantUserId(userId ?? null)}
                     aria-pressed={selectedVariantUserId === (userId ?? null)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       selectedVariantUserId === (userId ?? null)
-                        ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-500'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-blue-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-blue-500'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
                     }`}
                   >
                     Mój przepis
@@ -377,8 +377,8 @@ export default function MealDetailsModal({
                       aria-pressed={selectedVariantUserId === member.user_id}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         selectedVariantUserId === member.user_id
-                          ? 'bg-indigo-600 text-white ring-2 ring-offset-2 ring-indigo-500'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'bg-indigo-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-indigo-500'
+                          : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
                       }`}
                     >
                       {member.display_name || 'Brak nazwy'}
@@ -389,15 +389,15 @@ export default function MealDetailsModal({
             )}
 
             {displayItems === undefined ? (
-              <ul className="space-y-2 border-t border-gray-200 pt-3" aria-busy="true" aria-label="Ładowanie składników">
+              <ul className="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-3" aria-busy="true" aria-label="Ładowanie składników">
                 {[0, 1, 2, 3].map((i) => (
-                  <li key={i} className="h-5 animate-pulse rounded bg-gray-100" />
+                  <li key={i} className="h-5 animate-pulse rounded bg-gray-100 dark:bg-gray-700" />
                 ))}
               </ul>
             ) : displayItems.length === 0 ? (
-              <p className="border-t border-gray-200 pt-3 text-sm text-gray-500">Brak składników.</p>
+              <p className="border-t border-gray-200 dark:border-gray-700 pt-3 text-sm text-gray-500 dark:text-gray-400">Brak składników.</p>
             ) : (
-              <ul className="space-y-2 border-t border-gray-200 pt-3">
+              <ul className="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-3">
                 {displayItems.map((item, index) => {
                   const totalWeight = item.product ? Math.round(item.amount * servings * (item.product.unit_weight_grams || 1)) : 0
                   const unitType = item.unit_type || item.product?.unit_type || '100g'
@@ -405,13 +405,13 @@ export default function MealDetailsModal({
                   return (
                     <li key={index} className="flex items-center justify-between text-sm gap-2">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-gray-900 font-medium truncate">{item.product?.name || 'Nieznany produkt'}</span>
+                        <span className="text-gray-900 dark:text-gray-100 font-medium truncate">{item.product?.name || 'Nieznany produkt'}</span>
                         {productNotes && (
                           <div className="relative flex-shrink-0">
                             <button
                               type="button"
                               onClick={() => setActiveIngredientTooltip(activeIngredientTooltip === index ? null : index)}
-                              className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold leading-none"
+                              className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-[10px] font-bold leading-none"
                               aria-label="Pokaż notatkę"
                               aria-expanded={activeIngredientTooltip === index}
                             >
@@ -426,7 +426,7 @@ export default function MealDetailsModal({
                           </div>
                         )}
                       </div>
-                      <span className="text-gray-600 flex-shrink-0">
+                      <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">
                         {unitType === '100g'
                           ? `${totalWeight}g`
                           : `${formatAmount(item.amount * servings)} ${translateUnit(unitType)} (${totalWeight}g)`}
@@ -441,20 +441,20 @@ export default function MealDetailsModal({
           {/* 3. Recipe */}
           {meal.description && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Przepis</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-200 pt-3">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Przepis</h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed border-t border-gray-200 dark:border-gray-700 pt-3">
                 {meal.description}
               </p>
             </div>
           )}
         </div>
 
-        <div className="sticky bottom-0 border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div className="sticky bottom-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
           {onSelectMeal ? (
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 rounded-lg bg-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
+                className="flex-1 rounded-lg bg-gray-200 dark:bg-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
               >
                 Anuluj
               </button>

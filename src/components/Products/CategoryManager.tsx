@@ -54,10 +54,10 @@ export default function CategoryManager({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-gray-900">Kategorie produktów</h3>
-        <p className="text-xs text-gray-500 mt-1">Nazwy kategorii, które przypisujesz produktom</p>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Kategorie produktów</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Nazwy kategorii, które przypisujesz produktom</p>
       </div>
 
       <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-3">
@@ -68,7 +68,7 @@ export default function CategoryManager({
           placeholder="Np. Przyprawy"
           aria-label="Nazwa nowej kategorii"
           disabled={isAddingCategory}
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
         />
         <Button type="submit" disabled={isAddingCategory || !newCategoryName.trim()}>
           {isAddingCategory ? 'Dodawanie...' : 'Dodaj kategorię'}
@@ -76,7 +76,7 @@ export default function CategoryManager({
       </form>
 
       {categories.length === 0 ? (
-        <p className="text-sm text-gray-500">Brak kategorii. Dodaj pierwszą kategorię.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Brak kategorii. Dodaj pierwszą kategorię.</p>
       ) : (
         <div className="space-y-2">
           {categories.map((category) => (
@@ -88,7 +88,7 @@ export default function CategoryManager({
                     value={editingCategoryName}
                     onChange={(e) => setEditingCategoryName(e.target.value)}
                     aria-label="Nazwa kategorii"
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <Button variant="primary" size="sm" onClick={() => saveCategoryEdit(category)}>
                     Zapisz
@@ -99,7 +99,7 @@ export default function CategoryManager({
                 </>
               ) : (
                 <>
-                  <span className="flex-1 text-sm text-gray-800">{category.name}</span>
+                  <span className="flex-1 text-sm text-gray-800 dark:text-gray-200">{category.name}</span>
                   <Button variant="ghost" size="sm" onClick={() => startCategoryEdit(category)} aria-label={`Edytuj kategorię ${category.name}`}>
                     Edytuj
                   </Button>

@@ -35,9 +35,9 @@ export default function CategoryView({
     <>
       {groupByCategory(items).map(({ key, label, groupedItems: groupedCategoryItems }) => (
         <div key={key} className="space-y-2">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             {label}
-            <span className="text-sm font-normal text-gray-500">({groupedCategoryItems.length})</span>
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({groupedCategoryItems.length})</span>
           </h3>
           {groupedCategoryItems.map((groupedItem) => {
             const isExpanded = expandedRowKey === groupedItem.key

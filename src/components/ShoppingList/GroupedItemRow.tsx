@@ -51,7 +51,7 @@ export default function GroupedItemRow({
             void onToggle(groupedItem)
           }
         }}
-        className={`bg-white shadow-sm border border-gray-200 p-4 flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+        className={`bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
           isExpanded ? 'rounded-t-lg border-b-0' : 'rounded-lg'
         }`}
       >
@@ -64,18 +64,18 @@ export default function GroupedItemRow({
             e.stopPropagation()
             void onToggle(groupedItem)
           }}
-          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
         />
         <div className="flex-1 min-w-0 flex items-start gap-2">
           <div className="min-w-0">
             <p
               className={`text-sm font-medium ${
-                groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
+                groupedItem.allChecked ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'
               }`}
             >
               {groupedItem.name}
             </p>
-            {amountLabel && <p className="text-xs text-gray-500 mt-0.5">{amountLabel}</p>}
+            {amountLabel && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{amountLabel}</p>}
           </div>
           {groupedItem.product?.notes && (
             <div className="relative flex-shrink-0 mt-0.5">
@@ -85,7 +85,7 @@ export default function GroupedItemRow({
                   e.stopPropagation()
                   setActiveProductTooltip(activeProductTooltip === groupedItem.key ? null : groupedItem.key)
                 }}
-                className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-[10px] font-bold"
                 aria-label="Pokaż notatkę"
                 aria-expanded={activeProductTooltip === groupedItem.key}
               >
@@ -109,7 +109,7 @@ export default function GroupedItemRow({
           aria-expanded={isExpanded}
           aria-controls={detailsId}
           aria-label={isExpanded ? `Zwiń szczegóły: ${groupedItem.name}` : `Pokaż szczegóły: ${groupedItem.name}`}
-          className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
         >
           <svg
             className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -125,7 +125,7 @@ export default function GroupedItemRow({
       {isExpanded && (
         <div
           id={detailsId}
-          className="border border-t-0 border-gray-200 rounded-b-lg bg-gray-50 px-3 pb-3 pt-2 space-y-3"
+          className="border border-t-0 border-gray-200 dark:border-gray-700 rounded-b-lg bg-gray-50 dark:bg-gray-900 px-3 pb-3 pt-2 space-y-3"
         >
           {details}
           <div className="flex justify-end">

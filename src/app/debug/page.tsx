@@ -66,40 +66,40 @@ export default function DebugPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <h1 className="text-2xl font-bold">Debug Information</h1>
 
         {/* Current User */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Current User</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto text-xs">
             {JSON.stringify(user, null, 2)}
           </pre>
         </div>
 
         {/* Household Users */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">
             Household Users (for user_id: {user?.id})
           </h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto text-xs">
             {JSON.stringify(householdUsers, null, 2)}
           </pre>
         </div>
 
         {/* All Households */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">All Households</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto text-xs">
             {JSON.stringify(households, null, 2)}
           </pre>
         </div>
 
         {/* Raw Query Result */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Raw Query Result</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
+          <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto text-xs">
             {JSON.stringify(rawQuery, null, 2)}
           </pre>
         </div>

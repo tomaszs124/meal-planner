@@ -63,7 +63,7 @@ export default function Meals() {
 
   if (!household) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+      <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200">
         Musisz najpierw dołączyć do gospodarstwa.
       </div>
     )
@@ -99,13 +99,13 @@ export default function Meals() {
       {/* Meals list - Grid view */}
       <div>
         {meals.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Brak posiłków</p>
-            <p className="text-gray-400 text-xs mt-1">Dodaj pierwszy posiłek powyżej</p>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Brak posiłków</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Dodaj pierwszy posiłek powyżej</p>
           </div>
         ) : filteredMeals.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Brak posiłków pasujących do filtrów</p>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Brak posiłków pasujących do filtrów</p>
             <Button
               variant="ghost"
               size="sm"
@@ -183,8 +183,8 @@ export default function Meals() {
 
       {/* Stats */}
       {meals.length > 0 && (
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 text-center text-sm text-gray-600">
-          Wszystkich posiłków: <span className="font-semibold text-gray-900">{meals.length}</span>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          Wszystkich posiłków: <span className="font-semibold text-gray-900 dark:text-gray-100">{meals.length}</span>
         </div>
       )}
     </div>

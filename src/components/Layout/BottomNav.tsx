@@ -61,7 +61,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 safe-area-bottom">
+    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50 safe-area-bottom">
       <div className="max-w-screen-xl mx-auto px-2">
         <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {

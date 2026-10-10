@@ -31,7 +31,7 @@ export default function MemberOverridesEditor({
 }) {
   if (householdMembers.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         Brak domowników. Warianty pojawią się, gdy w gospodarstwie będzie więcej osób.
       </p>
     )
@@ -41,7 +41,7 @@ export default function MemberOverridesEditor({
     return (
       <ul className="space-y-2" aria-busy="true" aria-label="Ładowanie wariantów">
         {householdMembers.map((member) => (
-          <li key={member.user_id} className="h-14 animate-pulse rounded-lg bg-gray-100" />
+          <li key={member.user_id} className="h-14 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700" />
         ))}
       </ul>
     )
@@ -53,7 +53,7 @@ export default function MemberOverridesEditor({
   return (
     <div className="space-y-2">
       {!canToggleOn && (
-        <p className="text-sm text-gray-500">Dodaj najpierw składniki do przepisu bazowego, potem włącz warianty.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Dodaj najpierw składniki do przepisu bazowego, potem włącz warianty.</p>
       )}
       {householdMembers.map((member) => {
         const enabled = !!overrides[member.user_id]
@@ -66,7 +66,7 @@ export default function MemberOverridesEditor({
         return (
           <div
             key={member.user_id}
-            className={`rounded-lg border ${enabled ? 'border-indigo-300 bg-indigo-50/50' : 'border-gray-200 bg-white'}`}
+            className={`rounded-lg border ${enabled ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50/50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}
           >
             <div className="flex items-center justify-between gap-3 px-3 py-2.5">
               <label htmlFor={switchId} className="flex min-w-0 items-center gap-3 cursor-pointer">
@@ -78,32 +78,32 @@ export default function MemberOverridesEditor({
                   disabled={disabled || (!enabled && !canToggleOn)}
                   onClick={() => toggleMemberOverride(member.user_id, baseProducts, overrides, setOverrides)}
                   className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-40 ${
-                    enabled ? 'bg-indigo-600' : 'bg-gray-300'
+                    enabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-800 shadow transition-transform ${
                       enabled ? 'translate-x-5' : 'translate-x-0.5'
                     }`}
                   />
                 </button>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium text-gray-900">
+                  <span className="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                     {name}
-                    {isMe && <span className="ml-1 text-gray-500 font-normal">(Ty)</span>}
+                    {isMe && <span className="ml-1 text-gray-500 dark:text-gray-400 font-normal">(Ty)</span>}
                   </span>
-                  <span className="block text-xs text-gray-500">
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">
                     {enabled ? 'Własny wariant' : 'Je przepis bazowy'}
                   </span>
                 </span>
               </label>
-              <span className={`shrink-0 text-sm tabular-nums ${enabled ? 'font-semibold text-indigo-700' : 'text-gray-500'}`}>
+              <span className={`shrink-0 text-sm tabular-nums ${enabled ? 'font-semibold text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400'}`}>
                 {kcal} kcal
               </span>
             </div>
 
             {enabled && (
-              <div className="border-t border-indigo-200 px-3 py-3 space-y-2">
+              <div className="border-t border-indigo-200 dark:border-indigo-800 px-3 py-3 space-y-2">
                 <IngredientRows
                   products={products}
                   rows={memberRows}

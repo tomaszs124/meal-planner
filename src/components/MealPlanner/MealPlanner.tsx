@@ -65,7 +65,7 @@ export default function MealPlanner() {
 
   if (!household) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center text-gray-600">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center text-gray-600 dark:text-gray-400">
         Musisz najpierw dołączyć do gospodarstwa.
       </div>
     )

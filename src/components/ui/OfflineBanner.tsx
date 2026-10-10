@@ -37,7 +37,7 @@ export default function OfflineBanner() {
       className={
         online
           ? undefined
-          : `fixed left-0 right-0 z-50 bg-amber-100 border-t border-amber-300 text-amber-900 text-xs text-center px-4 pt-1.5 ${position}`
+          : `fixed left-0 right-0 z-50 bg-amber-100 dark:bg-amber-900 border-t border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 text-xs text-center px-4 pt-1.5 ${position}`
       }
     >
       {online ? null : 'Brak połączenia. Pokazuję ostatnie zapisane dane, zmiany mogą się nie zapisać.'}

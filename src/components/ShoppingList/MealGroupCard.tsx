@@ -32,9 +32,9 @@ export default function MealGroupCard({
   getMemberDisplayNameByUserId: (userId: string | null | undefined) => string
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Meal header */}
-      <div className="p-4 bg-gray-50 border-b border-gray-200">
+      <div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-start gap-3">
           {/* Meal image thumbnail — clickable */}
           {mealGroup.meal?.images && mealGroup.meal.images.length > 0 ? (
@@ -45,7 +45,7 @@ export default function MealGroupCard({
                   onOpenMeal(mealGroup.meal, mealGroup.source_user_id)
                 }
               }}
-              className="w-16 h-16 flex-shrink-0 rounded-lg bg-gray-100 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="w-16 h-16 flex-shrink-0 rounded-lg bg-gray-100 dark:bg-gray-700 bg-cover bg-center cursor-pointer hover:opacity-80 transition-opacity"
               style={{ backgroundImage: `url(${mealGroup.meal.images[0].image_url})` }}
               aria-label={`Otwórz przepis: ${mealGroup.meal.name}`}
             />
@@ -57,10 +57,10 @@ export default function MealGroupCard({
                   onOpenMeal(mealGroup.meal, mealGroup.source_user_id)
                 }
               }}
-              className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center cursor-pointer hover:from-gray-200 hover:to-gray-300 transition-colors"
+              className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 dark:from-gray-700 to-gray-200 dark:to-gray-800 flex items-center justify-center cursor-pointer hover:from-gray-200 hover:to-gray-300 transition-colors"
               aria-label={`Otwórz przepis: ${mealGroup.meal?.name}`}
             >
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </button>
@@ -76,7 +76,7 @@ export default function MealGroupCard({
                       onOpenMeal(mealGroup.meal, mealGroup.source_user_id)
                     }
                   }}
-                  className="text-left font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="text-left font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   {mealGroup.meal?.name || 'Nieznane danie'} ({getMemberDisplayNameByUserId(mealGroup.source_user_id)})
                 </button>
@@ -104,7 +104,7 @@ export default function MealGroupCard({
               <button
                 type="button"
                 onClick={() => deleteMealGroup(mealGroup)}
-                className="text-red-600 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors flex-shrink-0"
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950 transition-colors flex-shrink-0"
                 title="Usuń danie"
                 aria-label="Usuń danie"
               >
@@ -124,7 +124,7 @@ export default function MealGroupCard({
                 void updateMealServings(mealGroup, next)
               }}
               disabled={updatingServingsKey !== null}
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               −
             </button>
@@ -153,7 +153,7 @@ export default function MealGroupCard({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') e.currentTarget.blur()
               }}
-              className="w-16 px-2 py-1 text-center border border-gray-300 rounded-lg font-semibold text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
             />
             <button
               type="button"
@@ -164,7 +164,7 @@ export default function MealGroupCard({
                 void updateMealServings(mealGroup, next)
               }}
               disabled={updatingServingsKey !== null}
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               +
             </button>
@@ -205,7 +205,7 @@ export default function MealGroupCard({
                   e.stopPropagation()
                   void toggleSingleItem(item)
                 }}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <p
@@ -215,7 +215,7 @@ export default function MealGroupCard({
                 >
                   {item.name}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {getSingleItemAmountLabel(item)}
                 </p>
               </div>

@@ -22,7 +22,7 @@ export default function ProductSelectionList({
     return (
       <ul className="space-y-2" aria-busy="true" aria-label="Ładowanie składników">
         {[0, 1, 2].map((i) => (
-          <li key={i} className="h-12 animate-pulse rounded-lg bg-gray-100" />
+          <li key={i} className="h-12 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700" />
         ))}
       </ul>
     )

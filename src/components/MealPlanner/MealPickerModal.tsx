@@ -133,17 +133,17 @@ export default function MealPickerModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 id={titleId} className="text-xl font-bold text-gray-900">Wybierz posiłek</h2>
+            <h2 id={titleId} className="text-xl font-bold text-gray-900 dark:text-gray-100">Wybierz posiłek</h2>
             <button
               type="button"
               onClick={onClose}
               aria-label="Zamknij"
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -158,7 +158,7 @@ export default function MealPickerModal({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Szukaj po nazwie lub składnikach..."
             aria-label="Szukaj po nazwie lub składnikach"
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           {/* Tags filter */}
@@ -172,7 +172,7 @@ export default function MealPickerModal({
                     aria-pressed={selectedTags.includes(tag.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedTags.includes(tag.id)
-                        ? 'ring-2 ring-offset-2 ring-blue-500 opacity-100'
+                        ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-blue-500 opacity-100'
                         : 'opacity-60 hover:opacity-100'
                     }`}
                     style={{ 
@@ -202,7 +202,7 @@ export default function MealPickerModal({
               {/* Primary category meals */}
               {primaryMeals.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Polecane</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Polecane</h3>
                   <div className="space-y-2">
                     {primaryMeals.map((meal) => (
                       <MealCard key={meal.id} meal={meal} onShowDetails={() => setSelectedMealForDetails(meal)} />
@@ -214,7 +214,7 @@ export default function MealPickerModal({
               {/* Alternative category meals */}
               {alternativeMeals.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Alternatywne</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Alternatywne</h3>
                   <div className="space-y-2">
                     {alternativeMeals.map((meal) => (
                       <MealCard key={meal.id} meal={meal} onShowDetails={() => setSelectedMealForDetails(meal)} />
@@ -226,7 +226,7 @@ export default function MealPickerModal({
               {/* Other meals */}
               {otherMeals.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Pozostałe</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pozostałe</h3>
                   <div className="space-y-2">
                     {otherMeals.map((meal) => (
                       <MealCard key={meal.id} meal={meal} onShowDetails={() => setSelectedMealForDetails(meal)} />
@@ -236,7 +236,7 @@ export default function MealPickerModal({
               )}
 
               {filteredMeals.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   {searchQuery ? 'Nie znaleziono posiłków' : 'Brak posiłków'}
                 </div>
               )}
@@ -266,12 +266,12 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
   return (
     <button
       onClick={onShowDetails}
-      className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+      className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all"
     >
       <div className="flex items-start gap-3">
         {/* Meal image thumbnail */}
         {meal.images && meal.images.length > 0 ? (
-          <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+          <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
             <Image
               src={meal.images[0].image_url}
               // Decorative: the meal name is already the button's text
@@ -282,17 +282,17 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
             />
           </div>
         ) : (
-          <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-gray-100 dark:from-gray-700 to-gray-200 dark:to-gray-800 flex items-center justify-center">
+            <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
 
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900">{meal.name}</h4>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100">{meal.name}</h4>
           {meal.items && meal.items.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1 truncate">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
               {meal.items.slice(0, 3).map((item) => item.product?.name).filter(Boolean).join(', ')}
               {meal.items.length > 3 && '...'}
             </p>
@@ -315,7 +315,7 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
           )}
         </div>
         {meal.totalKcal !== undefined && (
-          <span className="ml-2 text-sm font-semibold text-blue-600 flex-shrink-0">
+          <span className="ml-2 text-sm font-semibold text-blue-600 dark:text-blue-400 flex-shrink-0">
             {Math.round(meal.totalKcal)} kcal
           </span>
         )}

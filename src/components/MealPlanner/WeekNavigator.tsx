@@ -28,7 +28,7 @@ export default function WeekNavigator({
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <div className="mb-4 flex items-center gap-1">
         <Button
           variant="ghost"
@@ -38,7 +38,7 @@ export default function WeekNavigator({
           aria-label="Poprzedni tydzień"
         />
 
-        <div className="min-w-0 flex-1 text-center text-sm font-semibold text-gray-900">
+        <div className="min-w-0 flex-1 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">
           {format(weekStart, 'd MMM', { locale: pl })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: pl })}
         </div>
 
@@ -79,11 +79,11 @@ export default function WeekNavigator({
                   ? 'border-blue-600'
                   : isCurrentDay
                   ? 'border-blue-400'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                 }
               `}
             >
-              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
+              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
                 {format(day, 'EEE', { locale: pl })}
               </span>
               
@@ -119,7 +119,7 @@ export default function WeekNavigator({
                 </svg>
                 
                 {/* Day number */}
-                <span className={`relative text-base md:text-lg font-bold z-10 ${isSelected ? 'text-blue-600' : 'text-gray-900'}`}>
+                <span className={`relative text-base md:text-lg font-bold z-10 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
                   {format(day, 'd')}
                 </span>
               </div>
