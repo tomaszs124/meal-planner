@@ -37,10 +37,18 @@ const CATEGORY_ACCENT: Record<MealCategory, string> = {
   snack: 'border-l-emerald-300',
 }
 
-function Thumbnail({ meal }: { meal: MealWithDetails | null }) {
+function Thumbnail({ meal, favorite = false }: { meal: MealWithDetails | null; favorite?: boolean }) {
   const image = meal?.images?.[0]
   return (
     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+      {favorite && (
+        <span
+          className="absolute left-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
+          title="Ulubione"
+        >
+          <HeartIcon filled className="h-3 w-3" />
+        </span>
+      )}
       {/* Placeholder sits underneath; a broken image hides itself and reveals it */}
       <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
         <PlateIcon className="h-6 w-6" />
@@ -110,15 +118,10 @@ export default function DayMealRow({
               }
             }}
           >
-            <Thumbnail meal={selectedMeal} />
+            <Thumbnail meal={selectedMeal} favorite={favoriteIds.has(selectedMeal.id)} />
             <div className="min-w-0 flex-1">
               {caption}
               <div className={`line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100 ${isSkipped ? 'line-through' : ''}`}>
-                {favoriteIds.has(selectedMeal.id) && (
-                  <span className="mr-1 inline-block align-[-2px] text-rose-500" title="Ulubione">
-                    <HeartIcon filled className="h-3.5 w-3.5" />
-                  </span>
-                )}
                 {selectedMeal.name}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">

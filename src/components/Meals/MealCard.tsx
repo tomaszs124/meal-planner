@@ -30,7 +30,7 @@ export default function MealCard({
       <div className="relative">
         {isFavorite && (
           <span
-            className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm backdrop-blur-sm dark:bg-gray-900/80"
+            className="absolute left-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm backdrop-blur-sm dark:bg-gray-900/80"
             title="Ulubione"
           >
             <HeartIcon filled className="h-4 w-4" />
