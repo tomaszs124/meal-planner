@@ -72,6 +72,17 @@ export default function MealAccordionList({
     }
   }
 
+  // Collapsing a group from its stuck header: without this the page would jump into the
+  // middle of the next group. Pin the collapsed header at the top instead, so the next
+  // category starts right under it.
+  function toggleFromHeader(key: string, isOpen: boolean, header: HTMLElement) {
+    const wasStuck = isOpen && header.getBoundingClientRect().top <= 41
+    toggle(key)
+    if (wasStuck) {
+      setTimeout(() => document.getElementById(sectionId(key))?.scrollIntoView({ block: 'start' }), 0)
+    }
+  }
+
   const groupLabel = (key: string) =>
     key === '__other__' ? 'Pozostałe' : (MEAL_CATEGORIES.find(c => c.value === key)?.label ?? key)
 
@@ -122,7 +133,7 @@ export default function MealAccordionList({
             {/* Sticky group header (below the jump bar): collapse the group from anywhere inside it */}
             <button
               type="button"
-              onClick={() => toggle(key)}
+              onClick={(e) => toggleFromHeader(key, isOpen, e.currentTarget)}
               aria-expanded={isOpen}
               className={`sticky top-10 z-10 flex w-full items-center justify-between rounded-t-lg border-b border-gray-200 bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700 ${
                 isOpen ? '' : 'rounded-b-lg border-b-0'
