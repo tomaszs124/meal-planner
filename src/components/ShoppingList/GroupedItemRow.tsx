@@ -1,109 +1,145 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
+import Button from '@/components/ui/Button'
 import type { GroupedItem } from './types'
 import { getGroupedItemAmountLabel } from './shoppingListUtils'
 
 /**
- * Single aggregated product row (checkbox, name, amount, optional product note
- * tooltip and delete button). Used by the category and "all products" views.
- * `className` is the full class list of the row container; `children` are rendered
- * after the delete button (e.g. the expand toggle in the category view).
+ * One aggregated product row of the shopping list, shared by the category view, the
+ * "all products" view and the custom items of the dish view:
+ * - tapping anywhere on the row (or Enter/Space on it) toggles the check,
+ * - the chevron expands a detail area with optional `details` (e.g. source meals)
+ *   and the "Usuń z listy" action; there is no delete control on the collapsed row.
  */
 export default function GroupedItemRow({
   groupedItem,
-  className,
+  isExpanded,
+  onToggleExpanded,
   activeProductTooltip,
   setActiveProductTooltip,
   onToggle,
   onDelete,
-  children,
+  details,
 }: {
   groupedItem: GroupedItem
-  className: string
+  isExpanded: boolean
+  onToggleExpanded: () => void
   activeProductTooltip: string | null
   setActiveProductTooltip: (key: string | null) => void
   onToggle: (groupedItem: GroupedItem) => Promise<void>
   onDelete: (groupedItem: GroupedItem) => Promise<void>
-  children?: ReactNode
+  /** Extra content of the expanded area, shown above the delete button */
+  details?: ReactNode
 }) {
+  const detailsId = useId()
+  const amountLabel = getGroupedItemAmountLabel(groupedItem)
+
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => {
-        void onToggle(groupedItem)
-      }}
-      onKeyDown={(e) => {
-        // Only the row itself; keys on the nested checkbox/buttons keep their native behaviour
-        if (e.target !== e.currentTarget || e.repeat) return
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          void onToggle(groupedItem)
-        }
-      }}
-      className={`${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
-    >
-      <input
-        type="checkbox"
-        onClick={(e) => e.stopPropagation()}
-        checked={groupedItem.allChecked}
-        aria-label={groupedItem.name}
-        onChange={(e) => {
-          e.stopPropagation()
+    <div className={`transition-opacity ${groupedItem.allChecked ? 'opacity-60' : 'opacity-100'}`}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => {
           void onToggle(groupedItem)
         }}
-        className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-      />
-      <div className="flex-1 min-w-0 flex items-start gap-2">
-        <div className="min-w-0">
-          <p
-            className={`text-sm font-medium ${
-              groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
-            }`}
-          >
-            {groupedItem.name}
-          </p>
-          {getGroupedItemAmountLabel(groupedItem) && (
-            <p className="text-xs text-gray-500 mt-0.5">
-              {getGroupedItemAmountLabel(groupedItem)}
+        onKeyDown={(e) => {
+          // Only the row itself; keys on the nested checkbox/buttons keep their native behaviour
+          if (e.target !== e.currentTarget || e.repeat) return
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            void onToggle(groupedItem)
+          }
+        }}
+        className={`bg-white shadow-sm border border-gray-200 p-4 flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+          isExpanded ? 'rounded-t-lg border-b-0' : 'rounded-lg'
+        }`}
+      >
+        <input
+          type="checkbox"
+          onClick={(e) => e.stopPropagation()}
+          checked={groupedItem.allChecked}
+          aria-label={groupedItem.name}
+          onChange={(e) => {
+            e.stopPropagation()
+            void onToggle(groupedItem)
+          }}
+          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+        />
+        <div className="flex-1 min-w-0 flex items-start gap-2">
+          <div className="min-w-0">
+            <p
+              className={`text-sm font-medium ${
+                groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
+              }`}
+            >
+              {groupedItem.name}
             </p>
+            {amountLabel && <p className="text-xs text-gray-500 mt-0.5">{amountLabel}</p>}
+          </div>
+          {groupedItem.product?.notes && (
+            <div className="relative flex-shrink-0 mt-0.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setActiveProductTooltip(activeProductTooltip === groupedItem.key ? null : groupedItem.key)
+                }}
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
+                aria-label="Pokaż notatkę"
+                aria-expanded={activeProductTooltip === groupedItem.key}
+              >
+                i
+              </button>
+              {activeProductTooltip === groupedItem.key && (
+                <div className="absolute left-0 bottom-full mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
+                  {groupedItem.product.notes}
+                  <div className="absolute left-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                </div>
+              )}
+            </div>
           )}
         </div>
-        {groupedItem.product?.notes && (
-          <div className="relative flex-shrink-0 mt-0.5">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                setActiveProductTooltip(activeProductTooltip === groupedItem.key ? null : groupedItem.key)
-              }}
-              className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors text-[10px] font-bold"
-              aria-label="Pokaż notatkę"
-              aria-expanded={activeProductTooltip === groupedItem.key}
-            >
-              i
-            </button>
-            {activeProductTooltip === groupedItem.key && (
-              <div className="absolute left-0 bottom-full mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-10">
-                {groupedItem.product.notes}
-                <div className="absolute left-2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
-              </div>
-            )}
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleExpanded()
+          }}
+          aria-expanded={isExpanded}
+          aria-controls={detailsId}
+          aria-label={isExpanded ? `Zwiń szczegóły: ${groupedItem.name}` : `Pokaż szczegóły: ${groupedItem.name}`}
+          className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          void onDelete(groupedItem)
-        }}
-        className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
-        aria-label={`Usuń ${groupedItem.name}`}
-      >
-        Usuń
-      </button>
-      {children}
+      {isExpanded && (
+        <div
+          id={detailsId}
+          className="border border-t-0 border-gray-200 rounded-b-lg bg-gray-50 px-3 pb-3 pt-2 space-y-3"
+        >
+          {details}
+          <div className="flex justify-end">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => void onDelete(groupedItem)}
+              aria-label={`Usuń z listy: ${groupedItem.name}`}
+            >
+              Usuń z listy
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

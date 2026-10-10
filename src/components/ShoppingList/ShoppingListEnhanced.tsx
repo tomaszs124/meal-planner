@@ -7,15 +7,17 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MealDetailsModal from '@/components/MealPlanner/MealDetailsModal'
 import CustomLists from '@/components/ShoppingList/CustomLists'
 import type { GroupBy, ModalMeal, ShoppingListMeal } from './types'
-import { groupItems } from './shoppingListUtils'
+import { getPurchaseProgress, getRelatedMeals, groupItems } from './shoppingListUtils'
 import { useHouseholdMembers } from './useHouseholdMembers'
 import { useShoppingList } from './useShoppingList'
 import GenerateListPanel from './GenerateListPanel'
 import GroupedItemRow from './GroupedItemRow'
 import CategoryView from './CategoryView'
 import DishView from './DishView'
+import RelatedMeals from './RelatedMeals'
 import { ShoppingListSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/Layout/PageShell'
+import Button from '@/components/ui/Button'
 
 export default function ShoppingListEnhanced() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
@@ -41,7 +43,8 @@ export default function ShoppingListEnhanced() {
   const [modalMeal, setModalMeal] = useState<ModalMeal | null>(null)
   const [modalVariantUserId, setModalVariantUserId] = useState<string | null>(null)
   const [activeProductTooltip, setActiveProductTooltip] = useState<string | null>(null)
-  const [expandedCategoryGroupKey, setExpandedCategoryGroupKey] = useState<string | null>(null)
+  // One expanded row (details + delete) at a time, across all three views
+  const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null)
   const [editingServings, setEditingServings] = useState<Record<string, string>>({})
   // The generate panel is the first thing on an empty list; once a list exists it hides behind a header button
   const [showGenerate, setShowGenerate] = useState<boolean | null>(null)
@@ -69,24 +72,21 @@ export default function ShoppingListEnhanced() {
     )
   }
 
+  const progress = getPurchaseProgress(items)
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Lista zakupów"
         subtitle="Generuj listę z planów posiłków lub dodawaj własne produkty"
         actions={
-          <button
-            type="button"
+          <Button
+            variant={generateOpen ? 'secondary' : 'primary'}
             onClick={() => setShowGenerate(!generateOpen)}
             aria-expanded={generateOpen}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              generateOpen
-                ? 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
-            }`}
           >
             {generateOpen ? 'Ukryj generowanie' : 'Generuj z planu'}
-          </button>
+          </Button>
         }
       />
 
@@ -138,8 +138,8 @@ export default function ShoppingListEnhanced() {
             {groupBy === 'category' ? (
               <CategoryView
                 items={items}
-                expandedCategoryGroupKey={expandedCategoryGroupKey}
-                setExpandedCategoryGroupKey={setExpandedCategoryGroupKey}
+                expandedRowKey={expandedRowKey}
+                setExpandedRowKey={setExpandedRowKey}
                 activeProductTooltip={activeProductTooltip}
                 setActiveProductTooltip={setActiveProductTooltip}
                 toggleGroupedItem={toggleGroupedItem}
@@ -150,19 +150,30 @@ export default function ShoppingListEnhanced() {
             ) : groupBy === 'product' ? (
               // Show all items grouped
               <div className="space-y-2">
-                {groupItems(items).map((groupedItem) => (
-                  <GroupedItemRow
-                    key={groupedItem.key}
-                    groupedItem={groupedItem}
-                    className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity ${
-                      groupedItem.allChecked ? 'opacity-60' : 'opacity-100'
-                    }`}
-                    activeProductTooltip={activeProductTooltip}
-                    setActiveProductTooltip={setActiveProductTooltip}
-                    onToggle={toggleGroupedItem}
-                    onDelete={deleteGroupedItem}
-                  />
-                ))}
+                {groupItems(items).map((groupedItem) => {
+                  const isExpanded = expandedRowKey === groupedItem.key
+                  return (
+                    <GroupedItemRow
+                      key={groupedItem.key}
+                      groupedItem={groupedItem}
+                      isExpanded={isExpanded}
+                      onToggleExpanded={() => setExpandedRowKey(isExpanded ? null : groupedItem.key)}
+                      activeProductTooltip={activeProductTooltip}
+                      setActiveProductTooltip={setActiveProductTooltip}
+                      onToggle={toggleGroupedItem}
+                      onDelete={deleteGroupedItem}
+                      details={
+                        isExpanded && (
+                          <RelatedMeals
+                            meals={getRelatedMeals(items, groupedItem)}
+                            onOpenMeal={openMealModal}
+                            getMemberDisplayNameByUserId={getMemberDisplayNameByUserId}
+                          />
+                        )
+                      }
+                    />
+                  )
+                })}
               </div>
             ) : (
               // Group by dish (meal)
@@ -177,38 +188,30 @@ export default function ShoppingListEnhanced() {
                 toggleSingleItem={toggleSingleItem}
                 toggleGroupedItem={toggleGroupedItem}
                 deleteGroupedItem={deleteGroupedItem}
+                expandedRowKey={expandedRowKey}
+                setExpandedRowKey={setExpandedRowKey}
+                activeProductTooltip={activeProductTooltip}
+                setActiveProductTooltip={setActiveProductTooltip}
                 onOpenMeal={openMealModal}
                 getMemberDisplayNameByUserId={getMemberDisplayNameByUserId}
               />
             )}
+
+            {/* Progress + "Usuń kupione": sticks above the bottom navigation while the list scrolls */}
+            <div className="sticky bottom-20 z-30 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white/95 px-4 py-2.5 shadow-md backdrop-blur-sm">
+              <span className="text-sm text-gray-600">
+                Kupione{' '}
+                <span className="font-semibold text-gray-900 tabular-nums">
+                  {progress.bought} / {progress.total}
+                </span>
+              </span>
+              <Button variant="danger" size="sm" onClick={clearCheckedItems} disabled={!progress.anyChecked}>
+                Usuń kupione
+              </Button>
+            </div>
           </>
         )}
       </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={clearCheckedItems}
-          disabled={items.filter(i => i.is_checked).length === 0}
-          className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:text-gray-400 disabled:hover:bg-transparent"
-        >
-          Usuń zaznaczone
-        </button>
-      </div>
-
-      {/* Stats */}
-      {items.length > 0 && (
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 flex justify-between text-sm">
-          <span className="text-gray-600">
-            Produktów: <span className="font-semibold text-gray-900">{groupItems(items).length}</span>
-          </span>
-          <span className="text-gray-600">
-            Kupionych: <span className="font-semibold text-gray-900">{groupItems(items).filter((i) => i.allChecked).length}</span>
-          </span>
-          <span className="text-gray-600">
-            Pozostało: <span className="font-semibold text-gray-900">{groupItems(items).filter((i) => !i.allChecked).length}</span>
-          </span>
-        </div>
-      )}
 
       {/* Custom Lists */}
       <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">

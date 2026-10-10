@@ -5,7 +5,7 @@ import { PageShell } from '@/components/Layout/PageShell'
 
 export default function ProductsPage() {
   return (
-    <PageShell back>
+    <PageShell>
       <Products />
     </PageShell>
   )

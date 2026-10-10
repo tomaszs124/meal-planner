@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProducts } from '@/hooks/useProducts'
-import TagManagement from './TagManagement'
+import TagManagementModal from './TagManagementModal'
 import MealAccordionList from './MealAccordionList'
 import MealDetailsWithActions from './MealDetailsWithActions'
 import MealFilters from './MealFilters'
@@ -14,6 +14,7 @@ import { loadMealIntoForm, useMealFormState } from './useMealForm'
 import type { MealWithItems } from './types'
 import { MealsListSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/Layout/PageShell'
+import Button from '@/components/ui/Button'
 
 export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
@@ -77,25 +78,19 @@ export default function Meals() {
         subtitle="Twórz przepisy z produktów"
         actions={
           <>
-            <button
-              onClick={() => setShowTagManagement(!showTagManagement)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              {showTagManagement ? 'Ukryj tagi' : 'Zarządzaj tagami'}
-            </button>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
-            >
+            <Button aria-haspopup="dialog" onClick={() => setShowTagManagement(true)}>
+              Zarządzaj tagami
+            </Button>
+            <Button variant="primary" aria-haspopup="dialog" onClick={() => setShowAddForm(true)}>
               Dodaj posiłek
-            </button>
+            </Button>
           </>
         }
       />
 
-      {/* Tag Management */}
+      {/* Tag management dialog */}
       {showTagManagement && (
-        <TagManagement />
+        <TagManagementModal onClose={() => setShowTagManagement(false)} />
       )}
 
       {/* Search and filter */}
@@ -111,15 +106,17 @@ export default function Meals() {
         ) : filteredMeals.length === 0 ? (
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
             <p className="text-gray-500 text-sm">Brak posiłków pasujących do filtrów</p>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2"
               onClick={() => {
                 setSelectedTags([])
                 setSearchQuery('')
               }}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               Wyczyść filtry
-            </button>
+            </Button>
           </div>
         ) : (
           <MealAccordionList

@@ -2,8 +2,9 @@
 
 import type { Dispatch, SetStateAction } from 'react'
 import type { GroupedItem, MealGroupData, ShoppingListItemWithProduct, ShoppingListMeal } from './types'
-import { getGroupedItemAmountLabel, groupItems, groupItemsByMeal } from './shoppingListUtils'
+import { groupItems, groupItemsByMeal } from './shoppingListUtils'
 import MealGroupCard from './MealGroupCard'
+import GroupedItemRow from './GroupedItemRow'
 
 /**
  * "Wg dania" view: one card per (meal, household member) plus the custom items
@@ -20,6 +21,10 @@ export default function DishView({
   toggleSingleItem,
   toggleGroupedItem,
   deleteGroupedItem,
+  expandedRowKey,
+  setExpandedRowKey,
+  activeProductTooltip,
+  setActiveProductTooltip,
   onOpenMeal,
   getMemberDisplayNameByUserId,
 }: {
@@ -33,6 +38,10 @@ export default function DishView({
   toggleSingleItem: (item: ShoppingListItemWithProduct) => Promise<void>
   toggleGroupedItem: (groupedItem: GroupedItem) => Promise<void>
   deleteGroupedItem: (groupedItem: GroupedItem) => Promise<void>
+  expandedRowKey: string | null
+  setExpandedRowKey: (key: string | null) => void
+  activeProductTooltip: string | null
+  setActiveProductTooltip: (key: string | null) => void
   onOpenMeal: (meal: ShoppingListMeal, sourceUserId: string | null) => void
   getMemberDisplayNameByUserId: (userId: string | null | undefined) => string
 }) {
@@ -66,63 +75,21 @@ export default function DishView({
               ({customItems.length})
             </span>
           </h3>
-          {groupItems(customItems).map((groupedItem) => (
-            <div
-              key={groupedItem.key}
-              role="button"
-              tabIndex={0}
-              onClick={() => {
-                void toggleGroupedItem(groupedItem)
-              }}
-              onKeyDown={(e) => {
-                // Only the row itself; keys on the nested checkbox/button keep their native behaviour
-                if (e.target !== e.currentTarget || e.repeat) return
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  void toggleGroupedItem(groupedItem)
-                }
-              }}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                groupedItem.allChecked ? 'opacity-60' : 'opacity-100'
-              }`}
-            >
-              <input
-                type="checkbox"
-                onClick={(e) => e.stopPropagation()}
-                checked={groupedItem.allChecked}
-                aria-label={groupedItem.name}
-                onChange={(e) => {
-                  e.stopPropagation()
-                  void toggleGroupedItem(groupedItem)
-                }}
-                className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          {groupItems(customItems).map((groupedItem) => {
+            const isExpanded = expandedRowKey === groupedItem.key
+            return (
+              <GroupedItemRow
+                key={groupedItem.key}
+                groupedItem={groupedItem}
+                isExpanded={isExpanded}
+                onToggleExpanded={() => setExpandedRowKey(isExpanded ? null : groupedItem.key)}
+                activeProductTooltip={activeProductTooltip}
+                setActiveProductTooltip={setActiveProductTooltip}
+                onToggle={toggleGroupedItem}
+                onDelete={deleteGroupedItem}
               />
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`text-sm font-medium ${
-                    groupedItem.allChecked ? 'line-through text-gray-500' : 'text-gray-900'
-                  }`}
-                >
-                  {groupedItem.name}
-                </p>
-                {getGroupedItemAmountLabel(groupedItem) && (
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {getGroupedItemAmountLabel(groupedItem)}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  void deleteGroupedItem(groupedItem)
-                }}
-                aria-label={`Usuń ${groupedItem.name}`}
-                className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
-              >
-                Usuń
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

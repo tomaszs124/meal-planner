@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { ProductCategoryRecord } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
 
 type CategoryManagerProps = {
   categories: ProductCategoryRecord[]
@@ -69,13 +70,9 @@ export default function CategoryManager({
           disabled={isAddingCategory}
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
         />
-        <button
-          type="submit"
-          disabled={isAddingCategory || !newCategoryName.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={isAddingCategory || !newCategoryName.trim()}>
           {isAddingCategory ? 'Dodawanie...' : 'Dodaj kategorię'}
-        </button>
+        </Button>
       </form>
 
       {categories.length === 0 ? (
@@ -93,38 +90,22 @@ export default function CategoryManager({
                     aria-label="Nazwa kategorii"
                     className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <button
-                    type="button"
-                    onClick={() => saveCategoryEdit(category)}
-                    className="rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-                  >
+                  <Button variant="primary" size="sm" onClick={() => saveCategoryEdit(category)}>
                     Zapisz
-                  </button>
-                  <button
-                    type="button"
-                    onClick={cancelCategoryEdit}
-                    className="rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
-                  >
+                  </Button>
+                  <Button size="sm" onClick={cancelCategoryEdit}>
                     Anuluj
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
                   <span className="flex-1 text-sm text-gray-800">{category.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => startCategoryEdit(category)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => startCategoryEdit(category)} aria-label={`Edytuj kategorię ${category.name}`}>
                     Edytuj
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteCategory(category)}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition-colors"
-                  >
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => deleteCategory(category)} aria-label={`Usuń kategorię ${category.name}`}>
                     Usuń
-                  </button>
+                  </Button>
                 </>
               )}
             </div>

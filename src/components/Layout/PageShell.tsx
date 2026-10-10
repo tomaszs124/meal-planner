@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
 
 /**
  * The one page container used by every screen, so side gutters and vertical rhythm are
@@ -11,18 +10,14 @@ import { useRouter } from 'next/navigation'
 export function PageShell({
   children,
   wide = false,
-  back = false,
 }: {
   children: ReactNode
   /** Dashboard: wider on large screens so the three planner slots fit side by side */
   wide?: boolean
-  /** Show the "Wróć" link above the content */
-  back?: boolean
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className={`${wide ? 'max-w-4xl lg:max-w-6xl' : 'max-w-4xl'} mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6`}>
-        {back && <BackLink />}
         {children}
       </div>
     </div>
@@ -47,21 +42,5 @@ export function PageHeader({
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
-  )
-}
-
-export function BackLink() {
-  const router = useRouter()
-  return (
-    <button
-      type="button"
-      onClick={() => router.back()}
-      className="-mb-2 inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-    >
-      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-      </svg>
-      Wróć
-    </button>
   )
 }

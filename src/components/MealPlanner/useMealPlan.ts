@@ -59,10 +59,8 @@ export function useMealPlan() {
   const [weekProgress, setWeekProgress] = useState<DayProgress[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([])
-  const [copyFromUserId, setCopyFromUserId] = useState('')
-  const [sendToUserId, setSendToUserId] = useState('')
-  const [copySuccessMsg, setCopySuccessMsg] = useState('')
-  const [sendSuccessMsg, setSendSuccessMsg] = useState('')
+  // One household member picked in the "Dzień" card, used for both copy-from and send-to
+  const [memberUserId, setMemberUserId] = useState('')
 
   // Fetch all meals for household
   useEffect(() => {
@@ -265,7 +263,7 @@ export function useMealPlan() {
   async function handleCopyFromMember() {
     const userId = user?.id
     const householdId = household?.id
-    if (!userId || !householdId || !copyFromUserId) return
+    if (!userId || !householdId || !memberUserId) return
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
@@ -273,7 +271,7 @@ export function useMealPlan() {
       .from('meal_plan')
       .select('*')
       .eq('household_id', householdId)
-      .eq('user_id', copyFromUserId)
+      .eq('user_id', memberUserId)
       .eq('date', dateStr)
 
     if (!sourceMeals || sourceMeals.length === 0) {
@@ -316,14 +314,13 @@ export function useMealPlan() {
     const plansWithMeals = await fetchDayPlans(householdId, userId, dateStr, allMeals)
     if (plansWithMeals) setPlannedMeals(plansWithMeals)
 
-    setCopySuccessMsg('Dzień domownika skopiowany pomyślnie!')
-    setTimeout(() => setCopySuccessMsg(''), 4000)
+    toast('Dzień domownika skopiowany pomyślnie!', { type: 'success' })
   }
 
   async function handleSendDayToMember() {
     const userId = user?.id
     const householdId = household?.id
-    if (!userId || !householdId || !sendToUserId) return
+    if (!userId || !householdId || !memberUserId) return
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
@@ -341,13 +338,13 @@ export function useMealPlan() {
 
     const uniqueSourceMeals = getUniquePlansByMealType(sourceMeals as MealPlanRow[])
 
-    const newMealPlans = toCopiedPlanRows(uniqueSourceMeals, { userId: sendToUserId, householdId, date: dateStr })
+    const newMealPlans = toCopiedPlanRows(uniqueSourceMeals, { userId: memberUserId, householdId, date: dateStr })
 
     const { data: existingPlans } = await supabase
       .from('meal_plan')
       .select('*')
       .eq('household_id', householdId)
-      .eq('user_id', sendToUserId)
+      .eq('user_id', memberUserId)
       .eq('date', dateStr)
 
     if (existingPlans && existingPlans.length > 0) {
@@ -369,8 +366,7 @@ export function useMealPlan() {
       return
     }
 
-    setSendSuccessMsg('Dzień wysłany do domownika pomyślnie!')
-    setTimeout(() => setSendSuccessMsg(''), 4000)
+    toast('Dzień wysłany do domownika pomyślnie!', { type: 'success' })
   }
 
   function handleWeekChange(direction: 'prev' | 'next') {
@@ -531,12 +527,8 @@ export function useMealPlan() {
     weekProgress,
     isLoading,
     householdMembers,
-    copyFromUserId,
-    setCopyFromUserId,
-    sendToUserId,
-    setSendToUserId,
-    copySuccessMsg,
-    sendSuccessMsg,
+    memberUserId,
+    setMemberUserId,
     handleWeekChange,
     handleSelectMeal,
     handleRandomMeal,

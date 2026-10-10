@@ -5,7 +5,7 @@ import { PageShell } from '@/components/Layout/PageShell'
 
 export default function MealsPage() {
   return (
-    <PageShell back>
+    <PageShell>
       <Meals />
     </PageShell>
   )

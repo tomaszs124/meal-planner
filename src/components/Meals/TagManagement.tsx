@@ -5,6 +5,7 @@ import { SkeletonText } from '@/components/ui/Skeleton'
 import { supabase, Tag } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useFeedback } from '@/components/ui/Feedback'
+import Button from '@/components/ui/Button'
 
 const DEFAULT_COLORS = [
   { bg: '#3B82F6', text: '#FFFFFF', label: 'Niebieski' },
@@ -17,6 +18,7 @@ const DEFAULT_COLORS = [
   { bg: '#14B8A6', text: '#FFFFFF', label: 'Turkus' },
 ]
 
+/** Tag list + add/edit/delete; rendered inside TagManagementModal (no card of its own). */
 export default function TagManagement() {
   const { household } = useCurrentUser()
   const { toast, confirm } = useFeedback()
@@ -172,15 +174,16 @@ export default function TagManagement() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Zarządzanie tagami</h3>
-        <button
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-gray-500">Tagi pomagają filtrować posiłki.</p>
+        <Button
+          variant={showAddForm ? 'secondary' : 'primary'}
+          aria-expanded={showAddForm}
           onClick={() => setShowAddForm(!showAddForm)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
         >
           {showAddForm ? 'Anuluj' : 'Dodaj tag'}
-        </button>
+        </Button>
       </div>
 
       {/* Add tag form */}
@@ -279,13 +282,9 @@ export default function TagManagement() {
             </span>
           </div>
 
-          <button
-            type="submit"
-            disabled={isAdding || !newTagName.trim()}
-            className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
+          <Button type="submit" variant="primary" fullWidth disabled={isAdding || !newTagName.trim()}>
             {isAdding ? 'Dodawanie...' : 'Dodaj tag'}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -346,18 +345,12 @@ export default function TagManagement() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => saveEdit(tag.id)}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
-                    >
+                    <Button variant="primary" size="sm" onClick={() => saveEdit(tag.id)}>
                       Zapisz
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="rounded-lg bg-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-400"
-                    >
+                    </Button>
+                    <Button size="sm" onClick={cancelEdit}>
                       Anuluj
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -370,18 +363,12 @@ export default function TagManagement() {
                     {tag.name}
                   </span>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => startEdit(tag)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => startEdit(tag)} aria-label={`Edytuj tag ${tag.name}`}>
                       Edytuj
-                    </button>
-                    <button
-                      onClick={() => deleteTag(tag.id)}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50"
-                    >
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => deleteTag(tag.id)} aria-label={`Usuń tag ${tag.name}`}>
                       Usuń
-                    </button>
+                    </Button>
                   </div>
                 </>
               )}

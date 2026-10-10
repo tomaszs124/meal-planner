@@ -1,6 +1,6 @@
 import { formatAmount } from '@/lib/nutrition'
 import { getMealGroupKey } from '@/lib/shopping'
-import type { GroupedItem, HouseholdMember, MealGroupData, ShoppingListItemWithProduct } from './types'
+import type { GroupedItem, HouseholdMember, MealGroupData, ShoppingListItemWithProduct, ShoppingListMeal } from './types'
 
 export const UNCATEGORIZED_LABEL = 'Pozostałe'
 
@@ -205,4 +205,43 @@ export function groupByCategory(items: ShoppingListItemWithProduct[]): CategoryG
   }
 
   return groups
+}
+
+/**
+ * Meals (per household member) a grouped row comes from, in first-seen order and
+ * without duplicates. Shown in the expanded detail area of a list row.
+ */
+export function getRelatedMeals(
+  items: ShoppingListItemWithProduct[],
+  groupedItem: GroupedItem
+): Array<{ meal: ShoppingListMeal; source_user_id: string | null }> {
+  const ids = new Set(groupedItem.itemIds)
+  const seen = new Set<string>()
+  const result: Array<{ meal: ShoppingListMeal; source_user_id: string | null }> = []
+  for (const item of items) {
+    if (!ids.has(item.id) || !item.meal) continue
+    const key = getMealGroupKey(item.meal.id, item.source_user_id)
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push({ meal: item.meal, source_user_id: item.source_user_id })
+  }
+  return result
+}
+
+/**
+ * Numbers for the sticky "Kupione X / Y" bar: rows as shown in the product view
+ * (bought and unbought parts of a product are separate rows) and whether anything
+ * can be removed with "Usuń kupione".
+ */
+export function getPurchaseProgress(items: ShoppingListItemWithProduct[]): {
+  bought: number
+  total: number
+  anyChecked: boolean
+} {
+  const rows = groupItems(items)
+  return {
+    bought: rows.filter((row) => row.allChecked).length,
+    total: rows.length,
+    anyChecked: items.some((item) => item.is_checked),
+  }
 }

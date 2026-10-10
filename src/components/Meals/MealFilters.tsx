@@ -1,5 +1,6 @@
 import type { Tag } from '@/lib/supabase/client'
 import { MEAL_CATEGORIES } from './mealHelpers'
+import Button from '@/components/ui/Button'
 import type { MealFiltersState } from './useMealFilters'
 
 // Search box + meal type + tag filter card
@@ -32,6 +33,7 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
           {MEAL_CATEGORIES.map(cat => (
             <button
               key={cat.value}
+              type="button"
               onClick={() => toggleCategoryFilter(cat.value)}
               aria-pressed={selectedCategories.includes(cat.value)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -53,6 +55,7 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
             {tags.map(tag => (
               <button
                 key={tag.id}
+                type="button"
                 onClick={() => toggleTagFilter(tag.id)}
                 aria-pressed={selectedTags.includes(tag.id)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
@@ -70,26 +73,24 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
             ))}
           </div>
           {selectedTags.length > 0 && (
-            <button
-              onClick={() => setSelectedTags([])}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
+            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSelectedTags([])}>
               Wyczyść filtry tagów
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {(selectedTags.length > 0 || selectedCategories.length > 0) && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setSelectedTags([])
             setSelectedCategories([])
           }}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
           Wyczyść wszystkie filtry
-        </button>
+        </Button>
       )}
     </div>
   )

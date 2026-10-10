@@ -2,6 +2,7 @@
 
 import { useId } from 'react'
 import type { ProductCategoryRecord } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
 import {
   PACKAGE_UNIT_LABEL,
   UNITS,
@@ -171,30 +172,18 @@ export default function ProductForm(props: ProductFormProps) {
         </div>
         {props.mode === 'add' ? (
           <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={isSubmitting || categories.length === 0}
-              className="w-full rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || categories.length === 0}>
               {isSubmitting ? 'Dodawanie...' : 'Dodaj produkt'}
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={props.onSave}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-            >
+            <Button variant="primary" onClick={props.onSave}>
               Zapisz
-            </button>
-            <button
-              type="button"
-              onClick={props.onCancel}
-              className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
-            >
+            </Button>
+            <Button onClick={props.onCancel}>
               Anuluj
-            </button>
+            </Button>
           </>
         )}
       </div>

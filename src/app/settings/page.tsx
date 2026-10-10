@@ -5,7 +5,7 @@ import { PageShell } from '@/components/Layout/PageShell'
 
 export default function SettingsPage() {
   return (
-    <PageShell back>
+    <PageShell>
       <UserSettingsForm />
     </PageShell>
   )

@@ -1,17 +1,38 @@
 'use client'
 
-import { useEffect, useRef, useMemo } from 'react'
-import { MealCategory } from '@/lib/supabase/client'
-import type { MealWithDetails } from '@/lib/meals-data'
+import { useMemo } from 'react'
+import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
+import { pl } from 'date-fns/locale'
+import type { Meal, MealCategory } from '@/lib/supabase/client'
 import { getEnabledCategories } from '@/lib/plan'
+import { PageHeader } from '@/components/Layout/PageShell'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
+import DayMealRow from './DayMealRow'
 import DailySummary from './DailySummary'
 import DayActions from './DayActions'
 import { CATEGORY_LABELS } from './types'
 import { useMealPlan } from './useMealPlan'
 import { PlannerSkeleton, PlannerSlotsSkeleton } from '@/components/ui/Skeleton'
 
+/** "Piątek, 10 października" */
+function formatDayTitle(date: Date): string {
+  const text = format(date, 'EEEE, d MMMM', { locale: pl })
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function relativeDayLabel(date: Date): string | null {
+  if (isToday(date)) return 'Dziś'
+  if (isTomorrow(date)) return 'Jutro'
+  if (isYesterday(date)) return 'Wczoraj'
+  return null
+}
+
+/**
+ * Dashboard day planner. Renders its own page header (the selected day lives here),
+ * the week strip, the day's progress, the meals (compact rows below `lg`, a 3-column
+ * grid of cards from `lg`) and the "Dzień" actions card.
+ */
 export default function MealPlanner() {
   const {
     household,
@@ -24,12 +45,8 @@ export default function MealPlanner() {
     weekProgress,
     isLoading,
     householdMembers,
-    copyFromUserId,
-    setCopyFromUserId,
-    sendToUserId,
-    setSendToUserId,
-    copySuccessMsg,
-    sendSuccessMsg,
+    memberUserId,
+    setMemberUserId,
     handleWeekChange,
     handleSelectMeal,
     handleRandomMeal,
@@ -39,48 +56,8 @@ export default function MealPlanner() {
     handleCopyFromMember,
     handleSendDayToMember,
   } = useMealPlan()
-  const sliderRef = useRef<HTMLDivElement>(null)
-
-  function getPlannedMeal(category: MealCategory): MealWithDetails | null {
-    const plan = plannedMeals.find((p) => p.meal_type === category)
-    return plan?.meal || null
-  }
-
-  function isConsumed(category: MealCategory): boolean {
-    const plan = plannedMeals.find((p) => p.meal_type === category)
-    return plan?.is_consumed || false
-  }
-
-  function isSkipped(category: MealCategory): boolean {
-    const plan = plannedMeals.find((p) => p.meal_type === category)
-    return plan?.is_skipped || false
-  }
 
   const categories: MealCategory[] = useMemo(() => getEnabledCategories(userSettings), [userSettings])
-
-  // Scroll to first unconsumed meal when date changes
-  useEffect(() => {
-    if (isLoading || !sliderRef.current) return
-
-    // Find first unconsumed category
-    const firstUnconsumedIndex = categories.findIndex(category => {
-      const plan = plannedMeals.find((p) => p.meal_type === category)
-      return !plan?.is_consumed
-    })
-
-    if (firstUnconsumedIndex >= 0) {
-      const slider = sliderRef.current
-      const firstUnconsumedElement = slider.children[firstUnconsumedIndex] as HTMLElement
-
-      if (firstUnconsumedElement) {
-        firstUnconsumedElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'start'
-        })
-      }
-    }
-  }, [selectedDate, plannedMeals, isLoading, categories])
 
   if (userLoading) {
     return <PlannerSkeleton />
@@ -94,9 +71,32 @@ export default function MealPlanner() {
     )
   }
 
+  const householdId = household.id
+
+  function slotProps(category: MealCategory) {
+    const plan = plannedMeals.find((p) => p.meal_type === category)
+    return {
+      meals: allMeals,
+      category,
+      categoryLabel: CATEGORY_LABELS[category],
+      selectedMeal: plan?.meal ?? null,
+      isConsumed: plan?.is_consumed || false,
+      isSkipped: plan?.is_skipped || false,
+      householdId,
+      onSelectMeal: (meal: Meal) => handleSelectMeal(category, meal),
+      onRandomMeal: () => handleRandomMeal(category),
+      onToggleConsumed: () => handleToggleConsumed(category),
+      onToggleSkipped: () => handleToggleSkipped(category),
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Week navigator */}
+      <PageHeader
+        title={formatDayTitle(selectedDate)}
+        subtitle={relativeDayLabel(selectedDate) ?? household.name}
+      />
+
       <WeekNavigator
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
@@ -104,68 +104,32 @@ export default function MealPlanner() {
         daysProgress={weekProgress}
       />
 
-      {/* Day plan */}
-      <div>
-        {isLoading ? (
-          <PlannerSlotsSkeleton />
-        ) : (
-          <>
-            {/* Mobile slider view */}
-            <div ref={sliderRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 md:pb-4 -mx-4 px-4 scrollbar-hide lg:hidden">
-              {categories.map((category) => (
-                <div key={category} className="flex-none w-[85vw] md:w-[calc(50%-0.5rem)] snap-center">
-                  <MealSlot
-                    meals={allMeals}
-                    category={category}
-                    categoryLabel={CATEGORY_LABELS[category]}
-                    selectedMeal={getPlannedMeal(category)}
-                    isConsumed={isConsumed(category)}
-                    isSkipped={isSkipped(category)}
-                    householdId={household.id}
-                    onSelectMeal={(meal) => handleSelectMeal(category, meal)}
-                    onRandomMeal={() => handleRandomMeal(category)}
-                    onToggleConsumed={() => handleToggleConsumed(category)}
-                    onToggleSkipped={() => handleToggleSkipped(category)}
-                  />
-                </div>
-              ))}
-            </div>
+      {isLoading ? (
+        <PlannerSlotsSkeleton />
+      ) : (
+        <div className="space-y-4">
+          {plannedMeals.length > 0 && <DailySummary plannedMeals={plannedMeals} />}
 
-            {/* Desktop grid view */}
-            <div className="hidden lg:grid grid-cols-3 gap-4">
-              {categories.map((category) => (
-                <div key={category}>
-                  <MealSlot
-                    meals={allMeals}
-                    category={category}
-                    categoryLabel={CATEGORY_LABELS[category]}
-                    selectedMeal={getPlannedMeal(category)}
-                    isConsumed={isConsumed(category)}
-                    isSkipped={isSkipped(category)}
-                    householdId={household.id}
-                    onSelectMeal={(meal) => handleSelectMeal(category, meal)}
-                    onRandomMeal={() => handleRandomMeal(category)}
-                    onToggleConsumed={() => handleToggleConsumed(category)}
-                    onToggleSkipped={() => handleToggleSkipped(category)}
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+          {/* Phones and tablets: compact list, one row per category */}
+          <div className="space-y-2 lg:hidden">
+            {categories.map((category) => (
+              <DayMealRow key={category} {...slotProps(category)} />
+            ))}
+          </div>
 
-      {/* Summary of consumed meals */}
-      {plannedMeals.length > 0 && <DailySummary plannedMeals={plannedMeals} />}
+          {/* Desktop: full cards in a 3-column grid */}
+          <div className="hidden lg:grid grid-cols-3 gap-4">
+            {categories.map((category) => (
+              <MealSlot key={category} {...slotProps(category)} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <DayActions
         householdMembers={householdMembers}
-        copyFromUserId={copyFromUserId}
-        onCopyFromUserIdChange={setCopyFromUserId}
-        sendToUserId={sendToUserId}
-        onSendToUserIdChange={setSendToUserId}
-        copySuccessMsg={copySuccessMsg}
-        sendSuccessMsg={sendSuccessMsg}
+        memberUserId={memberUserId}
+        onMemberUserIdChange={setMemberUserId}
         onDuplicateFromPreviousDay={handleDuplicateFromPreviousDay}
         onCopyFromMember={handleCopyFromMember}
         onSendDayToMember={handleSendDayToMember}

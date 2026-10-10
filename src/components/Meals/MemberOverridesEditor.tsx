@@ -4,6 +4,7 @@ import type { Product } from '@/lib/supabase/client'
 import IngredientRows from './IngredientRows'
 import { selectionTotals, toggleMemberOverride } from './useMealForm'
 import type { HouseholdMember, MemberOverrides, ProductSelection } from './types'
+import Button from '@/components/ui/Button'
 
 /**
  * "Warianty domowników" section: every household member gets a switch; when it is on,
@@ -112,14 +113,14 @@ export default function MemberOverridesEditor({
                   tone="variant"
                   emptyText="Pusty wariant. Dodaj składniki albo skopiuj przepis bazowy."
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setOverrides({ ...overrides, [member.user_id]: baseProducts.map((p) => ({ ...p })) })}
                   disabled={disabled || baseProducts.length === 0}
-                  className="text-xs font-medium text-indigo-700 hover:text-indigo-900 disabled:opacity-50"
                 >
                   Skopiuj przepis bazowy do tego wariantu
-                </button>
+                </Button>
               </div>
             )}
           </div>

@@ -8,6 +8,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { useFeedback } from '@/components/ui/Feedback'
 import { PageHeader } from '@/components/Layout/PageShell'
+import Button from '@/components/ui/Button'
 
 export default function UserSettingsForm() {
   const { user, isLoading: userLoading } = useCurrentUser()
@@ -36,13 +37,9 @@ export default function UserSettingsForm() {
     return (
       <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700 space-y-3">
         <p>Nie udało się wczytać ustawień. Sprawdź połączenie i spróbuj ponownie.</p>
-        <button
-          type="button"
-          onClick={() => void refresh()}
-          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-        >
+        <Button onClick={() => void refresh()}>
           Spróbuj ponownie
-        </button>
+        </Button>
       </div>
     )
   }
@@ -211,7 +208,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="breakfast"
               checked={true}
               disabled
-              className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500 cursor-not-allowed"
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-not-allowed"
             />
             <label htmlFor="breakfast" className="flex-1 text-sm font-medium text-gray-900">
               Śniadanie
@@ -291,24 +288,17 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
         </div>
 
         {/* Submit button */}
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="w-full rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" variant="primary" disabled={isSaving} className="w-full sm:w-auto">
           {isSaving ? 'Zapisywanie...' : 'Zapisz ustawienia'}
-        </button>
+        </Button>
       </form>
 
       {/* Logout button */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Sesja</h3>
-        <button
-          onClick={handleLogout}
-          className="w-full rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-        >
+        <Button variant="danger" onClick={handleLogout} className="w-full sm:w-auto">
           Wyloguj się
-        </button>
+        </Button>
       </div>
     </div>
   )

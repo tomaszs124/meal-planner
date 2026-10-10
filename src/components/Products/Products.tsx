@@ -13,6 +13,7 @@ import { emptyProductForm, getDefaultCategoryName, isProductFormValid, productTo
 import type { ProductFormValues } from './productFormHelpers'
 import { ProductsSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/Layout/PageShell'
+import Button from '@/components/ui/Button'
 
 export default function Products() {
   const { toast, confirm } = useFeedback()
@@ -162,22 +163,16 @@ export default function Products() {
         subtitle="Zarządzaj bazą produktów spożywczych"
         actions={
           <>
-            <button
-              type="button"
-              onClick={() => setShowCategories((v) => !v)}
-              aria-expanded={showCategories}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-            >
+            <Button onClick={() => setShowCategories((v) => !v)} aria-expanded={showCategories}>
               {showCategories ? 'Ukryj kategorie' : 'Kategorie'}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={showAddForm ? 'secondary' : 'primary'}
               onClick={() => setShowAddForm((v) => !v)}
               aria-expanded={showAddForm}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
             >
               {showAddForm ? 'Ukryj formularz' : 'Dodaj produkt'}
-            </button>
+            </Button>
           </>
         }
       />

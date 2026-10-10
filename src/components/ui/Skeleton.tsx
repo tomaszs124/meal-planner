@@ -101,50 +101,72 @@ export function MealsListSkeleton() {
   )
 }
 
-const SLOTS_LAYOUT = 'flex gap-4 overflow-hidden -mx-4 px-4 pb-2 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-3'
-
-function SlotCards() {
+function SlotRows() {
   return (
-    <>
+    <div aria-hidden="true" className="space-y-2 lg:hidden">
       {Array.from({ length: 3 }, (_, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          className="flex-none w-[85vw] md:w-[calc(50%-0.5rem)] lg:w-auto rounded-lg border-2 border-gray-200 bg-white p-4"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-6 w-6 rounded-full" />
+        <div key={i} className="flex flex-col gap-3 rounded-lg border border-l-4 border-gray-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-start gap-3">
+            <Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
+            <div className="flex-1 space-y-2 pt-0.5">
+              <Skeleton className="h-2.5 w-20" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
           </div>
-          <SkeletonCard />
-          <div className="mt-3 flex gap-2">
-            <Skeleton className="h-9 flex-1 rounded-lg" />
-            <Skeleton className="h-9 flex-1 rounded-lg" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 flex-1 rounded-lg sm:w-20 sm:flex-none" />
+            <Skeleton className="h-8 flex-1 rounded-lg sm:w-20 sm:flex-none" />
+            <Skeleton className="h-8 flex-1 rounded-lg sm:w-20 sm:flex-none" />
           </div>
         </div>
       ))}
-    </>
+    </div>
   )
 }
 
-/** Meal slot cards only (mobile: horizontal strip, desktop: 3-column grid). */
+function SlotCards() {
+  return (
+    <div aria-hidden="true" className="hidden lg:grid grid-cols-3 gap-4">
+      {Array.from({ length: 3 }, (_, i) => (
+        <div key={i} className="rounded-lg border-2 border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between mb-3">
+            <Skeleton className="h-5 w-24" />
+          </div>
+          <SkeletonCard />
+          <div className="mt-3 flex gap-2">
+            <Skeleton className="h-8 flex-1 rounded-lg" />
+            <Skeleton className="h-8 flex-1 rounded-lg" />
+            <Skeleton className="h-8 flex-1 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Day plan only (phones/tablets: 3 compact rows, desktop: 3-column grid of cards). */
 export function PlannerSlotsSkeleton() {
   return (
-    <LoadingStatus className={SLOTS_LAYOUT}>
+    <LoadingStatus>
+      <SlotRows />
       <SlotCards />
     </LoadingStatus>
   )
 }
 
-/** Planner: week strip (7 day circles) + meal slot cards. */
+/** Planner: week strip (7 day circles) + day plan. */
 export function PlannerSkeleton() {
   return (
     <LoadingStatus className="space-y-6">
       <div aria-hidden="true" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Skeleton className="h-9 w-9 rounded-lg" />
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-9 w-9 rounded-lg" />
+        <div className="flex items-center gap-2 mb-4">
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <div className="flex flex-1 justify-center">
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-8 w-14 rounded-lg" />
         </div>
         <div className="grid grid-cols-7 gap-1 md:gap-2">
           {Array.from({ length: 7 }, (_, i) => (
@@ -155,7 +177,8 @@ export function PlannerSkeleton() {
           ))}
         </div>
       </div>
-      <div aria-hidden="true" className={SLOTS_LAYOUT}>
+      <div>
+        <SlotRows />
         <SlotCards />
       </div>
     </LoadingStatus>

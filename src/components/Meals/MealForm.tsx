@@ -4,6 +4,7 @@ import { useRef, type ReactNode } from 'react'
 import Image from 'next/image'
 import type { MealCategory, Product, Tag } from '@/lib/supabase/client'
 import { useFeedback } from '@/components/ui/Feedback'
+import Button from '@/components/ui/Button'
 import { MEAL_CATEGORIES } from './mealHelpers'
 import { handleImageChange, selectionTotals, type MealFormState } from './useMealForm'
 import ProductSelectionList from './ProductSelectionList'
@@ -97,26 +98,21 @@ export default function MealForm({
                   {form.imageFile ? 'Nowe zdjęcie (zapisze się z posiłkiem)' : isAdd ? '' : 'Obecne zdjęcie'}
                 </span>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={busy}
-                    className="rounded-md bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-white disabled:opacity-50"
-                  >
+                  <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={busy}>
                     Zmień
-                  </button>
+                  </Button>
                   {(isAdd || form.imageFile) && (
-                    <button
-                      type="button"
+                    <Button
+                      variant={isAdd ? 'danger' : 'secondary'}
+                      size="sm"
                       onClick={() => {
                         form.setImageFile(null)
                         form.setImagePreview(isAdd ? null : form.imageOriginalUrl)
                       }}
                       disabled={busy}
-                      className="rounded-md bg-white/90 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-white disabled:opacity-50"
                     >
                       {isAdd ? 'Usuń' : 'Cofnij'}
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -302,21 +298,12 @@ export default function MealForm({
           )}
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            className="flex-1 sm:flex-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
-          >
+          <Button onClick={onCancel} disabled={busy} className="flex-1 sm:flex-none">
             Anuluj
-          </button>
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="flex-1 sm:flex-none rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
+          </Button>
+          <Button type="submit" variant="primary" disabled={!canSubmit} className="flex-1 sm:flex-none">
             {busy ? 'Zapisywanie...' : isAdd ? 'Dodaj posiłek' : 'Zapisz zmiany'}
-          </button>
+          </Button>
         </div>
       </div>
     </form>

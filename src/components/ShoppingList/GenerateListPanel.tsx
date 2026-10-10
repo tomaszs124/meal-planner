@@ -4,6 +4,7 @@ import { format, parseISO } from 'date-fns'
 import type { HouseholdMember } from './types'
 import { getMemberDisplayName } from './shoppingListUtils'
 import DateRangePicker from './DateRangePicker'
+import Button from '@/components/ui/Button'
 
 /**
  * "Generuj z planów posiłków" panel: date range, household member selection
@@ -82,13 +83,9 @@ export default function GenerateListPanel({
       </div>
 
       {/* Generate button */}
-      <button
-        onClick={onGenerate}
-        disabled={isGenerating || selectedMembers.length === 0}
-        className="w-full rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-      >
+      <Button variant="primary" fullWidth onClick={onGenerate} disabled={isGenerating || selectedMembers.length === 0}>
         {isGenerating ? 'Generowanie...' : 'Generuj listę zakupów'}
-      </button>
+      </Button>
 
       {showGenerateSuccess && (
         <div className="rounded-lg border border-green-100 bg-green-50 px-3 py-2 text-xs text-green-800">

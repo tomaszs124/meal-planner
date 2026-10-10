@@ -5,6 +5,8 @@ import {
   UNCATEGORIZED_LABEL,
   getGroupedItemAmountLabel,
   getMemberDisplayName,
+  getPurchaseProgress,
+  getRelatedMeals,
   getSingleItemAmountLabel,
   groupByCategory,
   groupItems,
@@ -253,5 +255,41 @@ describe('groupByCategory', () => {
     ])
     expect(groups.map((g) => g.key)).toEqual(['__uncategorized__'])
     expect(groups[0].groupedItems.map((g) => g.name).sort()).toEqual(['Chleb', 'Ocet', 'Sól'])
+  })
+})
+
+describe('getRelatedMeals', () => {
+  it('lists each (meal, member) pair of the grouped row once, in first-seen order', () => {
+    const owsianka = meal('m1', 'Owsianka')
+    const omlet = meal('m2', 'Omlet')
+    const items = [
+      item({ id: 'a', meal_id: 'm1', meal: owsianka, source_user_id: 'u1' }),
+      item({ id: 'b', meal_id: 'm1', meal: owsianka, source_user_id: 'u1' }),
+      item({ id: 'c', meal_id: 'm1', meal: owsianka, source_user_id: 'u2' }),
+      item({ id: 'd', meal_id: 'm2', meal: omlet, source_user_id: 'u1' }),
+      item({ id: 'e' }),
+    ]
+    const result = getRelatedMeals(items, grouped({ itemIds: ['a', 'b', 'c', 'e'] }))
+    expect(result.map((r) => `${r.meal.id}:${r.source_user_id}`)).toEqual(['m1:u1', 'm1:u2'])
+  })
+
+  it('returns an empty list for custom items', () => {
+    expect(getRelatedMeals([item({ id: 'x' })], grouped({ itemIds: ['x'] }))).toEqual([])
+  })
+})
+
+describe('getPurchaseProgress', () => {
+  it('counts rows like the product view and reports whether anything is checked', () => {
+    const items = [
+      item({ product_id: 'p1', name: 'Jajka', is_checked: true }),
+      item({ product_id: 'p1', name: 'Jajka', is_checked: false }),
+      item({ name: 'Chleb', is_checked: false }),
+    ]
+    expect(getPurchaseProgress(items)).toEqual({ bought: 1, total: 3, anyChecked: true })
+  })
+
+  it('handles an empty or untouched list', () => {
+    expect(getPurchaseProgress([])).toEqual({ bought: 0, total: 0, anyChecked: false })
+    expect(getPurchaseProgress([item()])).toEqual({ bought: 0, total: 1, anyChecked: false })
   })
 })

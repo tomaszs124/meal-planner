@@ -2,6 +2,8 @@
 
 import { addDays, startOfWeek, format, isSameDay, isToday } from 'date-fns'
 import { pl } from 'date-fns/locale'
+import Button from '@/components/ui/Button'
+import { ChevronLeftIcon, ChevronRightIcon } from './icons'
 
 type DayProgress = {
   dateString: string  // Changed from Date to string
@@ -27,30 +29,30 @@ export default function WeekNavigator({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <button
+      <div className="mb-4 flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<ChevronLeftIcon />}
           onClick={() => onWeekChange('prev')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Poprzedni tydzień"
-        >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        />
 
-        <div className="text-sm font-semibold text-gray-900">
+        <div className="min-w-0 flex-1 text-center text-sm font-semibold text-gray-900">
           {format(weekStart, 'd MMM', { locale: pl })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: pl })}
         </div>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<ChevronRightIcon />}
           onClick={() => onWeekChange('next')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Następny tydzień"
-        >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+        />
+        {/* Disabled rather than hidden so the header does not jump when today gets selected */}
+        <Button size="sm" className="ml-1 shrink-0" disabled={isToday(selectedDate)} onClick={() => onDateSelect(new Date())}>
+          Dziś
+        </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 md:gap-2">

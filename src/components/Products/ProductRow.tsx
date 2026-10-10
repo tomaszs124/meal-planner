@@ -1,6 +1,7 @@
 'use client'
 
 import type { Product, ProductCategoryRecord } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
 import ProductForm from './ProductForm'
 import { PACKAGE_UNIT_LABEL, unitLabel, type ProductFormValues, type UnitType } from './productFormHelpers'
 
@@ -90,18 +91,12 @@ export default function ProductRow({
                 )}
               </div>
             )}
-            <button
-              onClick={onStartEdit}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
-            >
+            <Button variant="ghost" size="sm" onClick={onStartEdit} aria-label={`Edytuj ${product.name}`}>
               Edytuj
-            </button>
-            <button
-              onClick={onDelete}
-              className="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 transition-colors"
-            >
+            </Button>
+            <Button variant="danger" size="sm" onClick={onDelete} aria-label={`Usuń ${product.name}`}>
               Usuń
-            </button>
+            </Button>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useFeedback } from '@/components/ui/Feedback'
+import Button from '@/components/ui/Button'
 
 type HouseholdMember = {
   user_id: string
@@ -226,12 +227,9 @@ export default function CustomLists() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900">Moje listy</h3>
-        <button
-          onClick={() => setShowNewListForm((v) => !v)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
-        >
+        <Button size="sm" aria-expanded={showNewListForm} onClick={() => setShowNewListForm((v) => !v)}>
           {showNewListForm ? 'Anuluj' : '+ Nowa lista'}
-        </button>
+        </Button>
       </div>
 
       {/* New list form */}
@@ -274,13 +272,9 @@ export default function CustomLists() {
               </div>
             </div>
           )}
-          <button
-            type="submit"
-            disabled={isCreating || !newListName.trim()}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
+          <Button type="submit" variant="primary" fullWidth disabled={isCreating || !newListName.trim()}>
             {isCreating ? 'Tworzenie...' : 'Utwórz listę'}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -352,24 +346,21 @@ export default function CustomLists() {
               <div className="flex items-center gap-1 flex-shrink-0">
                 {editingListId === list.id ? (
                   <>
-                    <button onClick={() => saveListName(list)} className="text-xs text-green-600 hover:text-green-700 px-2 py-1 rounded hover:bg-green-50 transition-colors font-medium">Zapisz</button>
-                    <button onClick={() => setEditingListId(null)} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors">Anuluj</button>
+                    <Button variant="primary" size="sm" onClick={() => saveListName(list)}>Zapisz</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingListId(null)}>Anuluj</Button>
                   </>
                 ) : (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { setEditingListId(list.id); setEditListName(list.name) }}
-                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                   >
                     Zmień nazwę
-                  </button>
+                  </Button>
                 )}
-                <button
-                  onClick={() => deleteList(list.id)}
-                  aria-label={`Usuń listę ${list.name}`}
-                  className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                >
+                <Button variant="danger" size="sm" onClick={() => deleteList(list.id)} aria-label={`Usuń listę ${list.name}`}>
                   Usuń
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -433,25 +424,24 @@ export default function CustomLists() {
                             <p className="text-xs text-gray-500 mt-0.5">{item.quantity}</p>
                           )}
                         </div>
-                        <button
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          className="flex-shrink-0"
                           onClick={(e) => { e.stopPropagation(); deleteItem(list.id, item.id) }}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
                           aria-label={`Usuń ${item.name}`}
                         >
                           Usuń
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
                 )}
 
                 {checkedCount > 0 && (
-                  <button
-                    onClick={() => clearChecked(list.id)}
-                    className="text-xs text-gray-500 hover:text-gray-700 underline"
-                  >
+                  <Button variant="danger" size="sm" onClick={() => clearChecked(list.id)}>
                     Usuń odhaczone ({checkedCount})
-                  </button>
+                  </Button>
                 )}
 
                 {/* Add item form */}
@@ -472,13 +462,9 @@ export default function CustomLists() {
                     aria-label="Ilość"
                     className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <button
-                    type="submit"
-                    disabled={isAddingItem[list.id] || !newItemName[list.id]?.trim()}
-                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                  >
+                  <Button type="submit" size="sm" disabled={isAddingItem[list.id] || !newItemName[list.id]?.trim()}>
                     Dodaj
-                  </button>
+                  </Button>
                 </form>
               </div>
             )}
