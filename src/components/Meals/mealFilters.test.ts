@@ -37,6 +37,7 @@ const meal = (
   totalProtein: 0,
   totalFat: 0,
   totalCarbs: 0,
+  pickCount: 0,
   ...overrides,
 })
 

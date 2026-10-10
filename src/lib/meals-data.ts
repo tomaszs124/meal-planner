@@ -32,9 +32,12 @@ export type MealWithDetails = Meal & {
   totalProtein: number
   totalFat: number
   totalCarbs: number
+  /** Times the meal was put into a day plan (view meal_pick_counts); 0 when unknown */
+  pickCount: number
 }
 
 export type MealTagRow = { meal_id: string; tag_id: string; tags: Tag | null }
+export type MealPickCountRow = { meal_id: string; picks: number }
 
 /** Pure assembly step, exported for tests. */
 export function assembleMeals(
@@ -42,8 +45,10 @@ export function assembleMeals(
   baseItems: MealItemWithProduct[],
   userOverrides: MealItemWithProduct[],
   images: MealImage[],
-  tagRows: MealTagRow[]
+  tagRows: MealTagRow[],
+  pickCounts: MealPickCountRow[] = []
 ): MealWithDetails[] {
+  const picksByMeal = new Map(pickCounts.map((row) => [row.meal_id, row.picks]))
   const itemsByMeal = groupBy(baseItems, (i) => i.meal_id)
   const overridesByMeal = groupBy(userOverrides, (i) => i.meal_id)
   const imagesByMeal = groupBy(images, (i) => i.meal_id)
@@ -67,6 +72,7 @@ export function assembleMeals(
       totalProtein: totals.protein,
       totalFat: totals.fat,
       totalCarbs: totals.carbs,
+      pickCount: picksByMeal.get(meal.id) ?? 0,
     }
   })
 }
@@ -93,7 +99,7 @@ export async function fetchMealsWithDetails(
 
   const mealIds = meals.map((m) => m.id)
 
-  const [baseItems, overrides, images, tagRows] = await Promise.all([
+  const [baseItems, overrides, images, tagRows, pickCounts] = await Promise.all([
     inChunks(mealIds, (ids) =>
       supabase.from('meal_items').select('*, product:products(*)').in('meal_id', ids)
     ),
@@ -116,6 +122,19 @@ export async function fetchMealsWithDetails(
         return [] as unknown[]
       }
     ),
+    // "Most picked" sort: counts come from the meal_pick_counts view (docs/add-meal-pick-counts.sql).
+    // Until the migration is run the query fails and every meal counts as 0.
+    supabase
+      .from('meal_pick_counts')
+      .select('meal_id, picks')
+      .eq('household_id', householdId)
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('meal_pick_counts unavailable (run docs/add-meal-pick-counts.sql); sorting by picks disabled', error.message)
+          return [] as MealPickCountRow[]
+        }
+        return (data || []) as MealPickCountRow[]
+      }),
   ])
 
   return assembleMeals(
@@ -123,7 +142,8 @@ export async function fetchMealsWithDetails(
     baseItems as unknown as MealItemWithProduct[],
     overrides as unknown as MealItemWithProduct[],
     images as unknown as MealImage[],
-    tagRows as unknown as MealTagRow[]
+    tagRows as unknown as MealTagRow[],
+    pickCounts
   )
 }
 

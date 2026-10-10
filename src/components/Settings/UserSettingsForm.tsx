@@ -10,6 +10,8 @@ import { useFeedback } from '@/components/ui/Feedback'
 import { PageHeader } from '@/components/Layout/PageShell'
 import Button from '@/components/ui/Button'
 import { useTheme, type Theme } from '@/lib/theme'
+import { useDefaultMealSort } from '@/lib/preferences'
+import { MEAL_SORT_OPTIONS } from '@/lib/meal-sort'
 
 export default function UserSettingsForm() {
   const { user, isLoading: userLoading } = useCurrentUser()
@@ -297,6 +299,9 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
       {/* Appearance (stored per device in localStorage, see src/lib/theme.ts) */}
       <ThemeCard />
 
+      {/* Default sort of meal lists (per device, like the theme) */}
+      <MealSortCard />
+
       {/* Logout button */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Sesja</h3>
@@ -336,6 +341,44 @@ function ThemeCard() {
             >
               {option.label}
               <span className="block text-[11px] font-normal text-gray-500 dark:text-gray-400">{option.hint}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function MealSortCard() {
+  const [sort, setSort] = useDefaultMealSort()
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1 dark:text-gray-100">Sortowanie posiłków</h3>
+      <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">
+        Domyślna kolejność na liście posiłków i przy wyborze dania do planu. Zapamiętywana na tym urządzeniu.
+      </p>
+      <div role="radiogroup" aria-label="Domyślne sortowanie posiłków" className="space-y-1">
+        {MEAL_SORT_OPTIONS.map((option) => {
+          const active = sort === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setSort(option.value)}
+              className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                active ? 'bg-brand-50 dark:bg-brand-950/60' : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span
+                className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${active ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                aria-hidden="true"
+              />
+              <span>
+                <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">{option.label}</span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400">{option.hint}</span>
+              </span>
             </button>
           )
         })}

@@ -1,6 +1,7 @@
 import type { Tag } from '@/lib/supabase/client'
 import { MEAL_CATEGORIES } from './mealHelpers'
 import Button from '@/components/ui/Button'
+import SortMenu from '@/components/ui/SortMenu'
 import type { MealFiltersState } from './useMealFilters'
 
 // Search box + meal type + tag filter card
@@ -14,18 +15,23 @@ export default function MealFilters({ filters, tags }: { filters: MealFiltersSta
     setSelectedTags,
     toggleCategoryFilter,
     toggleTagFilter,
+    sort,
+    setSort,
   } = filters
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-      <input
-        type="search"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Wyszukaj posiłek..."
-        aria-label="Wyszukaj posiłek"
-        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
-      />
+      <div className="flex gap-2">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Wyszukaj posiłek..."
+          aria-label="Wyszukaj posiłek"
+          className="min-w-0 flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+        <SortMenu value={sort} onChange={setSort} />
+      </div>
 
       <div>
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ posiłku:</p>
