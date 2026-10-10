@@ -43,10 +43,10 @@ function Thumbnail({ meal, favorite = false }: { meal: MealWithDetails | null; f
     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
       {favorite && (
         <span
-          className="absolute left-0.5 top-0.5 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
+          className="absolute left-0.5 top-0.5 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
           title="Ulubione"
         >
-          <HeartIcon filled className="h-2.5 w-2.5" />
+          <HeartIcon filled className="h-3 w-3" />
         </span>
       )}
       {/* Placeholder sits underneath; a broken image hides itself and reveals it */}

@@ -30,10 +30,10 @@ export default function MealCard({
       <div className="relative">
         {isFavorite && (
           <span
-            className="absolute left-1 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm backdrop-blur-sm dark:bg-gray-900/80"
+            className="absolute left-1 top-1 z-10 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm backdrop-blur-sm dark:bg-gray-900/80"
             title="Ulubione"
           >
-            <HeartIcon filled className="h-3.5 w-3.5" />
+            <HeartIcon filled className="h-4 w-4" />
           </span>
         )}
       {meal.images && meal.images.length > 0 ? (
