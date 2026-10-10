@@ -50,10 +50,10 @@ export default function MealRow({
         {/* favourite indicator on the thumbnail; toggling happens in the details modal */}
         {isFavorite ? (
           <span
-            className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
+            className="absolute left-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow-sm dark:bg-gray-900/80"
             title="Ulubione"
           >
-            <HeartIcon filled className="h-3 w-3" />
+            <HeartIcon filled className="h-2.5 w-2.5" />
           </span>
         ) : null}
       </div>
