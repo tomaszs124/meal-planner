@@ -1,11 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
-import { pl } from 'date-fns/locale'
 import type { Meal, MealCategory } from '@/lib/supabase/client'
 import { getEnabledCategories } from '@/lib/plan'
-import { PageHeader } from '@/components/Layout/PageShell'
 import WeekNavigator from './WeekNavigator'
 import MealSlot from './MealSlot'
 import DayMealRow from './DayMealRow'
@@ -15,23 +12,10 @@ import { CATEGORY_LABELS } from './types'
 import { useMealPlan } from './useMealPlan'
 import { PlannerSkeleton, PlannerSlotsSkeleton } from '@/components/ui/Skeleton'
 
-/** "Piątek, 10 października" */
-function formatDayTitle(date: Date): string {
-  const text = format(date, 'EEEE, d MMMM', { locale: pl })
-  return text.charAt(0).toUpperCase() + text.slice(1)
-}
-
-function relativeDayLabel(date: Date): string | null {
-  if (isToday(date)) return 'Dziś'
-  if (isTomorrow(date)) return 'Jutro'
-  if (isYesterday(date)) return 'Wczoraj'
-  return null
-}
-
 /**
- * Dashboard day planner. Renders its own page header (the selected day lives here),
- * the week strip, the day's progress, the meals (compact rows below `lg`, a 3-column
- * grid of cards from `lg`) and the "Dzień" actions card.
+ * Dashboard day planner: the week strip (which also shows the selected day), the day's
+ * progress, the meals (compact rows below `lg`, a 3-column grid of cards from `lg`) and
+ * the "Dzień" actions card. No page header: the owner wanted the screen to start with the week.
  */
 export default function MealPlanner() {
   const {
@@ -92,11 +76,6 @@ export default function MealPlanner() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={formatDayTitle(selectedDate)}
-        subtitle={relativeDayLabel(selectedDate) ?? household.name}
-      />
-
       <WeekNavigator
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
