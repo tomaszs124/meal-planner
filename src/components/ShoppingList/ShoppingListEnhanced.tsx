@@ -15,6 +15,7 @@ import GroupedItemRow from './GroupedItemRow'
 import CategoryView from './CategoryView'
 import DishView from './DishView'
 import { ShoppingListSkeleton } from '@/components/ui/Skeleton'
+import { PageHeader } from '@/components/Layout/PageShell'
 
 export default function ShoppingListEnhanced() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
@@ -42,6 +43,9 @@ export default function ShoppingListEnhanced() {
   const [activeProductTooltip, setActiveProductTooltip] = useState<string | null>(null)
   const [expandedCategoryGroupKey, setExpandedCategoryGroupKey] = useState<string | null>(null)
   const [editingServings, setEditingServings] = useState<Record<string, string>>({})
+  // The generate panel is the first thing on an empty list; once a list exists it hides behind a header button
+  const [showGenerate, setShowGenerate] = useState<boolean | null>(null)
+  const generateOpen = showGenerate ?? items.length === 0
 
   function openMealModal(meal: ShoppingListMeal, sourceUserId: string | null) {
     setModalMeal({
@@ -53,9 +57,7 @@ export default function ShoppingListEnhanced() {
 
   if (userLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-4">
-        <ShoppingListSkeleton />
-      </div>
+      <ShoppingListSkeleton />
     )
   }
 
@@ -68,16 +70,27 @@ export default function ShoppingListEnhanced() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Lista zakupów</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Generuj listę z planów posiłków lub dodawaj własne produkty
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Lista zakupów"
+        subtitle="Generuj listę z planów posiłków lub dodawaj własne produkty"
+        actions={
+          <button
+            type="button"
+            onClick={() => setShowGenerate(!generateOpen)}
+            aria-expanded={generateOpen}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              generateOpen
+                ? 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                : 'bg-blue-600 text-white hover:bg-blue-500'
+            }`}
+          >
+            {generateOpen ? 'Ukryj generowanie' : 'Generuj z planu'}
+          </button>
+        }
+      />
 
-      <GenerateListPanel
+      {generateOpen && <GenerateListPanel
         startDate={startDate}
         endDate={endDate}
         onStartChange={setStartDate}
@@ -90,45 +103,27 @@ export default function ShoppingListEnhanced() {
         isGenerating={isGenerating}
         showGenerateSuccess={showGenerateSuccess}
         onGenerate={() => generateFromMealPlans(selectedMembers, startDate, endDate)}
-      />
+      />}
 
       {/* View options */}
-      <div className="flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex gap-2">
+      <div role="group" aria-label="Widok listy" className="grid grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1">
+        {([
+          ['category', 'Kategorie'],
+          ['dish', 'Dania'],
+          ['product', 'Produkty'],
+        ] as [GroupBy, string][]).map(([value, label]) => (
           <button
-            onClick={() => setGroupBy('category')}
-            aria-pressed={groupBy === 'category'}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              groupBy === 'category'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            key={value}
+            type="button"
+            onClick={() => setGroupBy(value)}
+            aria-pressed={groupBy === value}
+            className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              groupBy === value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Wg kategorii
+            {label}
           </button>
-          <button
-            onClick={() => setGroupBy('dish')}
-            aria-pressed={groupBy === 'dish'}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              groupBy === 'dish'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Wg dania
-          </button>
-          <button
-            onClick={() => setGroupBy('product')}
-            aria-pressed={groupBy === 'product'}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              groupBy === 'product'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Wszystkie produkty
-          </button>
-        </div>
+        ))}
       </div>
 
       {/* Shopping list items */}

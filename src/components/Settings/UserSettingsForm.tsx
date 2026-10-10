@@ -7,6 +7,7 @@ import { supabase, UserSettings } from '@/lib/supabase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { useFeedback } from '@/components/ui/Feedback'
+import { PageHeader } from '@/components/Layout/PageShell'
 
 export default function UserSettingsForm() {
   const { user, isLoading: userLoading } = useCurrentUser()
@@ -14,7 +15,7 @@ export default function UserSettingsForm() {
 
   if (userLoading || isLoading) {
     return (
-      <div role="status" aria-live="polite" className="p-4 space-y-4">
+      <div role="status" aria-live="polite" className="space-y-4">
         <span className="sr-only">Ładowanie...</span>
         <Skeleton className="h-10 w-full" />
         <SkeletonText lines={4} />
@@ -155,15 +156,11 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Ustawienia konta</h2>
-        <p className="text-sm text-gray-500 mt-1">Dostosuj plan żywieniowy do swoich potrzeb</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Ustawienia konta" subtitle="Dostosuj plan żywieniowy do swoich potrzeb" />
 
       {/* Form */}
-      <form onSubmit={saveSettings} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+      <form onSubmit={saveSettings} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 space-y-6">
         {/* Name input */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
@@ -304,7 +301,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
       </form>
 
       {/* Logout button */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Sesja</h3>
         <button
           onClick={handleLogout}

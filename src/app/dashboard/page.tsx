@@ -4,6 +4,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import MealPlanner from '@/components/MealPlanner/MealPlanner'
 import { PlannerSkeleton, Skeleton } from '@/components/ui/Skeleton'
+import { PageHeader, PageShell } from '@/components/Layout/PageShell'
 
 export default function DashboardPage() {
   const { user, household, isLoading } = useCurrentUser()
@@ -12,17 +13,13 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 space-y-3" aria-hidden="true">
-            <Skeleton className="h-9 w-56" />
-            <Skeleton className="h-4 w-40" />
-          </div>
-          <div className="mb-8">
-            <PlannerSkeleton />
-          </div>
+      <PageShell wide>
+        <div className="space-y-3" aria-hidden="true">
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-4 w-40" />
         </div>
-      </div>
+        <PlannerSkeleton />
+      </PageShell>
     )
   }
 
@@ -35,25 +32,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Witaj{userSettings?.name ? `, ${userSettings.name}` : ''}!
-          </h1>
-          {household && (
-            <p className="text-sm text-gray-600 mt-2">
-              Gospodarstwo: <span className="font-medium">{household.name}</span>
-            </p>
-          )}
-        </div>
-
-        {/* Meal Planner */}
-        <div className="mb-8">
-          <MealPlanner />
-        </div>
-      </div>
-    </div>
+    <PageShell wide>
+      <PageHeader
+        title={`Witaj${userSettings?.name ? `, ${userSettings.name}` : ''}!`}
+        subtitle={household && (
+          <>
+            Gospodarstwo: <span className="font-medium text-gray-700">{household.name}</span>
+          </>
+        )}
+      />
+      <MealPlanner />
+    </PageShell>
   )
 }

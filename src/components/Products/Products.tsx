@@ -12,6 +12,7 @@ import { useProductCategories } from './useProductCategories'
 import { emptyProductForm, getDefaultCategoryName, isProductFormValid, productToFormValues, toProductPayload } from './productFormHelpers'
 import type { ProductFormValues } from './productFormHelpers'
 import { ProductsSkeleton } from '@/components/ui/Skeleton'
+import { PageHeader } from '@/components/Layout/PageShell'
 
 export default function Products() {
   const { toast, confirm } = useFeedback()
@@ -32,6 +33,9 @@ export default function Products() {
   const [activeTooltipId, setActiveTooltipId] = useState<string | null>(null)
   // Filter state
   const [searchQuery, setSearchQuery] = useState('')
+  // Category manager and the add form are tucked behind header buttons so the list comes first
+  const [showCategories, setShowCategories] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>('')
 
   // Keep the category selected in the add/edit forms valid when categories change.
@@ -139,9 +143,7 @@ export default function Products() {
 
   if (userLoading || isLoading || productsLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-4">
-        <ProductsSkeleton />
-      </div>
+      <ProductsSkeleton />
     )
   }
 
@@ -154,29 +156,52 @@ export default function Products() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Produkty</h2>
-        <p className="text-sm text-gray-500 mt-1">Zarządzaj bazą produktów spożywczych</p>
-      </div>
-
-      <CategoryManager
-        categories={categories}
-        isAddingCategory={isAddingCategory}
-        onAdd={addCategory}
-        onRename={renameCategory}
-        onDelete={deleteCategory}
+    <div className="space-y-6">
+      <PageHeader
+        title="Produkty"
+        subtitle="Zarządzaj bazą produktów spożywczych"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowCategories((v) => !v)}
+              aria-expanded={showCategories}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              {showCategories ? 'Ukryj kategorie' : 'Kategorie'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAddForm((v) => !v)}
+              aria-expanded={showAddForm}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
+            >
+              {showAddForm ? 'Ukryj formularz' : 'Dodaj produkt'}
+            </button>
+          </>
+        }
       />
 
-      <ProductForm
-        mode="add"
-        values={newForm}
-        onChange={(patch) => setNewForm((current) => ({ ...current, ...patch }))}
-        categories={categories}
-        isSubmitting={isAdding}
-        onSubmit={addProduct}
-      />
+      {showCategories && (
+        <CategoryManager
+          categories={categories}
+          isAddingCategory={isAddingCategory}
+          onAdd={addCategory}
+          onRename={renameCategory}
+          onDelete={deleteCategory}
+        />
+      )}
+
+      {showAddForm && (
+        <ProductForm
+          mode="add"
+          values={newForm}
+          onChange={(patch) => setNewForm((current) => ({ ...current, ...patch }))}
+          categories={categories}
+          isSubmitting={isAdding}
+          onSubmit={addProduct}
+        />
+      )}
 
       <ProductList
         products={products}

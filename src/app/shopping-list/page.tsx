@@ -1,11 +1,12 @@
 'use client'
 
 import ShoppingListEnhanced from '@/components/ShoppingList/ShoppingListEnhanced'
+import { PageShell } from '@/components/Layout/PageShell'
 
 export default function ShoppingListPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <PageShell>
       <ShoppingListEnhanced />
-    </div>
+    </PageShell>
   )
 }

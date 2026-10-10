@@ -13,6 +13,7 @@ import { useMealFilters } from './useMealFilters'
 import { loadMealIntoForm, useMealFormState } from './useMealForm'
 import type { MealWithItems } from './types'
 import { MealsListSkeleton } from '@/components/ui/Skeleton'
+import { PageHeader } from '@/components/Layout/PageShell'
 
 export default function Meals() {
   const { user, household, isLoading: userLoading } = useCurrentUser()
@@ -55,9 +56,7 @@ export default function Meals() {
 
   if (userLoading || isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-4">
-        <MealsListSkeleton />
-      </div>
+      <MealsListSkeleton />
     )
   }
 
@@ -72,28 +71,27 @@ export default function Meals() {
   const { filteredMeals, selectedCategories, setSelectedTags, setSearchQuery } = filters
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Posiłki</h2>
-          <p className="text-sm text-gray-500 mt-1">Twórz przepisy z produktów</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowTagManagement(!showTagManagement)}
-            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors"
-          >
-            {showTagManagement ? 'Ukryj' : 'Zarządzaj tagami'}
-          </button>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
-          >
-            Dodaj posiłek
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Posiłki"
+        subtitle="Twórz przepisy z produktów"
+        actions={
+          <>
+            <button
+              onClick={() => setShowTagManagement(!showTagManagement)}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              {showTagManagement ? 'Ukryj tagi' : 'Zarządzaj tagami'}
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors"
+            >
+              Dodaj posiłek
+            </button>
+          </>
+        }
+      />
 
       {/* Tag Management */}
       {showTagManagement && (
