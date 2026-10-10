@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Meal, MealImage, Product, Tag } from '@/lib/supabase/client'
 import { supabase } from '@/lib/supabase/client'
 import { calculateNutrition, formatAmount } from '@/lib/nutrition'
+import Button from '@/components/ui/Button'
 
 type MealItem = {
   product?: Product
@@ -32,6 +33,7 @@ type MealWithDetails = Meal & {
 type HouseholdMember = {
   user_id: string
   display_name: string | null
+  isMe: boolean
 }
 
 type MealDetailsModalProps = {
@@ -112,7 +114,8 @@ export default function MealDetailsModal({
         }
 
         const allUserIds = membersData.map((m: { user_id: string }) => m.user_id)
-        const userIds = userId ? allUserIds.filter((id: string) => id !== userId) : allUserIds
+        // every member, the signed-in user first: the footer shows one avatar per person
+        const userIds = [...allUserIds].sort((a: string, b: string) => Number(b === userId) - Number(a === userId))
 
         if (userIds.length === 0) {
           setHouseholdMembers([])
@@ -131,11 +134,12 @@ export default function MealDetailsModal({
 
         const nameMap = new Map((namesData || []).map((s: { user_id: string; name: string | null }) => [s.user_id, s.name]))
 
-        const members: HouseholdMember[] = userIds.map((userId: string) => {
-          const name = nameMap.get(userId)
+        const members: HouseholdMember[] = userIds.map((memberId: string) => {
+          const name = nameMap.get(memberId)
           return {
-            user_id: userId,
+            user_id: memberId,
             display_name: name || null,
+            isMe: memberId === userId,
           }
         })
 
@@ -355,39 +359,6 @@ export default function MealDetailsModal({
                 </div>
             </div>
 
-            {showVariantSelector && householdMembers.length > 0 && (
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Wersja</span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setSelectedVariantUserId(userId ?? null)}
-                    aria-pressed={selectedVariantUserId === (userId ?? null)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      selectedVariantUserId === (userId ?? null)
-                        ? 'bg-brand-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-brand-500'
-                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
-                    }`}
-                  >
-                    Mój przepis
-                  </button>
-                  {householdMembers.map((member) => (
-                    <button
-                      key={member.user_id}
-                      onClick={() => setSelectedVariantUserId(member.user_id)}
-                      aria-pressed={selectedVariantUserId === member.user_id}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        selectedVariantUserId === member.user_id
-                          ? 'bg-indigo-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-indigo-500'
-                          : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
-                      }`}
-                    >
-                      {member.display_name || 'Brak nazwy'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {displayItems === undefined ? (
               <ul className="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-3" aria-busy="true" aria-label="Ładowanie składników">
                 {[0, 1, 2, 3].map((i) => (
@@ -449,42 +420,52 @@ export default function MealDetailsModal({
           )}
         </div>
 
-        <div className="sticky bottom-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+        <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
+            {showVariantSelector && householdMembers.length > 1 && (
+              <div role="group" aria-label="Wersja przepisu" className="flex items-center -space-x-1">
+                {householdMembers.map((member) => {
+                  const name = member.display_name || (member.isMe ? 'Ja' : '?')
+                  const active = selectedVariantUserId === member.user_id
+                  return (
+                    <button
+                      key={member.user_id}
+                      type="button"
+                      onClick={() => setSelectedVariantUserId(member.user_id)}
+                      aria-pressed={active}
+                      aria-label={`Wersja: ${name}`}
+                      title={member.isMe ? `${name} (mój przepis)` : name}
+                      className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-sm font-bold transition-all dark:border-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                        active
+                          ? 'z-10 bg-brand-400 text-gray-900 shadow-md shadow-brand-500/30 scale-110'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {name.charAt(0).toUpperCase()}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+            {actions && <div className="flex gap-2">{actions}</div>}
+          </div>
           {onSelectMeal ? (
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 rounded-lg bg-gray-200 dark:bg-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              >
-                Anuluj
-              </button>
-              <button
+            <div className="flex gap-2">
+              <Button onClick={onClose}>Anuluj</Button>
+              <Button
+                variant="primary"
                 onClick={() => {
                   onSelectMeal(meal)
                   onClose()
                 }}
-                className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
               >
                 Wybierz ten posiłek
-              </button>
-            </div>
-          ) : actions ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex gap-2">{actions}</div>
-              <button
-                onClick={onClose}
-                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
-              >
-                Zamknij
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
-              onClick={onClose}
-              className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
-            >
+            <Button variant="primary" onClick={onClose}>
               Zamknij
-            </button>
+            </Button>
           )}
         </div>
       </div>
