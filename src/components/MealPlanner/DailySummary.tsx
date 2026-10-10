@@ -40,15 +40,27 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
   ]
 
   return (
-    <section aria-label="Podsumowanie dnia" className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+    <section
+      aria-label="Podsumowanie dnia"
+      className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 shadow-sm"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
+        <div>
           Zjedzone{' '}
-          <span className="font-semibold text-gray-900 dark:text-gray-100">{formatNumber(consumed.kcal)}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{formatNumber(consumed.kcal)}</span>
           {' / '}
-          {formatNumber(planned.kcal)} kcal
+          <span className="tabular-nums">{formatNumber(planned.kcal)}</span> kcal
+          <span className={`ml-1.5 font-semibold ${done ? 'text-green-700 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>{percent}%</span>
         </div>
-        <div className={`text-xs font-semibold ${done ? 'text-green-700' : 'text-gray-500'}`}>{percent}%</div>
+        <div className="tabular-nums">
+          {macros.map(([label, eaten, total], i) => (
+            <span key={label}>
+              {i > 0 && ' · '}
+              {label} <span className="font-medium text-gray-700 dark:text-gray-300">{formatNumber(eaten)}</span>/{formatNumber(total)}
+            </span>
+          ))}
+          <span className="ml-0.5">g</span>
+        </div>
       </div>
       <div
         role="progressbar"
@@ -56,20 +68,12 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.min(100, percent)}
-        className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
+        className="mt-1.5 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
       >
         <div
           className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-green-500' : 'bg-blue-600'}`}
           style={{ width: `${Math.min(100, percent)}%` }}
         />
-      </div>
-      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        {macros.map(([label, eaten, total], i) => (
-          <span key={label}>
-            {i > 0 && ' · '}
-            {label} <span className="font-medium text-gray-700 dark:text-gray-300">{formatNumber(eaten)}</span>/{formatNumber(total)} g
-          </span>
-        ))}
       </div>
     </section>
   )

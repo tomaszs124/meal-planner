@@ -61,7 +61,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50 safe-area-bottom">
+    <nav aria-label="Nawigacja główna" className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50 safe-area-bottom">
       <div className="max-w-screen-xl mx-auto px-2">
         <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
@@ -74,17 +74,17 @@ export default function BottomNav() {
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-colors ${
                   isActive
-                    ? 'text-blue-600'
-                    : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-blue-300 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="relative">
                   {item.icon}
                   {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
                   )}
                 </div>
-                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-blue-600' : 'text-gray-600'}`}>
+                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-200'}`}>
                   {item.label}
                 </span>
               </Link>

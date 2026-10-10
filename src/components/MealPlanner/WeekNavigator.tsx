@@ -28,8 +28,8 @@ export default function WeekNavigator({
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-      <div className="mb-4 flex items-center gap-1">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+      <div className="mb-2 flex items-center gap-1">
         <Button
           variant="ghost"
           size="sm"
