@@ -96,7 +96,7 @@ export default function ProductPicker({
           aria-label={label}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:text-gray-500"
+          className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:text-gray-500"
         >
           <span className="truncate">{current?.name ?? 'Nieznany produkt'}</span>
           <svg className="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -111,7 +111,7 @@ export default function ProductPicker({
           aria-label={label}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/60 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-brand-300 dark:border-brand-700 bg-brand-50/60 px-3 py-2 text-sm font-medium text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
         >
           {addLabel}
         </button>
@@ -136,7 +136,7 @@ export default function ProductPicker({
               role="combobox"
               aria-expanded="true"
               autoComplete="off"
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <ul ref={listRef} id={listId} role="listbox" className="max-h-60 overflow-y-auto py-1">
@@ -156,7 +156,7 @@ export default function ProductPicker({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => choose(product)}
                     className={`flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer ${
-                      active ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'
+                      active ? 'bg-brand-50 dark:bg-brand-950 text-brand-900 dark:text-brand-100' : 'text-gray-900 dark:text-gray-100'
                     } ${selected ? 'font-semibold' : ''}`}
                   >
                     <span className="truncate">{product.name}</span>

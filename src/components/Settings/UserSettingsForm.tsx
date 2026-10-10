@@ -171,7 +171,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Twoje imię"
             maxLength={100}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             To imię będzie wyświetlane w wiadomościach powitalnych i na listach domowników
@@ -190,7 +190,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             rows={5}
             maxLength={2000}
             placeholder={'Np.\n- na śniadanie maks 2 jajka\n- bez laktozy\n- obiad do 600 kcal'}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-y"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Asystent AI (konektor MCP) bierze te zasady pod uwagę, gdy proponuje posiłki i plan dla Ciebie.
@@ -209,7 +209,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="breakfast"
               checked={true}
               disabled
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-not-allowed"
+              className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-not-allowed"
             />
             <label htmlFor="breakfast" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">
               Śniadanie
@@ -224,7 +224,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="second-breakfast"
               checked={secondBreakfastEnabled}
               onChange={(e) => setSecondBreakfastEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-pointer"
             />
             <label htmlFor="second-breakfast" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Drugie śniadanie
@@ -238,7 +238,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="lunch"
               checked={lunchEnabled}
               onChange={(e) => setLunchEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-pointer"
             />
             <label htmlFor="lunch" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Obiad
@@ -252,7 +252,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="dinner"
               checked={dinnerEnabled}
               onChange={(e) => setDinnerEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-pointer"
             />
             <label htmlFor="dinner" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Kolacja
@@ -266,7 +266,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
               id="snack"
               checked={snackEnabled}
               onChange={(e) => setSnackEnabled(e.target.checked)}
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-pointer"
             />
             <label htmlFor="snack" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
               Przekąska
@@ -281,7 +281,7 @@ function UserSettingsFields({ settings, save }: UserSettingsFieldsProps) {
             id="snack-enabled"
             checked={snackEnabled}
             onChange={(e) => setSnackEnabled(e.target.checked)}
-            className="w-5 h-5 text-blue-600 dark:text-blue-400 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="w-5 h-5 text-brand-600 dark:text-brand-400 rounded focus:ring-2 focus:ring-brand-500 cursor-pointer"
           />
           <label htmlFor="snack-enabled" className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer">
             Aktywuj przekąskę w planie żywieniowym

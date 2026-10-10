@@ -140,8 +140,8 @@ export default function DateRangePicker({
                   className={`
                     p-2 text-sm rounded transition-colors
                     ${!isCurrentMonth ? 'text-gray-300' : 'text-gray-700 dark:text-gray-300'}
-                    ${isStart || isEnd ? 'bg-blue-600 text-white font-bold' : ''}
-                    ${isInRange && !isStart && !isEnd ? 'bg-blue-100 dark:bg-blue-900' : ''}
+                    ${isStart || isEnd ? 'bg-brand-600 text-white font-bold' : ''}
+                    ${isInRange && !isStart && !isEnd ? 'bg-brand-100 dark:bg-brand-900' : ''}
                     ${isCurrentMonth && !isInRange ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : ''}
                   `}
                 >

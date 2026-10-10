@@ -10,7 +10,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 export type Theme = 'light' | 'dark'
 
 export const THEME_STORAGE_KEY = 'meal-planner-theme'
-const THEME_COLOR: Record<Theme, string> = { light: '#2563eb', dark: '#111827' }
+const THEME_COLOR: Record<Theme, string> = { light: '#138066', dark: '#0f172a' }
 
 const listeners = new Set<() => void>()
 

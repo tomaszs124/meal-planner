@@ -298,7 +298,7 @@ export default function MealDetailsModal({
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex flex-wrap items-center gap-1.5 text-sm" aria-label="Wartości odżywcze">
-              <span className="rounded bg-blue-100 dark:bg-blue-900 px-2.5 py-1 font-semibold text-blue-800 dark:text-blue-200 tabular-nums">
+              <span className="rounded bg-brand-100 dark:bg-brand-900 px-2.5 py-1 font-semibold text-brand-800 dark:text-brand-200 tabular-nums">
                 {Math.round(displayKcal * servings)} kcal
               </span>
               <span className="rounded bg-green-100 dark:bg-green-900 px-2 py-1 text-green-800 dark:text-green-200 tabular-nums">B: {(macros.protein * servings).toFixed(1)} g</span>
@@ -364,7 +364,7 @@ export default function MealDetailsModal({
                     aria-pressed={selectedVariantUserId === (userId ?? null)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       selectedVariantUserId === (userId ?? null)
-                        ? 'bg-blue-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-blue-500'
+                        ? 'bg-brand-600 text-white ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-brand-500'
                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
                     }`}
                   >
@@ -463,7 +463,7 @@ export default function MealDetailsModal({
                   onSelectMeal(meal)
                   onClose()
                 }}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
               >
                 Wybierz ten posiłek
               </button>
@@ -473,7 +473,7 @@ export default function MealDetailsModal({
               <div className="flex gap-2">{actions}</div>
               <button
                 onClick={onClose}
-                className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
               >
                 Zamknij
               </button>
@@ -481,7 +481,7 @@ export default function MealDetailsModal({
           ) : (
             <button
               onClick={onClose}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
             >
               Zamknij
             </button>

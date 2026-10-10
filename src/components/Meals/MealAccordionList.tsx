@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import type { MealCategory } from '@/lib/supabase/client'
 import { MEAL_CATEGORIES } from './mealHelpers'
 import MealCard from './MealCard'
+import MealRow from './MealRow'
 import type { MealWithItems } from './types'
 
 // Accordion-grouped meal list
@@ -88,11 +89,20 @@ export default function MealAccordionList({
               </svg>
             </button>
             {isOpen && (
-              <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {meals.map(meal => (
-                  <MealCard key={meal.id} meal={meal} onClick={onMealClick} />
-                ))}
-              </div>
+              <>
+                {/* Phones: compact rows with the full name (same look as the day list) */}
+                <div className="divide-y divide-gray-100 dark:divide-gray-700 sm:hidden">
+                  {meals.map(meal => (
+                    <MealRow key={meal.id} meal={meal} onClick={onMealClick} />
+                  ))}
+                </div>
+                {/* Tablet and up: card grid */}
+                <div className="hidden p-3 sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {meals.map(meal => (
+                    <MealCard key={meal.id} meal={meal} onClick={onMealClick} />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )

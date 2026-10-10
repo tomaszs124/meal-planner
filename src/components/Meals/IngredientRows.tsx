@@ -124,7 +124,7 @@ export function NutritionSummary({
   const chip = size === 'md' ? 'px-2.5 py-1 text-sm' : 'px-2 py-0.5 text-xs'
   return (
     <div className="flex flex-wrap items-center gap-1.5" aria-label="Wartości odżywcze">
-      <span className={`rounded bg-blue-100 dark:bg-blue-900 font-semibold text-blue-800 dark:text-blue-200 ${chip}`}>{Math.round(totals.kcal)} kcal</span>
+      <span className={`rounded bg-brand-100 dark:bg-brand-900 font-semibold text-brand-800 dark:text-brand-200 ${chip}`}>{Math.round(totals.kcal)} kcal</span>
       {totals.protein > 0 && <span className={`rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 ${chip}`}>B: {totals.protein.toFixed(1)} g</span>}
       {totals.fat > 0 && <span className={`rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 ${chip}`}>T: {totals.fat.toFixed(1)} g</span>}
       {totals.carbs > 0 && <span className={`rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 ${chip}`}>W: {totals.carbs.toFixed(1)} g</span>}
@@ -170,7 +170,7 @@ function AmountInput({
       }}
       onBlur={() => setText(formatAmountInput(value))}
       onFocus={(e) => e.target.select()}
-      className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2.5 py-2 text-right text-sm text-gray-900 dark:text-gray-100 tabular-nums focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+      className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2.5 py-2 text-right text-sm text-gray-900 dark:text-gray-100 tabular-nums focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
     />
   )
 }

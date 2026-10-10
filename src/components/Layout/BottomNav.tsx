@@ -74,17 +74,17 @@ export default function BottomNav() {
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-colors ${
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-blue-300 dark:hover:bg-gray-800'
+                    ? 'text-brand-600 dark:text-brand-400'
+                    : 'text-gray-600 hover:text-brand-500 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-brand-300 dark:hover:bg-gray-800'
                 }`}
               >
                 <div className="relative">
                   {item.icon}
                   {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-brand-600 dark:bg-brand-400 rounded-full"></div>
                   )}
                 </div>
-                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-200'}`}>
+                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-gray-200'}`}>
                   {item.label}
                 </span>
               </Link>

@@ -158,7 +158,7 @@ export default function MealPickerModal({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Szukaj po nazwie lub składnikach..."
             aria-label="Szukaj po nazwie lub składnikach"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
 
           {/* Tags filter */}
@@ -172,7 +172,7 @@ export default function MealPickerModal({
                     aria-pressed={selectedTags.includes(tag.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedTags.includes(tag.id)
-                        ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-blue-500 opacity-100'
+                        ? 'ring-2 ring-offset-2 dark:ring-offset-gray-900 ring-brand-500 opacity-100'
                         : 'opacity-60 hover:opacity-100'
                     }`}
                     style={{ 
@@ -266,7 +266,7 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
   return (
     <button
       onClick={onShowDetails}
-      className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all"
+      className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-950 transition-all"
     >
       <div className="flex items-start gap-3">
         {/* Meal image thumbnail */}
@@ -315,7 +315,7 @@ function MealCard({ meal, onShowDetails }: { meal: MealWithDetails; onShowDetail
           )}
         </div>
         {meal.totalKcal !== undefined && (
-          <span className="ml-2 text-sm font-semibold text-blue-600 dark:text-blue-400 flex-shrink-0">
+          <span className="ml-2 text-sm font-semibold text-brand-600 dark:text-brand-400 flex-shrink-0">
             {Math.round(meal.totalKcal)} kcal
           </span>
         )}

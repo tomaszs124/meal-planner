@@ -64,7 +64,7 @@ export default function MealForm({
   }
 
   const inputClass =
-    'w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700'
+    'w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-gray-100 dark:disabled:bg-gray-700'
 
   return (
     <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -122,7 +122,7 @@ export default function MealForm({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={busy}
-              className="flex w-full flex-col items-center justify-center gap-1 border-b-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-8 text-sm text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="flex w-full flex-col items-center justify-center gap-1 border-b-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-8 text-sm text-gray-600 dark:text-gray-400 hover:border-brand-400 hover:bg-brand-50/50 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
             >
               <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5M16.5 7.5L12 3m0 0L7.5 7.5M12 3v13.5" />
@@ -210,8 +210,8 @@ export default function MealForm({
                     onClick={() => choosePrimary(cat.value)}
                     aria-pressed={active}
                     disabled={busy}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
-                      active ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:opacity-50 ${
+                      active ? 'bg-brand-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {cat.label}
@@ -234,9 +234,9 @@ export default function MealForm({
                     onClick={() => toggleAlternative(cat.value)}
                     aria-pressed={active}
                     disabled={busy}
-                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 ${
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:opacity-50 ${
                       active
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                        ? 'border-brand-600 bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300'
                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
@@ -259,8 +259,8 @@ export default function MealForm({
                   return (
                     <label
                       key={tag.id}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium cursor-pointer transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-1 ${
-                        active ? 'ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-blue-500' : 'opacity-60 hover:opacity-100'
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium cursor-pointer transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-1 ${
+                        active ? 'ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-brand-500' : 'opacity-60 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: tag.color, color: tag.text_color }}
                     >

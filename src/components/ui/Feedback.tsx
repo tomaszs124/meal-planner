@@ -177,7 +177,7 @@ function ConfirmDialog({ state, onClose }: { state: ConfirmState; onClose: (valu
             type="button"
             onClick={() => onClose(true)}
             className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-              state.danger ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
+              state.danger ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-600 hover:bg-brand-700'
             }`}
           >
             {state.confirmLabel || 'OK'}

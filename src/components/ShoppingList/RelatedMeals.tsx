@@ -21,7 +21,7 @@ export default function RelatedMeals({
           key={`${meal.id}:${source_user_id || ''}`}
           type="button"
           onClick={() => onOpenMeal(meal, source_user_id)}
-          className="w-full flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="w-full flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950 transition-colors text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           {meal.images && meal.images.length > 0 ? (
             <div

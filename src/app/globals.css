@@ -3,21 +3,45 @@
 /* Dark mode is opt-in via the `dark` class on <html> (set from Ustawienia), not the OS preference. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Palette. Change the look of the whole app here:
+ *  - `brand`: the accent (buttons, links, selected states, progress). A sea-green teal,
+ *    deliberately not the default Tailwind blue. Used in code as `brand-*` utilities.
+ *  - `gray`: overridden with Tailwind's slate scale for cooler, more modern neutrals,
+ *    so every existing `gray-*` utility picks it up without touching components.
+ */
+@theme {
+  --color-brand-50: #effaf6;
+  --color-brand-100: #d6f4e8;
+  --color-brand-200: #afe8d3;
+  --color-brand-300: #79d4b7;
+  --color-brand-400: #40ba97;
+  --color-brand-500: #1d9e7e;
+  --color-brand-600: #138066;
+  --color-brand-700: #126653;
+  --color-brand-800: #125143;
+  --color-brand-900: #104338;
+  --color-brand-950: #072620;
+
+  --color-gray-50: oklch(98.4% 0.003 247.858);
+  --color-gray-100: oklch(96.8% 0.007 247.896);
+  --color-gray-200: oklch(92.9% 0.013 255.508);
+  --color-gray-300: oklch(86.9% 0.022 252.894);
+  --color-gray-400: oklch(70.4% 0.04 256.788);
+  --color-gray-500: oklch(55.4% 0.046 257.417);
+  --color-gray-600: oklch(44.6% 0.043 257.281);
+  --color-gray-700: oklch(37.2% 0.044 257.287);
+  --color-gray-800: oklch(27.9% 0.041 260.031);
+  --color-gray-900: oklch(20.8% 0.042 265.755);
+  --color-gray-950: oklch(12.9% 0.042 264.695);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 

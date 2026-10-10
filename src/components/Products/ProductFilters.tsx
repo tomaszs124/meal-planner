@@ -29,7 +29,7 @@ export default function ProductFilters({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Np. jajka, mleko..."
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="sm:w-56">
@@ -38,7 +38,7 @@ export default function ProductFilters({
             id="product-filter-category"
             value={filterCategory}
             onChange={(e) => onFilterCategoryChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
             <option value="">Wszystkie kategorie</option>
             {categories.map((category) => (

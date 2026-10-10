@@ -51,7 +51,7 @@ export default function GroupedItemRow({
             void onToggle(groupedItem)
           }
         }}
-        className={`bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+        className={`bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
           isExpanded ? 'rounded-t-lg border-b-0' : 'rounded-lg'
         }`}
       >
@@ -64,7 +64,7 @@ export default function GroupedItemRow({
             e.stopPropagation()
             void onToggle(groupedItem)
           }}
-          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-2 focus:ring-brand-500 cursor-pointer"
         />
         <div className="flex-1 min-w-0 flex items-start gap-2">
           <div className="min-w-0">

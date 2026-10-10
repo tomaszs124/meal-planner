@@ -50,7 +50,7 @@ export default function GenerateListPanel({
       />
 
       {generatedRange && (
-        <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 px-3 py-2 text-xs text-blue-800 dark:text-blue-200">
+        <div className="rounded-lg border border-brand-100 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 px-3 py-2 text-xs text-brand-800 dark:text-brand-200">
           Aktualna lista została wygenerowana dla: 
           <span className="font-semibold"> {format(parseISO(generatedRange.startDate), 'dd.MM.yyyy')} - {format(parseISO(generatedRange.endDate), 'dd.MM.yyyy')}</span>
         </div>
@@ -71,7 +71,7 @@ export default function GenerateListPanel({
                 type="checkbox"
                 checked={selectedMembers.includes(member.user_id)}
                 onChange={() => toggleMember(member.user_id)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-2 focus:ring-brand-500"
               />
               <span className="text-sm text-gray-900 dark:text-gray-100">
                 {getMemberDisplayName(member)}

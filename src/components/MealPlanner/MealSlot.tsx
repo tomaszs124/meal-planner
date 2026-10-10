@@ -78,7 +78,7 @@ export default function MealSlot({
           <div
             role="button"
             tabIndex={0}
-            className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             onClick={() => setShowDetailsModal(true)}
             onKeyDown={(e) => {
               // Only the card itself; Enter/Space on the nested action buttons keep their own click

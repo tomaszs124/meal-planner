@@ -68,7 +68,7 @@ export default function CategoryManager({
           placeholder="Np. Przyprawy"
           aria-label="Nazwa nowej kategorii"
           disabled={isAddingCategory}
-          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
         />
         <Button type="submit" disabled={isAddingCategory || !newCategoryName.trim()}>
           {isAddingCategory ? 'Dodawanie...' : 'Dodaj kategorię'}
@@ -88,7 +88,7 @@ export default function CategoryManager({
                     value={editingCategoryName}
                     onChange={(e) => setEditingCategoryName(e.target.value)}
                     aria-label="Nazwa kategorii"
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <Button variant="primary" size="sm" onClick={() => saveCategoryEdit(category)}>
                     Zapisz

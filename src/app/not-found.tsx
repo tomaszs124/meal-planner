@@ -8,7 +8,7 @@ export default function NotFound() {
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Adres jest nieprawidłowy albo strona została przeniesiona.</p>
         <Link
           href="/dashboard"
-          className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="mt-5 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
         >
           Wróć do planu
         </Link>

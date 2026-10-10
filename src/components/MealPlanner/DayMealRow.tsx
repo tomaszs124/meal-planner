@@ -97,7 +97,7 @@ export default function DayMealRow({
             role="button"
             tabIndex={0}
             aria-label={`${categoryLabel}: ${selectedMeal.name}. Pokaż szczegóły`}
-            className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             onClick={() => setShowDetailsModal(true)}
             onKeyDown={(e) => {
               if (e.repeat) return

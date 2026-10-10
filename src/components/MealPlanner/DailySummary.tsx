@@ -71,7 +71,7 @@ export default function DailySummary({ plannedMeals }: DailySummaryProps) {
         className="mt-1.5 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
       >
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-green-500' : 'bg-blue-600'}`}
+          className={`h-full rounded-full transition-[width] duration-300 ${done ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-brand-600 to-brand-400'}`}
           style={{ width: `${Math.min(100, percent)}%` }}
         />
       </div>

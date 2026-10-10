@@ -76,7 +76,7 @@ export default function MealGroupCard({
                       onOpenMeal(mealGroup.meal, mealGroup.source_user_id)
                     }
                   }}
-                  className="text-left font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="text-left font-semibold text-gray-900 dark:text-gray-100 hover:text-brand-600 transition-colors cursor-pointer"
                 >
                   {mealGroup.meal?.name || 'Nieznane danie'} ({getMemberDisplayNameByUserId(mealGroup.source_user_id)})
                 </button>
@@ -124,7 +124,7 @@ export default function MealGroupCard({
                 void updateMealServings(mealGroup, next)
               }}
               disabled={updatingServingsKey !== null}
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               −
             </button>
@@ -153,7 +153,7 @@ export default function MealGroupCard({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') e.currentTarget.blur()
               }}
-              className="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-40 disabled:cursor-not-allowed"
             />
             <button
               type="button"
@@ -164,7 +164,7 @@ export default function MealGroupCard({
                 void updateMealServings(mealGroup, next)
               }}
               disabled={updatingServingsKey !== null}
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-bold text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               +
             </button>
@@ -192,7 +192,7 @@ export default function MealGroupCard({
                   void toggleSingleItem(item)
                 }
               }}
-              className={`flex items-center gap-3 py-2 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              className={`flex items-center gap-3 py-2 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                 item.is_checked ? 'opacity-60' : 'opacity-100'
               }`}
             >
@@ -205,7 +205,7 @@ export default function MealGroupCard({
                   e.stopPropagation()
                   void toggleSingleItem(item)
                 }}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-2 focus:ring-brand-500 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <p

@@ -76,14 +76,14 @@ export default function WeekNavigator({
               className={`
                 flex flex-col items-center p-1 md:p-2 rounded-lg transition-all border-2
                 ${isSelected
-                  ? 'border-blue-600'
+                  ? 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/20 dark:bg-brand-950/60 dark:shadow-brand-400/10'
                   : isCurrentDay
-                  ? 'border-blue-400'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  ? 'border-brand-300 dark:border-brand-700 hover:border-brand-400'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }
               `}
             >
-              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
+              <span className={`text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 ${isSelected ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-gray-400'}`}>
                 {format(day, 'EEE', { locale: pl })}
               </span>
               
@@ -119,7 +119,7 @@ export default function WeekNavigator({
                 </svg>
                 
                 {/* Day number */}
-                <span className={`relative text-base md:text-lg font-bold z-10 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                <span className={`relative text-base md:text-lg font-bold z-10 ${isSelected ? 'text-brand-600 dark:text-brand-400' : 'text-gray-900 dark:text-gray-100'}`}>
                   {format(day, 'd')}
                 </span>
               </div>

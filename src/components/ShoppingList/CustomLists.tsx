@@ -243,7 +243,7 @@ export default function CustomLists() {
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
               placeholder="Np. Rossmann, Castorama..."
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
               autoFocus
             />
           </div>
@@ -262,7 +262,7 @@ export default function CustomLists() {
                           e.target.checked ? [...prev, m.user_id] : prev.filter((id) => id !== m.user_id)
                         )
                       }}
-                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-brand-500"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300">
                       {m.user_id === user?.id ? `${m.name || 'Ja'} (ja)` : m.name || 'Bez nazwy'}
@@ -321,7 +321,7 @@ export default function CustomLists() {
                         if (e.key === 'Escape') setEditingListId(null)
                       }}
                       autoFocus
-                      className="flex-1 rounded border border-blue-400 px-2 py-0.5 text-sm text-black dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+                      className="flex-1 rounded border border-brand-400 px-2 py-0.5 text-sm text-black dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 min-w-0"
                     />
                     <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{items.length} poz.</span>
                   </>
@@ -378,7 +378,7 @@ export default function CustomLists() {
                             onClick={(e) => e.stopPropagation()}
                             checked={list.visible_to.includes(m.user_id)}
                             onChange={(e) => updateVisibility(list, m.user_id, e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-brand-500"
                           />
                           <span className="text-xs text-gray-700 dark:text-gray-300">
                             {m.user_id === user?.id ? `${m.name || 'Ja'} (ja)` : m.name || 'Bez nazwy'}
@@ -406,7 +406,7 @@ export default function CustomLists() {
                             toggleItem(list.id, item)
                           }
                         }}
-                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
+                        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${item.is_checked ? 'opacity-60' : 'opacity-100'}`}
                       >
                         <input
                           type="checkbox"
@@ -414,7 +414,7 @@ export default function CustomLists() {
                           checked={item.is_checked}
                           aria-label={item.name}
                           onChange={(e) => { e.stopPropagation(); toggleItem(list.id, item) }}
-                          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          className="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-brand-600 dark:text-brand-400 focus:ring-2 focus:ring-brand-500 cursor-pointer"
                         />
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${item.is_checked ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
@@ -452,7 +452,7 @@ export default function CustomLists() {
                     onChange={(e) => setNewItemName((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Nazwa produktu"
                     aria-label="Nazwa produktu"
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <input
                     type="text"
@@ -460,7 +460,7 @@ export default function CustomLists() {
                     onChange={(e) => setNewItemQty((prev) => ({ ...prev, [list.id]: e.target.value }))}
                     placeholder="Ilość"
                     aria-label="Ilość"
-                    className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-black dark:text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <Button type="submit" size="sm" disabled={isAddingItem[list.id] || !newItemName[list.id]?.trim()}>
                     Dodaj
