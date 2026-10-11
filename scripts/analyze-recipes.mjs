@@ -407,7 +407,7 @@ export function analyze(data, { householdId = null } = {}) {
       alternative_categories: meal.alternative_categories || [],
       tags: (tagsByMeal.get(meal.id) || []).map((mt) => tagById.get(mt.tag_id)?.name).filter(Boolean),
       base: { kcal: baseKcal, protein: baseProtein },
-      per_member: perMember.map(({ items, ...rest }) => rest),
+      per_member: perMember.map(({ user_id, name, uses_override, kcal, protein }) => ({ user_id, name, uses_override, kcal, protein })),
       ingredients,
     })
   }
